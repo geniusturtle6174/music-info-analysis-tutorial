@@ -1,0 +1,22 @@
+body{margin:20px 30px 20px 30px;}
+
+a{text-decoration:none;color:blue}
+a:hover{text-decoration:none;color:red}
+.myTitle{font-size:17pt;font-family:"標楷體","DFKai-sb"}
+ol, ul{font-size:12pt;font-family:"新細明體";margin-top:0;margin-bottom:0;}
+
+.small{font-size:1pt}
+
+.otherInfo{width:50%;}
+
+table,tr,td{border-collapse:collapse;}
+
+table.tutor{border:solid 2px;}
+th.tutor{border:solid 2px;background-color:#ffff99;}
+td.tutor{border:solid 2px;background-color:#eeffff;padding:4px;}
+
+th.slide{border:solid 1px;padding:4px;}
+tr.slide{border:solid 1px;background-color:#eeffff;}
+td.slide{border:solid 1px;background-color:#eeffff;padding:4px;}
+
+.newbie{display: none}
