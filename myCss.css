@@ -15,8 +15,9 @@ table.tutor{border:solid 2px;}
 th.tutor{border:solid 2px;background-color:#ffff99;}
 td.tutor{border:solid 2px;background-color:#eeffff;padding:4px;}
 
-th.slide{border:solid 1px;padding:4px;}
-tr.slide{border:solid 1px;background-color:#eeffff;}
-td.slide{border:solid 1px;background-color:#eeffff;padding:4px;}
+table.slide th{border:solid 1px;padding:4px;background-color:#ffff99;}
+table.slide tr{border:solid 1px;background-color:#eeffff;}
+table.slide .slideGpTop{border-top:solid 3px;background-color:#eeffff;}
+table.slide td{border:solid 1px;background-color:#eeffff;padding:4px;}
 
 .newbie{display: none}
