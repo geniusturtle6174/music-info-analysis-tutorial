@@ -1,0 +1,263 @@
+﻿<html>
+<head>
+	<title>線上教材：音樂資訊分析</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<link rel=stylesheet type="text/css" href="myCss.css">
+	<base target="_blank">
+	<script type="text/javascript" src="shCore.js"></script>
+	<script type="text/javascript" src="shBrushPython.js"></script>
+	<link href="shCore.css" rel="stylesheet" type="text/css" />
+	<link href="shThemeDefault.css" rel="stylesheet" type="text/css" />
+	<script type="text/javascript">
+		SyntaxHighlighter.all();
+	</script>
+</head>
+
+<body bgcolor="#ccccff">
+
+<blockquote>
+
+<p>本篇將開始介紹如何用 Python 來讀取及處理音訊，並會簡單說明如何對聲音三要素（音量、頻率、音色）進行分析。</p>
+
+<p>首先是讀取音訊。<a href="pics/intro/hello.wav">這裡</a>是一個 16 kHz 16 bits，長度約 1.1 秒的單聲道音檔，內容是 hello 這個英文單字。我們可以用以下的程式讀取該音檔，以及畫出其波形：</p>
+<pre class="brush: python">
+import matplotlib.pyplot as plt
+import numpy as np
+import scipy.io.wavfile
+
+fs, y = scipy.io.wavfile.read('hello.wav')
+print(fs, y.dtype, y.shape)
+print(np.min(y), np.max(y))
+
+t = np.arange(y.shape[0]) / fs
+plt.plot(t, y)
+plt.xlabel('Time (s)')
+plt.ylabel('Raw Val')
+plt.show()
+</pre>
+
+<p>上述程式的細節說明如下</p>
+<ul>
+    <li>matplotlib、numpy、scipy 是第三方函式庫，必須使用 pip 指令來安裝，使用何種版本在本篇中沒有差異，可以直接安裝最新版。</li>
+    <li>scipy.io.wavfile.read 是用來讀取 wav 檔案，其輸出依序是取樣率及音訊本身，而每個取樣點占用的容量，會對應到不同的資料型態及數值範圍，例如每個點若是 16 bit，則會以 16 位元整數來表示，範圍是 -32768 到 32767。</li>
+    <li>如果要從取樣點的位置（陣列索引值），將它換算成時間（秒），則可以將位置除以取樣頻率。</li>
+    <li>scipy.io.wavfile.read 只是讀取音檔的眾多方法之一，如果你想要處理 mp3 等其他格式，或者進行比較進階的後續處理，可以使用其它函式庫，但音檔資訊輸出的順序及值的意義可能就會有所不同。</li>
+</ul>
+
+<p>我們也可以將音訊進行簡單的處理以後再存檔，例如將音檔進行反轉播放。此處使用的是<a href="pics/intro/we_you.wav">另外一個音檔</a>，內容是 we 以及 you 這兩個英文單字。</p>
+<pre class="brush: python">
+import scipy.io.wavfile
+
+fs, y = scipy.io.wavfile.read('we_you.wav')
+y = y[::-1]
+scipy.io.wavfile.write('reversed.wav', fs, y)
+</pre>
+
+<p>你會發現在上述範例中，反轉過來的音檔聽起來跟原本的內容也很相似，不過這是極少數反轉後還有意義的範例，絕大多數情況會像<a href="https://www.youtube.com/watch?v=BVT-2USkhMk">這個影片</a>一樣，反轉的發音聽起來像是外星語言。</p>
+
+<p>如果你想要對音訊開始進行一點分析，則通常需要把音訊切成許多個小片段，稱為音框(frame)，作為分析的最小單位。Frame 的大小(frame size)是一個重要的分析參數；如果太小，則根本無法代表什麼內容（可以想像一下最極端的，只取一個點的狀況）；如果太大，則比這個「最小單位」還要細微的變化，就會被忽略掉。通常來說，我們需要讓 frame size 在兩個基本周期以上，例如你知道分析對象的音訊頻率在 100 Hz 左右，則至少需要 1 / 100 n/sec * 2 = 0.02 秒的音訊長度來做為一個 frame。對於人類的講話或唱歌的音訊，我們可以取 0.032 或 0.064 秒為一個 frame，如果取樣率是 16 kHz，則相當於 512 或 1024 個取樣點。如果你需要分析大象或鯨豚等低頻或變化緩慢的音訊，則可能需要長一點的 frame；而分析蝙蝠等高頻或變化快速的聲音時，則可能需要短一點的 frame。</p>
+
+<p>音量是聲音的三要素之一，你可能還記得它的單位是分貝，但在電腦上分析時，我們也可以簡單粗暴地把 frame 當中所有取樣點的絕對值加起來，作為這個 frame 的音量。以下這個範例，會簡單粗暴的計算一個音檔各個位置的音量，並將音量曲線顯示成圖片。音量計算完成後，可以用於其他後續應用，例如把靜音的片段剪掉等等。</p>
+<pre class="brush: python">
+import matplotlib.pyplot as plt
+import numpy as np
+import scipy.io.wavfile
+
+FRAME_SIZE = 512
+HOP_SIZE = 256
+fs, y = scipy.io.wavfile.read('hello.wav')
+
+t_wav = np.arange(y.shape[0]) / fs
+y = y / 32768
+
+volumes = []
+t_frame = []
+for i in range(0, y.shape[0], HOP_SIZE):
+    if i + FRAME_SIZE > y.shape[0]:
+        break
+    frame = y[i:i+FRAME_SIZE]
+    volumes.append(np.sum(np.abs(frame)))
+    t_frame.append(i/fs)
+
+plt.subplot(2, 1, 1)
+plt.plot(t_wav, y)
+plt.xlabel('Time (s)')
+plt.ylabel('Raw Value')
+
+plt.subplot(2, 1, 2)
+plt.plot(t_frame, volumes)
+plt.xlabel('Time (s)')
+plt.ylabel('Volume')
+
+plt.show()
+</pre>
+
+<p>上述程式的細節說明如下</p>
+<ul>
+    <li>FRAME_SIZE 是 frame 的大小，HOP_SIZE 是相鄰兩個 frame 的起點之間要間隔多少，程式中的單位是取樣點的數量。一般來說，frames 之間重疊的密集一些，代表我們可以分析比較精細的變化，但是運算量也會變大。</li>
+    <li>為了後續分析的數值在易控制的範圍內，通常會把音訊的原始值縮放到 &plusmn;1 之間。其他函式庫例如 librosa 會自動幫你處理這些細節，但這邊也要再次提醒，其他函式庫的輸出順序可能會跟 scipy 不一樣。</li>
+    <li>承上，librosa 等函式庫也可以幫你計算音量，不用自己寫迴圈。</li>
+</ul>
+
+<p>音高，或者是頻率，是另一個聲音的要素。真實世界的訊號可能複雜一些，我們稍後再來看；但如果想要產生特定頻率的正弦波音訊就非常簡單，使用 sin(2 * &pi; * f * t) 這個公式就可以辦到，其中的 f 是你想要的頻率(Hz)，t 則是時間(sec)。以下範例是一個產生長度兩秒鐘的 440 Hz 正弦波並存檔的程式。其中，乘以 0.8 是為了控制音量，而乘以 32,768 則是為了還原回 16 位元整數存檔時應有的範圍：</p>
+<pre class="brush: python">
+import numpy as np
+import scipy.io.wavfile
+
+DUR = 2
+F = 440
+FS = 16000
+
+t = np.arange(DUR * FS) / FS
+y = np.sin(2 * np.pi * F * t) * 0.8 * 32768
+
+scipy.io.wavfile.write('sine.wav', FS, y.astype('int16'))
+</pre>
+
+<p>也許你已經知道關於音高的兩個事實：一是人耳對頻率變化的敏感度不同，在低頻時只要頻率變化一點點，例如 10 Hz，就能察覺不同，但同樣的變化量到了高頻就不一定能察覺；二是人耳的聽覺範圍大約是 20 到 20,000 Hz，但隨著年紀衰退，人耳的聽力會從高頻開始退化，所以同樣一個高頻音檔，十幾二十歲的人也許聽的到，四五十歲的人可能就聽不到。如果你想要產生音檔來實際測試看看的話，可以直接使用上述的程式，但請記得把<b>取樣頻率改為你想產生的頻率的兩倍以上，例如 44.1 kHz</b>。</p>
+
+<p>反過來說，如果你有了一個聲音訊號，想要回推出它的頻率，但是手邊沒有調音器等工具，自己又沒有絕對音感的話，也可以從波形去回推。我們把前一個範例的寫出檔案改成畫出圖形，你就可以進行局部放大，並觀察一或多個週期經過了幾個取樣點，並經由取樣頻率來推算出音訊頻率。例如，取樣點 20,009 到 20,191 經過了 5 個週期，你也知道取樣頻率是 16 kHz，因此推得的音訊頻率是 16000 / ((20191 - 20009) / 5) = 439.56 Hz。雖然由於取樣等因素而會有些許誤差，但已與實際值相當接近。</p>
+<pre class="brush: python">
+import matplotlib.pyplot as plt
+import numpy as np
+
+DUR = 2
+F = 440
+FS = 16000
+
+t = np.arange(DUR * FS) / FS
+y = np.sin(2 * np.pi * F * t) * 0.8 * 32768
+
+plt.plot(y, '.-')
+plt.xlabel('Sample Index')
+plt.ylabel('Raw Value')
+plt.show()
+</pre>
+
+<p>真實的訊號會遠比單純的正弦波複雜，但如果你能找到一段容易用眼睛看出週期的片段，那當然也依照前述的方法來手動計算音高。以下範例的<a href="pics/intro/nakashimamika.wav">音檔</a>是某知名歌手的某次演唱當中的一秒片段，取樣頻率是 44.1 kHz。我們取出其中的一個 frame 來觀察，發現第 90 到第 619 個取樣點之間，經過了 5 個週期，因此該 frame 的頻率是 44100 / ((619 - 90) / 5) = 416.82 Hz：</p>
+<pre class="brush: python">
+import matplotlib.pyplot as plt
+import scipy.io.wavfile
+
+SAMPLE_START = 5000
+FRAME_SIZE = 1024
+
+fs, y = scipy.io.wavfile.read('nakashimamika.wav')
+print(fs, y.dtype, y.shape)
+
+y = y[:, 0]
+y = y / 32768
+
+plt.plot(y[SAMPLE_START:SAMPLE_START+FRAME_SIZE], '.-')
+plt.show()
+</pre>
+
+<p>上述範例中，由於音檔是左右相當近似的雙聲道，因此我們只取其中一邊來分析；而因為此段音訊的頻率有隨著時間稍微上揚，因此你若選取了比較後面的片段來觀察，可能會得到比較高的音高值。</p>
+
+<p>如果要進行自動化的音高追蹤，也有許多方法，本篇介紹一個簡單的方法，是利用自相關函數(autocorrelation function, ACF)來進行音高的自動化計算。此方法的概念是先將自己複製一份，然後不斷滑動，並將兩份之間重疊的範圍做向量內積。一開始完全重疊的時候，算出來的值會最大；而慢慢滑出去以後，內積值會漸漸變小，但是滑動距離過了半個週期，開始接近一個週期時，值又會慢慢變大，然後在一個週期的地方產生一個高峰，依此類推。由於前述步驟是針對一個 frame 來計算，因此將取樣頻率除以第一個高峰的位置，就是該 frame 的推測音高。例如以下範例中，第一個高峰出現在 36，因此可推測其音高為 16000 / 36 = 444.44 Hz。各位可以發現此處仍然有誤差存在，但如果仔細觀察 ACF 的計算結果，並腦補出一條曲線的話，會發現大約 36.3 的地方才是最高點，如果拿 36.3 去除 16000，計算出來就會是誤差小很多的 440.77 Hz，因此，一些比較進階的方法，會對 ACF 等方式計算出的結果進行曲線擬合，來取得誤差比較小的音高。</p>
+<pre class="brush: python">
+import matplotlib.pyplot as plt
+import numpy as np
+import scipy.io.wavfile
+
+DUR = 2
+F = 440
+FS = 16000
+FRAME_SIZE = 512
+sample_start = 20000
+sample_end = sample_start + FRAME_SIZE
+
+t = np.arange(DUR * FS) / FS
+y = np.sin(2 * np.pi * F * t)
+y = y[sample_start:sample_end]
+acf = np.array([np.sum(y[i:]*y[:FRAME_SIZE-i]) for i in range(FRAME_SIZE)])
+
+plt.subplot(2, 1, 1)
+plt.plot(y, '.-')
+plt.subplot(2, 1, 2)
+plt.plot(acf, '.-')
+plt.show()
+</pre>
+
+<p>如果你發現有一筆真實訊號，聽起來確實有個特定的音高，但用肉眼又不容易抓出週期時，就很適合用 ACF 等自動計算的方法來處理。以下範例的<a href="pics/intro/yoasobi.wav">音檔</a>是另一名知名歌手的某次演唱的一秒片段，取樣頻率是 44.1 kHz；你可以發現拿某一 frame 計算出的 ACF 曲線中，第一高峰出現在 78 的位置，因此可得到該片段的頻率約為 44100 / 78 = 565.38 Hz：</p>
+<pre class="brush: python">
+import matplotlib.pyplot as plt
+import numpy as np
+import scipy.io.wavfile
+
+SAMPLE_START = 10000
+FRAME_SIZE = 1024
+
+fs, y = scipy.io.wavfile.read('yoasobi.wav')
+print(fs, y.dtype, y.shape)
+
+y = y[:, 0]
+y = y / 32768
+
+y = y[SAMPLE_START:SAMPLE_START+FRAME_SIZE]
+acf = np.array([np.sum(y[i:]*y[:FRAME_SIZE-i]) for i in range(FRAME_SIZE)])
+
+plt.subplot(2, 1, 1)
+plt.plot(y, '.-')
+plt.subplot(2, 1, 2)
+plt.plot(acf, '.-')
+plt.show()
+</pre>
+
+<p>在前述範例中，第一高峰的位置是用目測來找尋，如果你想要自動計算的話，則因為頭幾個點的位置代表過高而不合理的頻率，因此可以將頭幾個點去掉後再來找最大值。</p>
+
+<p>聲音的第三個要素是音色，我們能分辨出同樣頻率但是不同樂器的演奏，就是因為它們之間有著音色上的差異。那麼音色的差異在訊號上如何表現呢？我們先來看看這兩個不同樂器，一個是<a href="pics/intro/piano-C4.wav">鋼琴</a>，一個是<a href="pics/intro/violin-C4.wav">小提琴</a>演奏出的 261 Hz (C4)訊號，在波形上的差別，各位會發現到，兩個訊號雖然週期一樣，但是在波形的細節上有明顯的不同：</p>
+<pre class="brush: python">
+import matplotlib.pyplot as plt
+import scipy.io.wavfile
+
+FRAME_SIZE = 256
+SAMPLE_START = 5000
+
+fs, y_piano = scipy.io.wavfile.read('piano-C4.wav')
+_, y_violin = scipy.io.wavfile.read('violin-C4.wav')
+
+plt.subplot(2, 1, 1)
+plt.plot(y_piano[SAMPLE_START:SAMPLE_START+FRAME_SIZE], '.-')
+plt.title('Piano')
+plt.subplot(2, 1, 2)
+plt.plot(y_violin[SAMPLE_START:SAMPLE_START+FRAME_SIZE], '.-')
+plt.title('Violin')
+plt.show()
+</pre>
+
+<p>事實上，我們還可以利用傅立葉轉換等方式，把原本的訊號轉換成好多個不同強度和頻率的正弦波相加，稱為頻譜(spectrum)，而能使用幾種頻率的正弦波來表示，取決於 frame 有多長。這種表示方法的好處是，有一些物理性質例如泛音，會很容易呈現。我們把前一個範例繪製的波形改成頻譜，如下：</p>
+<pre class="brush: python">
+import librosa
+import matplotlib.pyplot as plt
+import numpy as np
+import scipy.io.wavfile
+
+FRAME_SIZE = 256
+
+fs, y_piano = scipy.io.wavfile.read('piano-C4.wav')
+_, y_violin = scipy.io.wavfile.read('violin-C4.wav')
+
+y_piano = y_piano / 32768
+y_violin = y_violin / 32768
+
+d_piano = librosa.stft(y_piano, n_fft=FRAME_SIZE, hop_length=FRAME_SIZE)
+d_violin = librosa.stft(y_violin, n_fft=FRAME_SIZE, hop_length=FRAME_SIZE)
+
+m_piano = np.abs(d_piano)
+m_violin = np.abs(d_violin)
+
+plt.subplot(2, 1, 1)
+plt.plot(m_piano[:, 25], '.-')
+plt.title('Piano')
+plt.subplot(2, 1, 2)
+plt.plot(m_violin[:, 25], '.-')
+plt.title('Violin')
+plt.show()
+</pre>
+
+<p>前述範例中，我們繪製的是一個 frame 轉出的 spectrum，你也可把所有 frames 都進行同樣的轉換並畫成圖片，就是你在音樂軟體裡面常常看到的頻譜圖。總之我們可以發現，鋼琴只在兩倍頻的地方有比較強的，和三、四、六倍頻的地方有比較弱的泛音，而小提琴則是有相當多的泛音，因此造就了兩種樂器聽起來有不同的聲音。對於很多進階的音樂分析，通常都會使用到像這樣的頻譜圖，或者類似的轉換。</p>
+
+</blockquote>
+
+</body></html>

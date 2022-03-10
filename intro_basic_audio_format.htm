@@ -1,0 +1,29 @@
+﻿<html>
+<head>
+	<title>線上教材：音樂資訊分析</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<link rel=stylesheet type="text/css" href="myCss.css">
+	<base target="_blank">
+	<script type="text/javascript" src="shCore.js"></script>
+	<script type="text/javascript" src="shBrushPython.js"></script>
+	<link href="shCore.css" rel="stylesheet" type="text/css" />
+	<link href="shThemeDefault.css" rel="stylesheet" type="text/css" />
+	<script type="text/javascript">
+		SyntaxHighlighter.all();
+	</script>
+</head>
+
+<body bgcolor="#ccccff">
+
+<blockquote>
+
+<p>在真實世界中，聲音是由物體震動導致介質（例如空氣或水）的疏密變化，從而產生出聲波；當物體震動的頻率或強度在變化，甚至是不同物體的震動，都可能會讓你感受到不同的聲音。而要用電腦處理音訊，就要對真實世界的聲波強度進行「採樣/取樣(sampling)」，才能來分析或儲存，採樣的愈密集，音訊的品質就會愈高，但是所產生的檔案也會愈大。各位常聽到的「CD 音質
+」的密集程度，是每秒鐘取了 44100 個點，我們稱它的取樣率(sampling rate)為 44.1 kHz 或 44,100 Hz；而其他的取樣率，如 48 kHz 或 16 kHz 等等，也是錄音或分析時常用的取樣率參數。而除了取樣率以外，每個取樣點要如何來表示，也是一個重要因素。通常，一個取樣點的強度用 16 個 bits 來表示，已經足夠於一般的聆聽或音訊分析；而如果是專業錄音室的需求，可能會將每個點使用 48 甚至 96 個 bits 來表示。</p>
+
+<p>使用原始的採樣資料，加上一些採樣參數等等資訊儲存的，是 wav 格式的檔案。其中的採樣資訊等等的部份，因為是放在 wav 檔的開頭，因此我們稱之為 header，一般來說會占用 44 bytes；而剩餘部分的大小，我們可以從取樣參數和音訊長度來估算，例如一個 16 kHz 16 bits，長度 10 秒鐘的單聲道音訊，在訊號部分占用的大小為 16,000 points/sec * 16 bits/ point * 10 sec = 2,560,000 bits = 312.5 KB 。</p>
+
+<p>其他檔案格式，則可能各自有不同的壓縮方法。例如 mp3 的儲存，是基於人耳能感受到的頻率多半在 20 ~ 20,000 Hz 的原理，來將人耳不易感受的頻率部分去除，來達到壓縮的效果。MIDI 格式則相當於把每個時刻按下那些鋼琴鍵的記錄儲存起來。如果你需要在各種音訊格式（midi  除外）之間做轉換，則除了 Python 函式庫以外，也可以使用 FFmpeg 這套工具來進行。</p>
+
+</blockquote>
+
+</body></html>
