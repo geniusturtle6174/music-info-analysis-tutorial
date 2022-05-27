@@ -1,0 +1,84 @@
+﻿<html>
+<head>
+	<title>線上教材：音樂資訊分析</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<link rel=stylesheet type="text/css" href="myCss.css">
+	<base target="_blank">
+	<script type="text/javascript" src="shCore.js"></script>
+	<script type="text/javascript" src="shBrushPython.js"></script>
+	<link href="shCore.css" rel="stylesheet" type="text/css" />
+	<link href="shThemeDefault.css" rel="stylesheet" type="text/css" />
+	<script type="text/javascript">
+		SyntaxHighlighter.all();
+	</script>
+</head>
+
+<body bgcolor="#ccccff">
+
+<blockquote>
+
+<p>
+大家在國高中生物課程中學過生物的神經，有樹突作為輸入端，而當輸入的強度超過閾值時，就會啟動輸出，將訊號傳遞到下一個神經元；而類神經網路，則是比照生物學的原理，以人工的方式來模擬神經元的行為。在最簡單的，只包含一個輸入端和一個神經元的情況中，我們可以用數學將其表示成 y&#770; = f( x * w + b)，其中的 x 是輸入值，w 和 b 分別是我們需要訓練來代表神經元行為的權重(weight)和偏差(bias)值，f 稱為激勵函數(activation function)，用於模擬生物上的神經元在超過強度閾值時會輸出的行為，y&#770; 則為神經元的輸出值。若考慮到生物的神經元中，樹突會有多個輸入端的情況，則前面的式子會變成 y&#770; = f(<b>x</b><sup>T</sup><b>w</b> + b)，此時的 <b>x</b> 和 <b>w</b> 都各自是一個 column vector，而經過運算的 y&#770; 還是單一數值。進一步再考慮輸出端也有多個的情況，則式子會再進一步變成 <b>y&#770;</b> = f(<b>x</b><sup>T</sup>W + <b>b</b>)，此時的輸入 <b>x</b>、偏差 <b>b</b> 和輸出 <b>y&#770;</b> 都是向量，而 W 是矩陣。
+</p>
+
+<p>
+把這樣的神經元堆疊多層，就是大家可能早已熟悉到變成基本常識的多層感知器(Multilayer perceptron, MLP)，並且由於每一層的每個輸出都是完全連接到下一層的每個輸入，所以這樣的每一層叫做全連接層(fully connected layer)。如果有 n 層的話，這個網路寫成算式會是這樣： <b>h<sub>1</sub></b> = f(<b>x</b><sup>T</sup>W<sub>1</sub> + <b>b<sub>1</sub></b>), <b>h<sub>2</sub></b> = f(<b>h<sub>1</sub></b><sup>T</sup>W<sub>2</sub> + <b>b<sub>2</sub></b>), ..., <b>y&#770;</b> = f(<b>h<sub>n-1</sub></b><sup>T</sup>W<sub>n</sub> + <b>b<sub>n</sub></b>)。假設你已經知道了一路上的每個 W 和 <b>b</b>，則給定輸入 <b>x</b> 要計算 <b>y&#770;</b> 相當簡單，就是高中學過的矩陣運算而已。但是我們要怎麼訓練類神經網路，也就是說要怎樣更新每個 W 和 <b>b</b> 呢？這需要先講到損失函數(loss function)，它的作用是評估網路算出來的 <b>y&#770;</b> 和標準答案的 <b>y</b> 之間差多少，要使用哪個或哪些損失函數是根據你的問題類型而定，例如回歸問題可以使用 mean squared error (MSE)，分類問題可以使用 cross entropy 等等。
+</p>
+
+<li>Loss 算出來以後呢？<strike>這是很好的研究題目，你有興趣讀博士班嗎？</strike>
+	<ul>
+		<li>微分！</li>
+		<li>很難嗎？就相信 libary 會幫你算吧~</li>
+		<li>基本概念: 梯度下降法(Gradient Descent)</li>
+		<li>常用的最佳化方法(optmizer)名稱: SGD (stochastic gradient descent), Momentum, AdaGrad, RMSProp, Adam</li>
+	</ul>
+</li>
+
+<p>
+上面的微分是稍微讓各位知道一下類神經網路的數學基礎，本篇後面與其他篇章介紹的其他架構預計不會再有相關證明，因此各位可以開心地繼續往下看了。而除了怎樣訓練以外，你可能會想到另外一個問題是，疊到多深才算是深度學習？如果要爭論數字的話，可能每個人會有自己的看法，不一定要幾層才算是深；但就目前(2022 年)實際應用上會疊幾層網路的情況來說，影像處理常常是幾十層或一百層起跳，但音訊處理通常用個十多層就很了不起了，比較簡單的狀況甚至是三五層也很常見。
+</p>
+
+<p>若要使用 MLP 解決問題，有很多工具可以幫忙，常見的有像是 <a href="https://pytorch.org/">PyTorch</a>、<a href="https://www.tensorflow.org/?hl=zh-tw">TensorFlow</a>，以及 <a href="https://chainer.org/">Chainer</a> 等等，不過這些工具為了能讓你做更自由的調整，所以在真正的類神經網路本身和資料的事前處理，都有許多工作要自己做，因此以下還是先使用 scikit-learn 的 neural_network.MLPClassifier 來示範 MLP 的使用，範例的資料集是 <a href="https://archive.ics.uci.edu/ml/datasets/wine">Wine Data Set</a>。</p>
+<pre class="brush: py">
+import numpy as np
+from sklearn.datasets import load_wine
+from sklearn.model_selection import train_test_split
+from sklearn.neural_network import MLPClassifier
+ 
+dataset = load_wine()
+print('Data shapes:', dataset.data.shape, dataset.target.shape)
+ 
+X_train, X_test, y_train, y_test = train_test_split(dataset.data, dataset.target)
+print('Training data shapes:', X_train.shape, y_train.shape)
+print('Test data shapes:', X_test.shape, y_test.shape)
+ 
+model = MLPClassifier(hidden_layer_sizes=(256, 256))
+model.fit(X_train, y_train)
+pred = model.predict(X_test)
+print('Accuracy: {:.2f}%'.format(100*np.mean(pred==y_test)))
+</pre>
+
+<p>在上述範例中，我們只調整了隱藏層的數目，而其他如 learning rate 及 batch size 等參數則維持預設；範例中的隱藏層數目是一組有機會讓測試集準確率在 90% 上下（實際結果會隨著訓練與測試集的亂數切分而有差異）的參數，各位可以試著跟其他的參數一併調整看看。</p>
+
+<p>除了 MLP 以外，卷積神經網路(convolutional neural network, CNN)也是一種經常被使用的神經網路。它的概念比較像是用濾波器模擬人眼的視野，經由一層一層的處理，來過濾出從小處的邊邊角角，到全景的花草樹木。因此，convolution 本身的操作，是由一塊小的矩陣（濾波器 filter，或者稱為卷積核 kernel）對一個大的矩陣（例如影像）逐次進行點對點相乘後再相加的動作。以下圖為例，大矩陣的尺寸是 5 * 5，kernel 的尺寸是 2 * 2，逐點移動後，會得到 (5-2+1) * (5-2+1) 的輸出。當然，你也可以不要逐點移動，而是一次跳過兩點、三點，甚至更多，這個就是 PyTorch 或其他常見工具裡的 stride 參數；而如果希望輸出的矩陣大小與輸入相同，也可以事先在輸入矩陣的四周多補上一些內容，我們稱之為 padding。</p>
+<center><img src="pics/ml/conv_op.png" width="450"/></center>
+
+<p>
+而在神經網路中，一個 convolution layer 會由多個 kernels 所組成，若仍以影像為例，則假設輸入是一張高和寬都是 100 的 RGB（所以有 3 個 channels)影像，並且有 5 個 4 * 4 * 3 的 kernel（kernel 的 channel 數量，必須跟輸入一樣）時，輸出會是一個 97 * 97 * 5 的影像；對於輸出影像上面每個 channel 的每個點，都是由一個 kernel 跟輸入影像做 convolution 運算得到的。
+</p>
+<center><img src="pics/ml/conv_layer.png" width="600"/></center>
+
+<p>
+上面圖片當中的下方的數字，用於影像時是依次代表代訓練階段一次放幾張進去(batch size)、影像高度、影像寬度，以及該影像的 channel 數量；而用於 kernel 時則是 kernel 高度、kernel 寬度、輸入影像的 channel 數量，以及輸出影像的 channel 數量。需要注意的是，各家的深度學習工具為了效能等方面的考量，預設不一定是使用前述的維度順序；在目前較常見的工具中，應該只有 TensorFlow 是使用前述的順序，而其他工具例如 PyTorch，預設的影像維度順序是 batch size、該影像的 channel 數量、影像高度，以及影像寬度；預設的 kernel 維度順序則是輸出影像的 channel 數量、輸入影像的 channel 數量、影像高度，以及影像寬度。
+</p>
+
+<p>
+為了減少運算量和抗雜訊，通常還會在卷積層之間加入池化(pooling) (池化)的運算，也就是說在一小塊區域裡，只用一個數字來代表。比較常見的方法是以平均或最大值來挑選，分別稱為 average pooling 和 max pooling（具體的函式名稱，在各家工具當中可能有所不同）。以 max pooling 為例，若只考慮一個 channel，影像大小 4 * 4，以及 kernel 大小 2 * 2 時，操作方式的示意如下：
+</p>
+<center><img src="pics/ml/pool_op.png" width="300"/></center>
+
+<p>關於 CNN，甚至其他常見架構例如 LSTM 等等的說明或者實際使用方式，由於預計會在後面的應用篇章大量出現，因此就留待到時候來介紹。</p>
+
+</blockquote>
+
+</body></html>
