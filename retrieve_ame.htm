@@ -1,0 +1,119 @@
+﻿<html>
+<head>
+	<title>線上教材：音樂資訊分析</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<link rel=stylesheet type="text/css" href="myCss.css">
+	<base target="_blank">
+	<script type="text/javascript" src="shCore.js"></script>
+	<script type="text/javascript" src="shBrushPython.js"></script>
+	<link href="shCore.css" rel="stylesheet" type="text/css" />
+	<link href="shThemeDefault.css" rel="stylesheet" type="text/css" />
+	<script type="text/javascript">
+		SyntaxHighlighter.all();
+	</script>
+</head>
+
+<body bgcolor="#ccccff">
+
+<blockquote>
+
+<p>
+音高追蹤的目標，是要取得一段音訊當中的音高序列，而抽取出來的音高序列，經常會在後續的一些研究題目，例如哼唱選歌，甚至於音樂生成當中被使用，因此，音高追蹤可以說是音訊處理的基本功之一。我們在基本處理的篇章當中，已經看過一些簡單的、半自動的音高追蹤，而在此篇當中，則會做更仔細一些的相關介紹。另外，本篇的程式範例所使用的音檔，都會來自 MIR-1K 資料集，所以先請各位自行上網搜尋，並下載此資料集。我們接下來，將主要使用該資料集中的一千個小片段（Wavfile 子資料夾）以及他們的音高標註（PitchLabel 子資料夾）。
+</p>
+
+<p>最為單純的音高追蹤，是音檔當中只有人聲的狀況，並且在時域進行追蹤。我們先使用 MIR-1K 資料集中的 geniusturtle_1_01.wav 音檔，來示範某一個音框的全自動追蹤，利用的方法依然是之前介紹過的 ACF，只是這裡加上了自動找出第一高峰的功能：</p>
+<pre class="brush: py">
+import matplotlib.pyplot as plt
+import numpy as np
+import scipy.io.wavfile
+
+WAV_PATH = 'MIR-1K/Wavfile/geniusturtle_1_01.wav'
+FRAME_SIZE = 512
+sample_start = 26000
+sample_end = sample_start + FRAME_SIZE
+
+fs, y = scipy.io.wavfile.read(WAV_PATH)
+print(fs, y.dtype, y.shape)
+
+y_vocal = y[:, 1]
+y_vocal = y_vocal[sample_start:sample_end]
+y_vocal = y_vocal / np.max(np.abs(y_vocal))
+acf = np.array([np.sum(y_vocal[i:]*y_vocal[:FRAME_SIZE-i]) for i in range(FRAME_SIZE)])
+
+max_idx = np.argmax(acf[32:]) + 32
+freq = fs / max_idx
+ 
+plt.subplot(2, 1, 1)
+plt.plot(y_vocal, '.-')
+
+plt.subplot(2, 1, 2)
+plt.plot(acf, '.-')
+plt.plot(max_idx, acf[max_idx], 'ro')
+plt.text(max_idx+3, acf[max_idx], 'Freq: {:.4f} Hz'.format(freq))
+
+plt.show()
+</pre>
+
+<p>在上述範例中：</p>
+<ul>
+	<li>我們指定的音框位置與大小，是從第 26,000 個取樣點開始，使用 512 個取樣點。</li>
+	<li>MIR-1K 資料集的音檔格式，是左聲道為背景，右聲到為人聲，本範例因為只針對人聲來處理，所以只取用右聲道。</li>
+	<li>對於 ACF 計算的結果，我們扣掉前 32 個點不計，再來尋找剩下部分的最大值的位置，代表我們認為該 frame 的基礎頻率，不可能讓 ACF 的最大值出現在前 32 個點，在取樣率為 16 kHz 的情況下，相當於不會大於 16000 / (32 - 1) = 516.13 Hz。</li>
+	<li>在畫出的圖當中，上半部是該 frame 的波形，下半部是 ACF 的計算結果。</li>
+</ul>
+
+<p>對於追蹤所有音框的音高，你可以很簡單的加上一層迴圈。我們也順便將 MIR-1K 資料集中的音高標註，跟自動追蹤的結果做對照，只是由於資料集中的標註單位是「半音」，因此需要進行轉換：</p>
+<pre class="brush: py">
+import matplotlib.pyplot as plt
+import numpy as np
+import scipy.io.wavfile
+
+WAV_PATH = 'MIR-1K/Wavfile/geniusturtle_1_01.wav'
+LAB_PATH = 'MIR-1K/PitchLabel/geniusturtle_1_01.pv'
+FRAME_SIZE = 1024
+HOP_SIZE = 320
+
+with open(LAB_PATH, 'r') as fin:
+	pitch_gt = list(map(float, fin.read().splitlines()))
+
+fs, y = scipy.io.wavfile.read(WAV_PATH)
+print(fs, y.dtype, y.shape, len(pitch_gt))
+
+y_vocal = y[:, 1]
+y_vocal = y_vocal / np.max(np.abs(y_vocal))
+
+frame_time = []
+pitches = []
+for frame_start in range(0, y_vocal.size, HOP_SIZE):
+	frame_end = frame_start + FRAME_SIZE
+	if frame_end > y_vocal.size:
+		break
+	frame_time.append((frame_start + frame_end) / 2 / fs)
+	acf = np.array([np.sum(y_vocal[frame_start+i:frame_end+1]*y_vocal[frame_start:frame_end-i+1]) for i in range(int(FRAME_SIZE/2))])
+	max_idx = np.argmax(acf[32:]) + 32
+	freq = fs / max_idx
+	pitch = 69 + 12 * np.log2(freq / 440)
+	pitches.append(pitch)
+
+plt.subplot(2, 1, 1)
+plt.plot(np.arange(y_vocal.size) / fs, y_vocal)
+
+plt.subplot(2, 1, 2)
+plt.plot(frame_time, pitches, '.-', label='Calculated')
+plt.plot(frame_time, pitch_gt[:len(frame_time)], '.-', label='Groundtruth')
+plt.legend()
+
+plt.show()
+</pre>
+
+<p>在上述範例中：</p>
+<ul>
+	<li>將單位為 Hz 的頻率，轉換成半音的公式，是「pitch = 69 + 12 * log2(freq / 440)」，其中的 freq 是頻率值，log2 是以 2 為底的對數，pitch 是半音值。</li>
+	<li>MIR-1K 資料集的目標是人聲的音高抽取，因此會將沒有人聲的部份的音高標記為 0。</li>
+</ul>
+
+<p>前述直接使用音訊波形來進行音高追蹤的方法，稱為時域(time domain)的音高追蹤，ACF 只是其中的一種方法，其他有如 NSDF 或 AMDF 等各種方法，若有興趣請自行找資料研讀。</p>
+
+</blockquote>
+
+</body></html>
