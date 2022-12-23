@@ -21,7 +21,7 @@
 最近鄰居分類(k-nearest neighbors, k-NN)的概念相當簡單：一個資料點在空間中跟那些類別的點最接近，就說它是屬於哪一個類別。這個方法不需要訓練過程，或者說訓練就是把所有資料記起來；而在預測的階段，則是將待測點與其他資料點計算距離，找出最接近的 k 的點，並依據這 k 的點所屬的類別或值進行投票，來做為待測點的預測結果。
 </p>
 
-<p>我們使用 scikit-learn 的 neighbors.KNeighborsClassifier 來幫我們執行 k-NN 演算法，使用的資料集是 <a href="https://archive.ics.uci.edu/ml/datasets/wine">Wine Data Set</a>。</p>
+<p>我們使用 scikit-learn 的 neighbors.KNeighborsClassifier 來幫我們執行 k-NN 演算法，使用的資料集是 <a href="https://archive.ics.uci.edu/ml/datasets/wine">Wine Data Set</a>，該資料集在 scikit-learn 有內建一版，你可以直接透過 import 相關函式來使用，不必自己下載：</p>
 <pre class="brush: py">
 import numpy as np
 from sklearn.datasets import load_wine
