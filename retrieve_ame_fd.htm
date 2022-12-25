@@ -1,0 +1,70 @@
+﻿<html>
+<head>
+	<title>線上教材：音樂資訊分析</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<link rel=stylesheet type="text/css" href="myCss.css">
+	<base target="_blank">
+	<script type="text/javascript" src="shCore.js"></script>
+	<script type="text/javascript" src="shBrushPython.js"></script>
+	<link href="shCore.css" rel="stylesheet" type="text/css" />
+	<link href="shThemeDefault.css" rel="stylesheet" type="text/css" />
+	<script type="text/javascript">
+		SyntaxHighlighter.all();
+	</script>
+</head>
+
+<body bgcolor="#ccccff">
+
+<blockquote>
+
+<p>頻率域(frequency domain)的音高追蹤，是指先把音訊轉成頻譜，然後在頻譜上進行音高追蹤。頻率域的音高追蹤也有幾種不同的做法，本篇將只說明 HPS (Harmonic Product Spectrum)這種方法。HPS 的概念是利用泛音會出現在基頻（找出基頻就是音高追蹤的目標）的整數倍的頻率上的的原理，把原本的頻譜跟自己的二分之一、三分之一、四分之一、…的壓縮版本疊加起來，就可以把每個泛音都疊到基頻上，讓基頻的位置特別突出，就可以用疊加結果的最大值的出現位置來換算出頻率。</p>
+
+<p>我們使用<a href="pics/intro/violin-C4.wav">小提琴演奏出的 261 Hz (C4)訊號</a>，並框出某一個特定的 frame 來轉成頻譜，以及畫出它的二分之一、三分之一、四分之一、…的壓縮版本，以及疊加的結果：</p>
+<pre class="brush: py">
+import matplotlib.pyplot as plt
+import numpy as np
+import scipy.io.wavfile
+
+WAV_PATH = 'violin-C4.wav'
+FRAME_SIZE = 512
+sample_start = 20000
+sample_end = sample_start + FRAME_SIZE
+
+fs, y = scipy.io.wavfile.read(WAV_PATH)
+print(fs, y.dtype, y.shape)
+
+y = y[sample_start:sample_end] / 32768
+spectrum = np.fft.rfft(y)
+spectrum = np.abs(spectrum)
+
+sum_result = np.zeros_like(spectrum)
+for i in range(1, 6):
+	resampled_spectrum = spectrum[::i]
+	plt.subplot(6, 1, i)
+	plt.plot(resampled_spectrum, '.-')
+	plt.xlim(0, spectrum.size)
+	sum_result[:resampled_spectrum.size] += resampled_spectrum
+
+plt.subplot(6, 1, 6)
+plt.plot(sum_result, '.-')
+plt.xlim(0, spectrum.size)
+
+print('Max idx position:', np.argmax(sum_result))
+
+plt.show()
+</pre>
+
+<p>在上述範例中：</p>
+<ul>
+	<li>你可能還記得，我們在基本處理的篇章中也拿同一個音檔畫過頻譜，但那時是使用 librosa.stft 來進行傅立葉轉換，而現在使用的是 np.fft.rfft。兩者原則上沒有什麼差別，你可以依據個人喜好選用。</li>
+	<li>「壓縮」的這個動作，嚴格來說稱為重新取樣(resample)。因為泛音出現的位置是整數倍的基頻上，所以此處是簡單地使用每二、三、四、…個點取一點的方式，來製作 resmaple 的版本。如果將來有某種應用，例如將訊號取樣率由 44.1 kHz 變成 16 kHz，讓你的 resample 不是整數倍的關係時，可以使用 scipy.signal.resample 之類的方式來進行。</li>
+	<li>跑出來的圖當中有六張小圖，前五張分別是原始頻譜、兩倍壓縮、三倍壓縮、四倍壓縮，以及五倍壓縮，第六張是疊加後的結果。</li>
+</ul>
+
+<p>你接著可能會問，上面範例跑出來的最大位置是索引值 12 的地方，那然後呢？這就要牽涉到傅立葉轉換的數學原理了。假設你輸入的 frame 大小是 512 的話，則傅立葉轉換會給你「除以二再加一」個點，也就是 257 個點（實際上會是 512 個點，但以音訊這類輸入是實數的狀況來說，另一半是對稱的，所以不必考慮），而這 257 個點會平均代表 0 到取樣率的一半的頻率，所以索引值 12 代表的是 (11025 / 2) / (257 - 1) * 12 = 258.4 Hz，此結果跟原始的 261 Hz 相當接近，只是由於傅立葉轉換的數學性質限制，而難免有些誤差存在。若要改善此問題，你可以使用長一點的音框來分析。</p>
+
+<!--減去趨勢以免抓到倍頻先不講-->
+
+</blockquote>
+
+</body></html>
