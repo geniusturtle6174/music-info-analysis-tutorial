@@ -106,15 +106,17 @@ plt.show()
 	<li>在畫出的圖當中，上半部是該 frame 的波形，下半部是 ACF 的計算結果。</li>
 </ul>
 
-<p>對於追蹤所有音框的音高，你可以很簡單的加上一層迴圈。我們也順便將 MIR-1K 資料集中的音高標註，跟自動追蹤的結果做對照，只是由於資料集中的標註單位是「半音」，因此需要進行轉換：</p>
+<p>對於追蹤所有音框的音高，你可以很簡單的加上一層迴圈。我們也順便將 MIR-1K 資料集中的音高標註，跟自動追蹤的結果做對照，只是由於資料集中的標註單位是「半音」，因此需要進行適當的轉換：</p>
 <pre class="brush: py">
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.io.wavfile
+from mir_eval.melody import evaluate
+from mir_eval.util import midi_to_hz
 
 WAV_PATH = 'MIR-1K/Wavfile/geniusturtle_1_01.wav'
 LAB_PATH = 'MIR-1K/PitchLabel/geniusturtle_1_01.pv'
-FRAME_SIZE = 1024
+FRAME_SIZE = 640
 HOP_SIZE = 320
 
 with open(LAB_PATH, 'r') as fin:
@@ -127,16 +129,21 @@ y_vocal = y[:, 1]
 y_vocal = y_vocal / np.max(np.abs(y_vocal))
 
 frame_time = []
+frequencies = []
 pitches = []
 for frame_start in range(0, y_vocal.size, HOP_SIZE):
 	frame_end = frame_start + FRAME_SIZE
 	if frame_end > y_vocal.size:
 		break
 	frame_time.append((frame_start + frame_end) / 2 / fs)
-	acf = np.array([np.sum(y_vocal[frame_start+i:frame_end+1]*y_vocal[frame_start:frame_end-i+1]) for i in range(int(FRAME_SIZE/2))])
+	acf = np.array([
+		np.sum(y_vocal[frame_start+i:frame_end+1]*y_vocal[frame_start:frame_end-i+1]) \
+			for i in range(int(FRAME_SIZE/2))
+	])
 	max_idx = np.argmax(acf[32:]) + 32
 	freq = fs / max_idx
 	pitch = 69 + 12 * np.log2(freq / 440)
+	frequencies.append(freq)
 	pitches.append(pitch)
 
 plt.subplot(2, 1, 1)
@@ -144,14 +151,19 @@ plt.plot(np.arange(y_vocal.size) / fs, y_vocal)
 
 plt.subplot(2, 1, 2)
 plt.plot(frame_time, pitches, '.-', label='Calculated')
-plt.plot(frame_time, pitch_gt[:len(frame_time)], '.-', label='Groundtruth')
+plt.plot(frame_time, pitch_gt, '.-', label='Groundtruth')
 plt.legend()
+
+freq_gt = [midi_to_hz(pitch) if pitch != 0 else 0 for pitch in pitch_gt]
+scores = evaluate(frame_time, freq_gt, frame_time, np.array(frequencies))
+print(scores)
 
 plt.show()
 </pre>
 
 <p>在上述範例中：</p>
 <ul>
+	<li>音框大小與音框間隔改為 640 與 320，是為了配合資料集的在做標註時的音框參數。</li>
 	<li>將單位為 Hz 的頻率，轉換成半音的公式，是「pitch = 69 + 12 * log2(freq / 440)」，其中的 freq 是頻率值，log2 是以 2 為底的對數，pitch 是半音值。</li>
 	<li>MIR-1K 資料集的目標是人聲的音高抽取，因此會將沒有人聲的部份的音高標記為 0。</li>
 </ul>
