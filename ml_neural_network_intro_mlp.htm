@@ -51,25 +51,6 @@ print('Accuracy: {:.2f}%'.format(100*np.mean(pred==y_test)))
 
 <p>在上述範例中，我們只調整了隱藏層的數目，而其他如 learning rate 及 batch size 等參數則維持預設；範例中的隱藏層數目是一組有機會讓測試集準確率在 90% 上下（實際結果會隨著訓練與測試集的亂數切分而有差異）的參數，各位可以試著跟其他的參數一併調整看看。</p>
 
-<p>除了 MLP 以外，卷積神經網路(convolutional neural network, CNN)也是一種經常被使用的神經網路。它的概念比較像是用濾波器模擬人眼的視野，經由一層一層的處理，來過濾出從小處的邊邊角角，到全景的花草樹木。因此，convolution 本身的操作，是由一塊小的矩陣（濾波器 filter，或者稱為卷積核 kernel）對一個大的矩陣（例如影像）逐次進行點對點相乘後再相加的動作。以下圖為例，大矩陣的尺寸是 5 * 5，kernel 的尺寸是 2 * 2，逐點移動後，會得到 (5-2+1) * (5-2+1) 的輸出。當然，你也可以不要逐點移動，而是一次跳過兩點、三點，甚至更多，這個就是 PyTorch 或其他常見工具裡的 stride 參數；而如果希望輸出的矩陣大小與輸入相同，也可以事先在輸入矩陣的四周多補上一些內容，我們稱之為 padding。</p>
-<center><img src="pics/ml/conv_op.png" width="450"/></center>
-
-<p>
-而在神經網路中，一個 convolution layer 會由多個 kernels 所組成，若仍以影像為例，則假設輸入是一張高和寬都是 100 的 RGB（所以有 3 個 channels)影像，並且有 5 個 4 * 4 * 3 的 kernel（kernel 的 channel 數量，必須跟輸入一樣）時，輸出會是一個 97 * 97 * 5 的影像；對於輸出影像上面每個 channel 的每個點，都是由一個 kernel 跟輸入影像做 convolution 運算得到的。
-</p>
-<center><img src="pics/ml/conv_layer.png" width="600"/></center>
-
-<p>
-上面圖片當中的下方的數字，用於影像時是依次代表代訓練階段一次放幾張進去(batch size)、影像高度、影像寬度，以及該影像的 channel 數量；而用於 kernel 時則是 kernel 高度、kernel 寬度、輸入影像的 channel 數量，以及輸出影像的 channel 數量。需要注意的是，各家的深度學習工具為了效能等方面的考量，預設不一定是使用前述的維度順序；在目前較常見的工具中，應該只有 TensorFlow 是使用前述的順序，而其他工具例如 PyTorch，預設的影像維度順序是 batch size、該影像的 channel 數量、影像高度，以及影像寬度；預設的 kernel 維度順序則是輸出影像的 channel 數量、輸入影像的 channel 數量、影像高度，以及影像寬度。
-</p>
-
-<p>
-為了減少運算量和抗雜訊，通常還會在卷積層之間加入池化(pooling) (池化)的運算，也就是說在一小塊區域裡，只用一個數字來代表。比較常見的方法是以平均或最大值來挑選，分別稱為 average pooling 和 max pooling（具體的函式名稱，在各家工具當中可能有所不同）。以 max pooling 為例，若只考慮一個 channel，影像大小 4 * 4，以及 kernel 大小 2 * 2 時，操作方式的示意如下：
-</p>
-<center><img src="pics/ml/pool_op.png" width="300"/></center>
-
-<p>關於 CNN，甚至其他常見架構例如 LSTM 等等的說明或者實際使用方式，由於預計會在後面的應用篇章大量出現，因此就留待到時候來介紹。</p>
-
 </blockquote>
 
 </body></html>
