@@ -29,7 +29,7 @@
 Loss 計算出來以後，就是利用微分的方式求取梯度，以及利用各種最佳化的方法(optmizer)，例如 SGD (stochastic gradient descent)、Momentum、AdaGrad、RMSProp，以及 Adam 等，來更新每個 W 和 <b>b</b>；這一步驟由於是由算出來的 loss 倒回去進行，所以會稱為反向傳播(backpropagation)。如此反覆的向前以及反向傳播以後，通常就可以訓練出恰當的類神經網路。而除了怎樣訓練以外，你可能會想到另外一個問題是，疊到多深才算是深度學習？如果要爭論數字的話，可能每個人會有自己的看法，不一定要幾層才算是深；但就目前（2022 年）實際應用上會疊幾層網路的情況來說，影像處理常常是幾十層或一百層起跳，但音訊處理通常用個十多層就很了不起了，比較簡單的狀況甚至是三五層也很常見。
 </p>
 
-<p>若要使用 MLP 解決問題，有很多工具可以幫忙，常見的有像是 <a href="https://pytorch.org/">PyTorch</a>、<a href="https://www.tensorflow.org/?hl=zh-tw">TensorFlow</a>，以及 <a href="https://chainer.org/">Chainer</a> 等等，不過這些工具為了能讓你做更自由的調整，所以在真正的類神經網路本身和資料的事前處理，都有許多工作要自己做，因此以下還是先使用 scikit-learn 的 neural_network.MLPClassifier 來示範 MLP 的使用，範例的資料集是 <a href="https://archive.ics.uci.edu/ml/datasets/wine">Wine Data Set</a>。</p>
+<p>若要使用 MLP 解決問題，有很多工具可以幫忙，常見的有像是 <a href="https://pytorch.org/">PyTorch</a>、<a href="https://www.tensorflow.org/?hl=zh-tw">TensorFlow</a>，以及 <a href="https://chainer.org/">Chainer</a> 等等，不過這些工具為了能讓你做更自由的調整，所以在真正的類神經網路本身和資料的事前處理，都有許多工作要自己做，因此以下還是先使用 scikit-learn 的 <a href="https://scikit-learn.org/stable/modules/generated/sklearn.neural_network.MLPClassifier.html">neural_network.MLPClassifier</a> 來示範 MLP 的使用，範例的資料集是 <a href="https://archive.ics.uci.edu/ml/datasets/wine">Wine Data Set</a>。</p>
 <pre class="brush: py">
 import numpy as np
 from sklearn.datasets import load_wine

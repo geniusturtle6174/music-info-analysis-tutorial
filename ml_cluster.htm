@@ -27,7 +27,7 @@
 	<li>重複步驟 2，直到變化很小或不再變化</li>
 </ol>
 
-<p>我們使用 scikit-learn 的 cluster.KMeans 來幫我們執行 k-means 演算法，使用的資料集是 <a href="https://archive.ics.uci.edu/ml/datasets/wine">Wine Data Set</a> 的前兩維。</p>
+<p>我們使用 scikit-learn 的 <a href="https://scikit-learn.org/stable/modules/generated/sklearn.cluster.KMeans.html">cluster.KMeans</a> 來幫我們執行 k-means 演算法，使用的資料集是 <a href="https://archive.ics.uci.edu/ml/datasets/wine">Wine Data Set</a>，但為了視覺化方便，範例將只使用前兩維特徵。</p>
 <pre class="brush: py">
 import matplotlib.pyplot as plt
 import numpy as np
@@ -56,7 +56,7 @@ plt.show()
 
 <p>在上述範例中，我們事先設定把資料分成三群，並且將分群結果和每一群的中心點畫出來。若需要做更細節的控制，例如如何選擇初始點，以及演算法步驟要重複幾次等，請參考<a href="https://scikit-learn.org/stable/modules/generated/sklearn.cluster.KMeans.html">官方文件</a></p>
 
-<p>如何選擇群體數目，是一個非常重要的問題。其中一種決定方式是，藉由每個點到各自中心的距離總和來評估，雖然這個總和會隨著群體數目變多而減少（數學上是可以證明的，但<span style="text-decoration: line-through;">這裡空間太小了我寫不下</span>不是本教材的關注點所以略過），但我們只要選擇變化突然趨緩的地方作為群體數目即可。下面範例會畫出群體數目分別為 1 到 10 時的距離總和，以及斜率的變化比率：</p>
+<p>如何選擇群體數目，是一個非常重要的問題。其中一種決定方式是，藉由每個點到各自中心的距離總和來評估，雖然這個總和會隨著群體數目變多而減少（數學上是可以證明的，但<span style="text-decoration: line-through;">這裡空間太小了我寫不下</span>不是本教材的關注點所以略過），但我們通常可以選擇變化突然趨緩的地方，作為群體數目即可。下面範例會畫出群體數目分別為 1 到 10 時的距離總和，以及斜率的變化比率：</p>
 <pre class="brush: py">
 import matplotlib.pyplot as plt
 import numpy as np
