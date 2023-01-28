@@ -18,13 +18,49 @@
 <blockquote>
 
 <p>
-哼唱選歌的目標是，你哼或唱某一首歌的某一小段（這個小段的長度，通常在八到十秒左右），然後系統會找出你剛剛唱的是哪一首歌。
+哼唱選歌的目標是，你哼或唱某一首歌的某一小段（這個小段的長度，通常在八到十秒左右），然後系統會找出你剛剛唱的是哪一首歌。你唱的那首歌，稱為查詢輸入；而系統當中等待被搜尋的所有歌曲，稱為資料庫。為了簡化問題，本篇章將主要考慮「將查詢輸入的音訊抽取出音高，再跟 MIDI 格式的資料庫比對」的形式，並將使用 MIR-QBSH 資料集進行示範。
 </p>
 
-<p>一般而言，進行一次查詢時，系統會回覆給你一些（例如十到二十首）候選歌曲，以便告訴你說你唱的可能是這些歌；而如果你在查詢前其實已經知道自己唱的是什麼歌，而系統回覆的候選歌曲中，答案排在愈前面的話，你很可能就會認為這個系統愈厲害。因此，哼唱選歌常見的評估方式，是 top-n accuracy，以及 mean reciprocal rank (MRR)。假設我們做了 10 次查詢，而標準答案的位置分別在第 3、7、4、2、5、1、2、8、6、6 名的話，則因為 10 次裡面有 1 次是在第一名內，所以 top-1 accuracy 是 1 / 10 = 10%；10 次裡面有 3 次是在前兩名內，所以 top-2 accuracy 是 3 / 10 = 30%，依此類推；而 MRR 則是將標準答案的名次取倒數再平均，以此例而言，是 (1 / 3 + 1 / 7 + ... + 1 / 6) / 10 = 33.85%。</p>
-<!-- <pre class="brush: py">
-print('Hello World')
-</pre> -->
+<p>
+MIR-QBSH 提供了 48 首 MIDI 檔案作為資料庫，且每個 MIDI 檔中在任一時刻當只有主旋律的部分有音符。我們需要先將這些 MIDI 檔案讀取進來，並轉換成適合（以本篇來說）比對的音高序列格式。下列的 read_database 函式會幫你進行讀取資料庫的工作，其輸入是 MIR-QBSH 資料集的 MIDI 檔案子資料夾路徑，輸出是一個 list of np array 和一個 list of string，其中前者的每個 np array 代表一首歌曲的音高序列，而後者的每個 string 代表歌曲的中英文名稱。完整的函式內容及使用範例如下：
+</p>
+<pre class="brush: py">
+import os
+
+import numpy as np
+import pretty_midi
+
+
+def read_database(path, fs=31.25):
+	with open(os.path.join(path, 'songList.txt'), 'r') as fin:
+		cnt = fin.read().splitlines()
+	db_song_names = [' '.join(line.split('\t')[1:3]) for line in cnt]
+	midi_files = sorted(os.listdir(path))
+	db_pitches = []
+	for mf in midi_files:
+		if not mf.endswith('.mid'):
+			continue
+		midi = pretty_midi.PrettyMIDI(os.path.join(path, mf))
+		piano_roll = midi.get_piano_roll(fs=fs) # Shape: (semitone, time_step)
+		pitches = np.argmax(piano_roll, axis=0)
+		db_pitches.append(pitches)
+	return db_pitches, db_song_names
+
+
+db_pitches, db_song_names = read_database('MIR-QBSH/midiFile')
+</pre>
+
+<p>在上述的程式碼中：</p>
+<ul>
+	<li>pretty_midi 是一個第三方套件，請先透過 pip 來安裝它。</li>
+	<li>「fs=31.25」的設定，是由於資料集中進行音高標注的音框率(frame rate)，為 31.25 而來。</li>
+	<li>Piano roll 的格式是一個「音高×時間」的矩陣，在某一時刻如果有某一音高的音符，則會在對應的位置紀錄其音量，而其餘位置都填 0。資料集中提供的 MIDI 檔，在任一時刻都只有一個音，所以我們恰好可以用 np.argmax 取得該時刻的音符的音高值。</li>
+	<li>音高向量為 0 的部分代表休止符。為了運算上的方便，一般會將休止符以前一個音高值取代，但此處尚未做任何相關處理。</li>
+</ul>
+
+<p>
+一般而言，進行一次查詢時，系統會回覆給你一些（例如十到二十首）候選歌曲，以便告訴你說你唱的可能是這些歌；而如果你在查詢前其實已經知道自己唱的是什麼歌，而系統回覆的候選歌曲中，答案排在愈前面的話，你很可能就會認為這個系統愈厲害。因此，哼唱選歌常見的評估方式，是 top-n accuracy，以及 mean reciprocal rank (MRR)。假設我們做了 10 次查詢，而標準答案的位置分別在第 3、7、4、2、5、1、2、8、6、6 名的話，則因為 10 次裡面有 1 次是在第一名內，所以 top-1 accuracy 是 1 / 10 = 10%；10 次裡面有 3 次是在前兩名內，所以 top-2 accuracy 是 3 / 10 = 30%，依此類推；而 MRR 則是將標準答案的名次取倒數再平均，以此例而言，是 (1 / 3 + 1 / 7 + ... + 1 / 6) / 10 = 33.85%。
+</p>
 
 </blockquote>
 
