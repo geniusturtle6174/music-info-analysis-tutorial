@@ -1,0 +1,38 @@
+﻿<html>
+<head>
+	<title>線上教材：音樂資訊分析</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<link rel=stylesheet type="text/css" href="myCss.css">
+	<base target="_blank">
+	<script type="text/javascript" src="shCore.js"></script>
+	<script type="text/javascript" src="shBrushPython.js"></script>
+	<link href="shCore.css" rel="stylesheet" type="text/css" />
+	<link href="shThemeDefault.css" rel="stylesheet" type="text/css" />
+	<script type="text/javascript">
+		SyntaxHighlighter.all();
+	</script>
+</head>
+
+<body bgcolor="#ccccff">
+
+<blockquote>
+
+<p>效果評估，也就是要在測試階段，給模型的回答打個分數。至於打分數的方法，則要看問題類型甚至應用上的需求而定。簡單來說，如果你的問題是個廻歸問題，則可以用 mean absolute error (MAE)或 mean square error (MSE) 來評量，也就是把每筆資料的答案，跟預測結果計算差距的絕對值或平方，再平均起來即可。而如果你需要處理的是分類問題，則常見的評估方式有準確度(accuracy)或精確率以及召回率(precision & recall)等方式。準確度就是單純的計算答對的比率，但假設在只有兩個類別的分類問題中，你希望抓出的那個類別只占 1%，而另外一類占了 99%，則就算你的模型全部猜答案是較多的那一個類別，準確度也會有驚人的 99%，但他顯然是個沒有用處的模型，因此顯然不適合用準確度來評估模型效果，而該輪到 precision 和 recall 上場。</p>
+
+<p>在定義上，你希望抓出的類別叫做正類別（P, positive），而不希望抓出的是負類別（N, negative）；答案是 P 而模型也說是 P，稱為 true positive；答案是 N 而模型也說是 N，稱為 true negative；答案是 P 但模型說是 N，稱為 false negative (模型說是 N，但是錯了) 或 type 2 error；答案是 N 但模型說是 P，稱為 false positive (模型說是 P，但是錯了) 或 type 1 error。我們可以把四種情況畫成一個矩陣，叫做混淆矩陣（confusion matrix）。兩類別的混淆矩陣範例如下</p>
+
+<table align=center class="slide">
+	<tr><th>答案 \ 預測</th><th>N</th><th>P</th></tr>
+	<tr><th>N</th><td>TN</td><td>FP (type 1 error)</td></tr>
+	<tr><th>P</th><td>FN (type 2 error)</td><td>TP</td></tr>
+</table>
+
+<p>上述矩陣只是一個通常的填法，每個 row 或 column 不一定要先放 N 再放 P，也不一定要 row 是答案，column 是預測。另外，多類別也可以繪製混淆矩陣，但通常未必會去談論它的 precision/recall。</p>
+
+<p>知道了混淆矩陣以後，就可以來看 precision 和 recall 的定義。Precision 是模型認為是 P 的資料中，有多少是正確的，即 TP / (TP + FP)；recall 則是真正是 P 的當中，有多少被抓出來，即 TP / (FN + TP)。舉個例子，假設有三人結夥搶劫，為了躲避警察追捕而混進了另外七人當中，所以總共有十人要被警察盤問並看看是不是要帶回警局；假設警察 A 說全部帶走，則抓出十人的裡面有三人是對的，precision 是 3 / 10 = 30%，而三名真正的犯人都有被抓出來，所以 recall 是 3 / 3 = 100；而警察 B 經過仔細的推理以後，帶走了其中一位真正的犯人，則 precision 是 1 / 1 = 100%，recall 是 1 / 3 = 33.33%。如果你希望在模型評估時，可以在 precision 和 recall 中間取一個平衡，則可以計算 precision 和 recall 的調和平均數，稱為 F-score。另外，實務上也會根據 FN 和 FP 所帶來的損失不同，而在計算公式上有所變化，如果各位將來處理的相關應用有這樣的特性，請記得調整適合的評估方式。</p>
+
+<p>打完分數以後對結果不滿意，想要看看到底錯在哪裡的話，這稱為錯誤分析。比方說，如果你蒐集的人類資料中，頭髮長度、四支粗細、膚色深淺等等跟所屬性別的多數模樣差距比較大<span style="text-decoration:line-through">甚至是「這麼可愛一定是男孩子」</span>的話，就可能造成模型的判斷錯誤。這時候，你就可以進行錯誤分析，找出每筆資料容易被判斷錯誤的原因，並嘗試加以改進。</p>
+
+</blockquote>
+
+</body></html>
