@@ -1,0 +1,52 @@
+﻿<html>
+<head>
+	<title>線上教材：音樂資訊分析</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<link rel=stylesheet type="text/css" href="myCss.css">
+	<base target="_blank">
+	<script type="text/javascript" src="shCore.js"></script>
+	<script type="text/javascript" src="shBrushPython.js"></script>
+	<link href="shCore.css" rel="stylesheet" type="text/css" />
+	<link href="shThemeDefault.css" rel="stylesheet" type="text/css" />
+	<script type="text/javascript">
+		SyntaxHighlighter.all();
+	</script>
+</head>
+
+<body bgcolor="#ccccff">
+
+<blockquote>
+
+<p>
+線性回歸(linear regression)的目標是找出一條直線，使得所有點到直線的距離（y 軸方向）之平方和為最小。我們可以使用 scikit-learn 的 <a href="https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LinearRegression.html">linear_model.LinearRegression</a> 來幫我們進行線性回歸，以下範例將會隨機的產生一些資料點來示範：</p>
+<pre class="brush: py">
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.linear_model import LinearRegression
+ 
+x = np.linspace(0, 10, 1000)
+y_raw = 3 * x + 2
+y = y_raw + np.random.randn(1000)
+ 
+model = LinearRegression()
+model.fit(x[:, np.newaxis], y[:, np.newaxis])
+print(model.coef_[0], model.intercept_)
+y_fit = model.coef_[0] * x + model.intercept_
+ 
+plt.plot(x, y, '.', label='Random data')
+plt.plot(x, y_raw, '-', label='Raw line')
+plt.plot(x, y_fit, '-', label='Fitted line')
+plt.legend()
+plt.show()
+</pre>
+
+<p>在上述範例中：</p>
+<ul>
+	<li>進行訓練時，x 的 shape 必須是「(資料點數, 每筆輸入資料的維度)」，因此需要新增一個軸。</li>
+	<li>訓練完畢後，coef_ 的內容會是每個輸入維度的係數（不含常數項），此例中只有一維，所以直接取用該數字，以繪製擬合後的曲線。</li>
+	<li>由於範例中的資料是亂數產生，所以每次執行所得到的係數可能不太一樣。</li>
+</ul>
+
+</blockquote>
+
+</body></html>
