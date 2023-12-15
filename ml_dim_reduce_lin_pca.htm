@@ -39,7 +39,7 @@ print('Test data shapes:', X_test.shape, y_test.shape)
 model = PCA(n_components=2)
 X_train_skl = model.fit_transform(X_train)
 X_test_skl = model.transform(X_test)
-print('Tramsformed shapes (sklearn):', X_train_skl.shape, X_test_skl.shape)
+print('Transformed shapes (sklearn):', X_train_skl.shape, X_test_skl.shape)
 
 X_train_mean = np.mean(X_train, axis=0)
 X_train = X_train - X_train_mean[np.newaxis, :]
@@ -47,7 +47,7 @@ X_test = X_test - X_train_mean[np.newaxis, :]
 _, eig_vs = np.linalg.eig(X_train.T @ X_train)
 X_train_np = X_train @ -eig_vs
 X_test_np = X_test @ -eig_vs
-print('Tramsformed shapes (np.linalg.eig):', X_train_np.shape, X_test_np.shape)
+print('Transformed shapes (np.linalg.eig):', X_train_np.shape, X_test_np.shape)
 
 plt.subplot(2, 2, 1)
 plt.plot(X_train_skl[:, 0], X_train_skl[:, 1], '.')
