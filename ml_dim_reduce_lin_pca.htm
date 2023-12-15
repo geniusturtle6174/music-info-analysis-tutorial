@@ -1,0 +1,80 @@
+﻿<html>
+<head>
+	<title>線上教材：音樂資訊分析</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<link rel=stylesheet type="text/css" href="myCss.css">
+	<base target="_blank">
+	<script type="text/javascript" src="shCore.js"></script>
+	<script type="text/javascript" src="shBrushPython.js"></script>
+	<link href="shCore.css" rel="stylesheet" type="text/css" />
+	<link href="shThemeDefault.css" rel="stylesheet" type="text/css" />
+	<script type="text/javascript">
+		SyntaxHighlighter.all();
+	</script>
+</head>
+
+<body bgcolor="#ccccff">
+
+<blockquote>
+
+<p>
+PCA 的全名是 principal components analysis，中文一般稱為「主成分分析」，是降低資料維度的方法之一。它的基本概念是先把資料平移到平均為 0 的位置，再找出變異數最大的方向為新的第一個軸；再找出與第一個軸垂直的方向當中，變異數最大的為第二個軸；依此類推。在數學上，也相當於令資料為 X（形狀為 n_samples * n_features）時，先求出 X<sup>T</sup>X 的 eigenvectors，再拿去跟原始的資料相乘。
+</p>
+
+<p>以下範例將分別使用 sklearn 和 np.linalg.eig 計算 PCA 的結果，以同時說明完全現成函式的使用，以及你可以如何自己計算：</p>
+<pre class="brush: py">
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.datasets import load_wine
+from sklearn.decomposition import PCA
+from sklearn.model_selection import train_test_split
+
+dataset = load_wine()
+print('Data shapes:', dataset.data.shape, dataset.target.shape)
+
+X_train, X_test, y_train, y_test = train_test_split(dataset.data, dataset.target)
+print('Training data shapes:', X_train.shape, y_train.shape)
+print('Test data shapes:', X_test.shape, y_test.shape)
+
+model = PCA(n_components=2)
+X_train_skl = model.fit_transform(X_train)
+X_test_skl = model.transform(X_test)
+print('Tramsformed shapes (sklearn):', X_train_skl.shape, X_test_skl.shape)
+
+X_train_mean = np.mean(X_train, axis=0)
+X_train = X_train - X_train_mean[np.newaxis, :]
+X_test = X_test - X_train_mean[np.newaxis, :]
+_, eig_vs = np.linalg.eig(X_train.T @ X_train)
+X_train_np = X_train @ -eig_vs
+X_test_np = X_test @ -eig_vs
+print('Tramsformed shapes (np.linalg.eig):', X_train_np.shape, X_test_np.shape)
+
+plt.subplot(2, 2, 1)
+plt.plot(X_train_skl[:, 0], X_train_skl[:, 1], '.')
+plt.title('TR (sklearn)')
+
+plt.subplot(2, 2, 2)
+plt.plot(X_test_skl[:, 0], X_test_skl[:, 1], '.')
+plt.title('TE (sklearn)')
+
+plt.subplot(2, 2, 3)
+plt.plot(X_train_np[:, 0], X_train_np[:, 1], '.')
+plt.title('TR (np.linalg.eig)')
+
+plt.subplot(2, 2, 4)
+plt.plot(X_test_np[:, 0], X_test_np[:, 1], '.')
+plt.title('TE (np.linalg.eig)')
+
+plt.show()
+</pre>
+
+<p>在上述範例中：</p>
+<ul>
+	<li>PCA 的運算相當依賴資料分布，而 train_test_split 會亂數切分資料，因此你每次看到的結果，通常會不太一樣。</li>
+	<li>降到二維是為了方便畫圖顯示，實際運用上可以視其他需求，來決定降到幾維。</li>
+	<li>使用 np.linalg.eig 計算的 eigenvectors 會乘上負號，是因為內部實作細節與 sklearn 不同，導致 eigenvectors 的方向相反。範例中為了圖片上的一致，所以乘上負號。</li>
+</ul>
+
+</blockquote>
+
+</body></html>

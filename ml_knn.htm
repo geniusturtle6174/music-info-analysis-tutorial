@@ -27,19 +27,29 @@ import numpy as np
 from sklearn.datasets import load_wine
 from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
-
+ 
 dataset = load_wine()
 print('Data shapes:', dataset.data.shape, dataset.target.shape)
-
+ 
 X_train, X_test, y_train, y_test = train_test_split(dataset.data, dataset.target)
 print('Training data shapes:', X_train.shape, y_train.shape)
 print('Test data shapes:', X_test.shape, y_test.shape)
-
+ 
 model = KNeighborsClassifier(n_neighbors=1)
 model.fit(X_train, y_train)
 pred = model.predict(X_test)
-print('Accuracy: {:.2f}%'.format(100*np.mean(pred==y_test)))
+print('Accuracy (sklearn): {:.2f}%'.format(100*np.mean(pred==y_test)))
+
+pred = []
+for p_te in X_test:
+    dists = [np.sum((p_tr - p_te) ** 2) ** 0.5 for p_tr in X_train]
+    pred.append(y_train[np.argmin(dists)])
+
+pred = np.array(pred)
+print('Accuracy (for loop): {:.2f}%'.format(100*np.mean(pred==y_test)))
 </pre>
+
+<p>在上述範例中，由於 train_test_split 是隨機進行，因此每次執行時，準確度可能會有所變化。此外，範例的下半部同時也示範了自行實作最近鄰居分類的參考方式，其中的 n_neighbors 與前半部同樣為 1，距離則是使用 2-norm。</p>
 
 <p>下面對 KNeighborsClassifier 的部分參數進行一些說明，若需要更多細節，可以參考官方文件。</p>
 <ul>

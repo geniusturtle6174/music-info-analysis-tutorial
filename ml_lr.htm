@@ -23,16 +23,20 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.linear_model import LinearRegression
- 
+
 x = np.linspace(0, 10, 1000)
 y_raw = 3 * x + 2
 y = y_raw + np.random.randn(1000)
- 
+
 model = LinearRegression()
 model.fit(x[:, np.newaxis], y[:, np.newaxis])
 print(model.coef_[0], model.intercept_)
 y_fit = model.coef_[0] * x + model.intercept_
- 
+
+x = np.hstack([x[:, np.newaxis], np.ones((x.size, 1))])
+(coef, intercept), _, _, _ = np.linalg.lstsq(x, y, rcond=None)
+print(coef, intercept)
+
 plt.plot(x, y, '.', label='Random data')
 plt.plot(x, y_raw, '-', label='Raw line')
 plt.plot(x, y_fit, '-', label='Fitted line')
@@ -45,6 +49,7 @@ plt.show()
 	<li>進行訓練時，x 的 shape 必須是「(資料點數, 每筆輸入資料的維度)」，因此需要新增一個軸。</li>
 	<li>訓練完畢後，coef_ 的內容會是每個輸入維度的係數（不含常數項），此例中只有一維，所以直接取用該數字，以繪製擬合後的曲線。</li>
 	<li>由於範例中的資料是亂數產生，所以每次執行所得到的係數可能不太一樣。</li>
+	<li>除了使用 sklearn 以外，也同時示範了使用 np.linalg.lstsq 來求取結果，以便讓各位更容易了解內部的演算方式。</li>
 </ul>
 
 </blockquote>
