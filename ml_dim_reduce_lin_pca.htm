@@ -72,8 +72,37 @@ plt.show()
 <ul>
 	<li>PCA 的運算相當依賴資料分布，而 train_test_split 會亂數切分資料，因此你每次看到的結果，通常會不太一樣。</li>
 	<li>降到二維是為了方便畫圖顯示，實際運用上可以視其他需求，來決定降到幾維。</li>
-	<li>使用 np.linalg.eig 計算的 eigenvectors 會乘上負號，是因為內部實作細節與 sklearn 不同，導致 eigenvectors 的方向相反。範例中為了圖片上的一致，所以乘上負號。</li>
+	<li>使用 np.linalg.eig 計算的 eigenvectors 會乘上負號，是因為其內部實作細節與 sklearn 不同，導致 eigenvectors 的方向可能在大多數情況下恰好相反，而範例中為了圖片呈現上的一致，所以乘上負號。</li>
 </ul>
+
+<p>對於影像類型的資料，我們可以用繪製的方式，來觀察看看 PCA 投影到的方向。以下範例是以 50 x 37 = 1850 維的人臉影像資料，找出前 150 個投影的方向，並繪製原始圖片，以及前 12 個投影方向（此範例需要經由網路連線下載資料，若你的網路不順暢，或者伺服器有問題的話，可能會無法執行此範例）：</p>
+<pre class="brush: py">
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.datasets import fetch_lfw_people
+from sklearn.decomposition import PCA
+
+lfw_people = fetch_lfw_people(min_faces_per_person=50, resize=0.4)
+print('Data shapes:', lfw_people.images.shape, lfw_people.data.shape)
+
+model = PCA(n_components=150)
+model.fit(lfw_people.data)
+eigenfaces = model.components_.reshape(
+	(150, lfw_people.images.shape[1], lfw_people.images.shape[2])
+)
+
+plt.figure()
+for i in range(12):
+	plt.subplot(3, 4, i+1)
+	plt.imshow(lfw_people.images[i])
+
+plt.figure()
+for i in range(12):
+	plt.subplot(3, 4, i+1)
+	plt.imshow(eigenfaces[i])
+
+plt.show()
+</pre>
 
 </blockquote>
 

@@ -1,0 +1,92 @@
+﻿<html>
+<head>
+	<title>線上教材：音樂資訊分析</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<link rel=stylesheet type="text/css" href="myCss.css">
+	<base target="_blank">
+	<script type="text/javascript" src="shCore.js"></script>
+	<script type="text/javascript" src="shBrushPython.js"></script>
+	<link href="shCore.css" rel="stylesheet" type="text/css" />
+	<link href="shThemeDefault.css" rel="stylesheet" type="text/css" />
+	<script type="text/javascript">
+		SyntaxHighlighter.all();
+	</script>
+</head>
+
+<body bgcolor="#ccccff">
+
+<blockquote>
+
+<p>
+LDA 的全名是 linear discriminant analysis，中文一般稱為「線性判別分析」，是降低資料維度的方法之一；並且由於 LDA 會考慮類別的資訊，因此也可以用於分類（但由於本篇屬於降維的範圍，故只會提到如何將 LDA 使用於降維）。它的基本概念是找出能讓類別間差異最大，而各個類別內部差異最小的方向，來做為投影方向，依此類推。在數學上，相當於先定義類別之間的共變異矩陣 &Sigma;<sub>between</sub> 以及各個類別內部的共變異矩陣（的總和） &Sigma;<sub>within</sub>，再求出 &Sigma;<sub>within</sub><sup>-1</sup>&Sigma;<sub>between</sub> 的 eigenvectors，再拿去跟原始的資料相乘。
+</p>
+
+<p>以下範例將分別使用 sklearn 和 numpy 計算 LDA 的結果，以同時說明完全現成函式的使用，以及你可以如何自己計算：</p>
+<pre class="brush: py">
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.datasets import load_wine
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
+from sklearn.model_selection import train_test_split
+
+dataset = load_wine()
+print('Data shapes:', dataset.data.shape, dataset.target.shape)
+
+X_train, X_test, y_train, y_test = train_test_split(dataset.data, dataset.target)
+num_class = np.max(y_train) + 1
+print('Training data shapes:', X_train.shape, y_train.shape)
+print('Test data shapes:', X_test.shape, y_test.shape)
+print('Num classes:', num_class)
+
+model = LDA(n_components=2)
+X_train_skl = model.fit_transform(X_train, y_train)
+X_test_skl = model.transform(X_test)
+print('Transformed shapes (sklearn):', X_train_skl.shape, X_test_skl.shape)
+
+# Shape: (1, n_feature)
+mu = np.mean(X_train, axis=0, keepdims=True)
+
+mk_muk_mukt = 0
+for k in range(num_class):
+	m_k = np.sum(y_train == k)
+	mu_k = np.mean(X_train[np.where(y_train == k)[0]], axis=0, keepdims=True)
+	mk_muk_mukt += m_k * mu_k.T @ mu_k
+
+sigma_within_inv = np.linalg.inv(X_train.T @ X_train - mk_muk_mukt)
+sigma_between = mk_muk_mukt - X_train.shape[0] * mu.T @ mu
+
+_, eig_vs = np.linalg.eig(sigma_within_inv @ sigma_between)
+
+X_train_np = X_train @ eig_vs
+X_test_np = X_test @ eig_vs
+print('Transformed shapes (np.linalg.eig):', X_train_np.shape, X_test_np.shape)
+
+plt.subplot(2, 2, 1)
+plt.plot(X_train_skl[:, 0], X_train_skl[:, 1], '.')
+plt.title('TR (sklearn)')
+
+plt.subplot(2, 2, 2)
+plt.plot(X_test_skl[:, 0], X_test_skl[:, 1], '.')
+plt.title('TE (sklearn)')
+
+plt.subplot(2, 2, 3)
+plt.plot(X_train_np[:, 0], X_train_np[:, 1], '.')
+plt.title('TR (np.linalg.eig)')
+
+plt.subplot(2, 2, 4)
+plt.plot(X_test_np[:, 0], X_test_np[:, 1], '.')
+plt.title('TE (np.linalg.eig)')
+
+plt.show()
+</pre>
+
+<p>在上述範例中：</p>
+<ul>
+	<li>PCA 的運算相當依賴資料分布，而 train_test_split 會亂數切分資料，因此你每次看到的結果，有可能會不太一樣。</li>
+	<li>降到二維是為了方便畫圖顯示，實際運用上可以視其他需求，來決定降到幾維。但要注意的是，由於 LDA 會參考資料類別的數目，因此維度不能高於「類別數目 - 1」和原始特徵維度的最小值。</li>
+	<li>由於 sklearn 的內部實作細節，與範例中使用 numpy 計算的方式不同，因此你可能會看到兩者之間差了某種旋轉。</li>
+</ul>
+
+</blockquote>
+
+</body></html>
