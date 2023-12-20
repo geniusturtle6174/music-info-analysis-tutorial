@@ -32,8 +32,8 @@ model.fit(x[:, np.newaxis], y[:, np.newaxis])
 print(model.coef_[0], model.intercept_)
 y_fit = model.coef_[0] * x + model.intercept_
 
-x = np.hstack([x[:, np.newaxis], np.ones((x.size, 1))])
-(coef, intercept), _, _, _ = np.linalg.lstsq(x, y, rcond=None)
+x2 = np.hstack([x[:, np.newaxis], np.ones((x.size, 1))])
+(coef, intercept), _, _, _ = np.linalg.lstsq(x2, y, rcond=None)
 print(coef, intercept)
 
 plt.plot(x, y, '.', label='Random data')
