@@ -35,18 +35,24 @@ import numpy as np
 from sklearn.datasets import load_wine
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier
- 
+
 dataset = load_wine()
 print('Data shapes:', dataset.data.shape, dataset.target.shape)
- 
+
 X_train, X_test, y_train, y_test = train_test_split(dataset.data, dataset.target)
 print('Training data shapes:', X_train.shape, y_train.shape)
 print('Test data shapes:', X_test.shape, y_test.shape)
- 
+
 model = MLPClassifier(hidden_layer_sizes=(256, 256))
 model.fit(X_train, y_train)
 pred = model.predict(X_test)
-print('Accuracy: {:.2f}%'.format(100*np.mean(pred==y_test)))
+print('Accuracy: {:.2f}%'.format(100*np.mean(pred == y_test)))
+
+hidden = np.maximum(X_test @ model.coefs_[0] + model.intercepts_[0], 0)
+hidden = np.maximum(hidden @ model.coefs_[1] + model.intercepts_[1], 0)
+pred = np.argmax(hidden @ model.coefs_[2] + model.intercepts_[2], axis=1)
+
+print('Accuracy: {:.2f}%'.format(100*np.mean(pred == y_test)))
 </pre>
 
 <p>在上述範例中，我們只調整了隱藏層的數目，而其他如 learning rate 及 batch size 等參數則維持預設；範例中的隱藏層數目是一組有機會讓測試集準確率在 90% 上下（實際結果會隨著訓練與測試集的亂數切分而有差異）的參數，各位可以試著跟其他的參數一併調整看看。</p>

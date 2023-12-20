@@ -17,8 +17,7 @@
 
 <blockquote>
 
-<p>
-線性回歸(linear regression)的目標是找出一條直線，使得所有點到直線的距離（y 軸方向）之平方和為最小。我們可以使用 scikit-learn 的 <a href="https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LinearRegression.html">linear_model.LinearRegression</a> 來幫我們進行線性回歸，以下範例將會隨機的產生一些資料點來示範：</p>
+<p>線性回歸(linear regression)的目標是找出一條直線，使得所有點到直線的距離（y 軸方向）之平方和為最小。我們可以使用 scikit-learn 的 <a href="https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LinearRegression.html">linear_model.LinearRegression</a> 來幫我們進行線性回歸，以下範例將會隨機的產生一些資料點來示範：</p>
 <pre class="brush: py">
 import matplotlib.pyplot as plt
 import numpy as np
@@ -51,6 +50,32 @@ plt.show()
 	<li>由於範例中的資料是亂數產生，所以每次執行所得到的係數可能不太一樣。</li>
 	<li>除了使用 sklearn 以外，也同時示範了使用 np.linalg.lstsq 來求取結果，以便讓各位更容易了解內部的演算方式。</li>
 </ul>
+
+<p>如果要利用 LinearRegression 來擬合多項式，那麼你可以建立一個包含 x 的各個次方的矩陣，然後用該矩陣來對 y 做線性回歸。以下範例是一個擬合三次多項式的範例：</p>
+<pre class="brush: py">
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.linear_model import LinearRegression
+
+x = np.linspace(-2, 2, 1000)
+y_raw = x ** 3 - 2 * x ** 2 + 3 * x - 4
+y = y_raw + np.random.randn(1000)
+
+x2 = np.hstack([x[:, np.newaxis], x[:, np.newaxis] ** 2, x[:, np.newaxis] ** 3])
+model = LinearRegression()
+model.fit(x2, y[:, np.newaxis])
+y_fit = \
+	model.coef_[0][0] * x + \
+	model.coef_[0][1] * x ** 2 + \
+	model.coef_[0][2] * x ** 3 + \
+	model.intercept_
+
+plt.plot(x, y, '.', label='Random data')
+plt.plot(x, y_raw, '-', label='Raw line')
+plt.plot(x, y_fit, '-', label='Fitted line')
+plt.legend()
+plt.show()
+</pre>
 
 </blockquote>
 

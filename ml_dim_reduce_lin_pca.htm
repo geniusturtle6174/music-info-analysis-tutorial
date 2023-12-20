@@ -33,8 +33,10 @@ dataset = load_wine()
 print('Data shapes:', dataset.data.shape, dataset.target.shape)
 
 X_train, X_test, y_train, y_test = train_test_split(dataset.data, dataset.target)
+num_class = np.max(y_train) + 1
 print('Training data shapes:', X_train.shape, y_train.shape)
 print('Test data shapes:', X_test.shape, y_test.shape)
+print('Num classes:', num_class)
 
 model = PCA(n_components=2)
 X_train_skl = model.fit_transform(X_train)
@@ -44,25 +46,35 @@ print('Transformed shapes (sklearn):', X_train_skl.shape, X_test_skl.shape)
 X_train_mean = np.mean(X_train, axis=0)
 X_train = X_train - X_train_mean[np.newaxis, :]
 X_test = X_test - X_train_mean[np.newaxis, :]
-_, eig_vs = np.linalg.eig(X_train.T @ X_train)
-X_train_np = X_train @ -eig_vs
-X_test_np = X_test @ -eig_vs
+eig_vals, eig_vecs = np.linalg.eig(X_train.T @ X_train)
+X_train_np = X_train @ -eig_vecs
+X_test_np = X_test @ -eig_vecs
+print('eigen values:', eig_vals)
 print('Transformed shapes (np.linalg.eig):', X_train_np.shape, X_test_np.shape)
 
 plt.subplot(2, 2, 1)
-plt.plot(X_train_skl[:, 0], X_train_skl[:, 1], '.')
+for i in range(num_class):
+	idx = np.where(y_train == i)[0]
+	plt.plot(X_train_skl[idx, 0], X_train_skl[idx, 1], '.', label='Class {}'.format(i))
+plt.legend()
 plt.title('TR (sklearn)')
 
 plt.subplot(2, 2, 2)
-plt.plot(X_test_skl[:, 0], X_test_skl[:, 1], '.')
+for i in range(num_class):
+	idx = np.where(y_test == i)[0]
+	plt.plot(X_test_skl[idx, 0], X_test_skl[idx, 1], '.')
 plt.title('TE (sklearn)')
 
 plt.subplot(2, 2, 3)
-plt.plot(X_train_np[:, 0], X_train_np[:, 1], '.')
+for i in range(num_class):
+	idx = np.where(y_train == i)[0]
+	plt.plot(X_train_np[idx, 0], X_train_np[idx, 1], '.')
 plt.title('TR (np.linalg.eig)')
 
 plt.subplot(2, 2, 4)
-plt.plot(X_test_np[:, 0], X_test_np[:, 1], '.')
+for i in range(num_class):
+	idx = np.where(y_test == i)[0]
+	plt.plot(X_test_np[idx, 0], X_test_np[idx, 1], '.')
 plt.title('TE (np.linalg.eig)')
 
 plt.show()

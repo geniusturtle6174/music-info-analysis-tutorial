@@ -55,26 +55,36 @@ for k in range(num_class):
 sigma_within_inv = np.linalg.inv(X_train.T @ X_train - mk_muk_mukt)
 sigma_between = mk_muk_mukt - X_train.shape[0] * mu.T @ mu
 
-_, eig_vs = np.linalg.eig(sigma_within_inv @ sigma_between)
+eig_vals, eig_vecs = np.linalg.eig(sigma_within_inv @ sigma_between)
 
-X_train_np = X_train @ eig_vs
-X_test_np = X_test @ eig_vs
+X_train_np = X_train @ eig_vecs
+X_test_np = X_test @ eig_vecs
+print('eigen values:', eig_vals)
 print('Transformed shapes (np.linalg.eig):', X_train_np.shape, X_test_np.shape)
 
 plt.subplot(2, 2, 1)
-plt.plot(X_train_skl[:, 0], X_train_skl[:, 1], '.')
+for i in range(num_class):
+	idx = np.where(y_train == i)[0]
+	plt.plot(X_train_skl[idx, 0], X_train_skl[idx, 1], '.', label='Class {}'.format(i))
+plt.legend()
 plt.title('TR (sklearn)')
 
 plt.subplot(2, 2, 2)
-plt.plot(X_test_skl[:, 0], X_test_skl[:, 1], '.')
+for i in range(num_class):
+	idx = np.where(y_test == i)[0]
+	plt.plot(X_test_skl[idx, 0], X_test_skl[idx, 1], '.')
 plt.title('TE (sklearn)')
 
 plt.subplot(2, 2, 3)
-plt.plot(X_train_np[:, 0], X_train_np[:, 1], '.')
+for i in range(num_class):
+	idx = np.where(y_train == i)[0]
+	plt.plot(X_train_np[idx, 0], X_train_np[idx, 1], '.')
 plt.title('TR (np.linalg.eig)')
 
 plt.subplot(2, 2, 4)
-plt.plot(X_test_np[:, 0], X_test_np[:, 1], '.')
+for i in range(num_class):
+	idx = np.where(y_test == i)[0]
+	plt.plot(X_test_np[idx, 0], X_test_np[idx, 1], '.')
 plt.title('TE (np.linalg.eig)')
 
 plt.show()
@@ -82,7 +92,7 @@ plt.show()
 
 <p>在上述範例中：</p>
 <ul>
-	<li>PCA 的運算相當依賴資料分布，而 train_test_split 會亂數切分資料，因此你每次看到的結果，有可能會不太一樣。</li>
+	<li>LDA 的運算相當依賴資料分布，而 train_test_split 會亂數切分資料，因此你每次看到的結果，有可能會不太一樣。</li>
 	<li>降到二維是為了方便畫圖顯示，實際運用上可以視其他需求，來決定降到幾維。但要注意的是，由於 LDA 會參考資料類別的數目，因此維度不能高於「類別數目 - 1」和原始特徵維度的最小值。</li>
 	<li>由於 sklearn 的內部實作細節，與範例中使用 numpy 計算的方式不同，因此你可能會看到兩者之間差了某種旋轉。</li>
 </ul>
