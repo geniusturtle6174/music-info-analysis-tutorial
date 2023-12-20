@@ -64,11 +64,7 @@ y = y_raw + np.random.randn(1000)
 x2 = np.hstack([x[:, np.newaxis], x[:, np.newaxis] ** 2, x[:, np.newaxis] ** 3])
 model = LinearRegression()
 model.fit(x2, y[:, np.newaxis])
-y_fit = \
-	model.coef_[0][0] * x + \
-	model.coef_[0][1] * x ** 2 + \
-	model.coef_[0][2] * x ** 3 + \
-	model.intercept_
+y_fit = model.predict(x2)
 
 plt.plot(x, y, '.', label='Random data')
 plt.plot(x, y_raw, '-', label='Raw line')
