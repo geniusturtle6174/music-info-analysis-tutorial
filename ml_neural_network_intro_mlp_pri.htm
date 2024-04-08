@@ -1,0 +1,68 @@
+﻿<html>
+<head>
+	<title>線上教材：音樂資訊分析</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<link rel=stylesheet type="text/css" href="myCss.css">
+	<base target="_blank">
+	<script type="text/javascript" src="shCore.js"></script>
+	<script type="text/javascript" src="shBrushPython.js"></script>
+	<link href="shCore.css" rel="stylesheet" type="text/css" />
+	<link href="shThemeDefault.css" rel="stylesheet" type="text/css" />
+	<script type="text/javascript">
+		SyntaxHighlighter.all();
+	</script>
+</head>
+
+<body bgcolor="#ccccff">
+
+<blockquote>
+
+<p>
+大家在國高中生物課程中學過生物的神經，有樹突作為輸入端，而當輸入的強度超過閾值時，就會啟動輸出，將訊號傳遞到下一個神經元；而類神經網路，則是比照生物學的原理，以人工的方式來模擬神經元的行為。在最簡單的狀況，假設一個神經元只包含一個輸入端（對照到機器學習的術語，就是特徵只有一個維度）和一個輸出端的情況中，我們可以用數學將其表示成 y&#770; = f( x * w + b)，其中的 x 是輸入值，w 和 b 分別是我們需要訓練來代表神經元行為的權重(weight)和偏差(bias)值，f 稱為激勵函數(activation function)，通常是以一個非線性的函數，來模擬生物上的神經元，在超過強度閾值時才會有輸出的這種行為，y&#770; 則為神經元的輸出值。
+</p>
+
+<p>
+若考慮到生物的一個神經元中，樹突會有多個輸入端，但假設輸出端還是只有一個的情況，則前面的式子會變成 y&#770; = f(<b>x</b><sup>T</sup><b>w</b> + b)，此時的 <b>x</b> 和 <b>w</b> 都各自是一個 column vector，而 b 和經過運算的 y&#770; 還是單一數值。進一步再考慮輸入和輸出端都有多個的情況，則算式會再進一步變成 <b>y&#770;</b> = f(<b>x</b><sup>T</sup>W + <b>b</b>)，此時的輸入 <b>x</b>、偏差 <b>b</b> 和輸出 <b>y&#770;</b> 都是向量，而 W 是矩陣。把這樣的神經元堆疊多層，就是所謂的多層感知器(Multilayer perceptron, MLP)，並且由於每一層的每個輸出都是完全連接到下一層的每個輸入，所以這樣的每一層叫做全連接層(fully connected layer)。如果有 n 層的話，這個網路寫成算式會是這樣： <b>h<sub>1</sub></b> = f(<b>x</b><sup>T</sup>W<sub>1</sub> + <b>b<sub>1</sub></b>), <b>h<sub>2</sub></b> = f(<b>h<sub>1</sub></b><sup>T</sup>W<sub>2</sub> + <b>b<sub>2</sub></b>), ..., <b>y&#770;</b> = f(<b>h<sub>n-1</sub></b><sup>T</sup>W<sub>n</sub> + <b>b<sub>n</sub></b>)。
+</p>
+
+<p>
+假設一路上的每個 W 和 <b>b</b> 已經給定，則對於一個輸入 <b>x</b>，要計算 <b>y&#770;</b> 是相當簡單的事情，就是高中學過的矩陣運算而已，此步驟稱為向前傳播(forward propagation, forward pass)。而要訓練這個類神經網路，也就是說要更新每個 W 和 <b>b</b>，則需要先使用損失函數(loss function)評估網路算出來的 <b>y&#770;</b> 和標準答案的 <b>y</b> 之間的差異，接著以損失函數對每個參數進行偏微分求取梯度，最後再利用各種最佳化（求極值）的方法(optmizer)來更新每個 W 和 <b>b</b>。其中，由於求梯度的步驟是由算出來的 loss 倒回去進行，所以通稱為反向傳播(backpropagation)。如此反覆的向前傳播、反向傳播以及最佳化更新參數以後，通常就可以訓練出恰當的類神經網路。
+</p>
+
+<p>
+具體來說，以恰好有一個隱藏層，且輸入、隱藏、輸出層都是維度 2 的神經網路為例，把向前傳播的矩陣形式展開回數值時，可以寫為以下方式，其中 w、b 以及 h 的上標代表其所屬為第幾層，w 的下標代表由前一層的第幾維度連接到後一層的第幾維度，其餘的下標代表其為第幾維度：
+</p>
+
+<p style="text-align:center">h<sup>1</sup><sub style='position: relative; left: -.5em;'>1</sub> = f(x<sub>1</sub>w<sup>1</sup><sub style='position: relative; left: -.5em;'>1,1</sub> + x<sub>2</sub>w<sup>1</sup><sub style='position: relative; left: -.5em;'>2,1</sub> + b<sup>1</sup><sub style='position: relative; left: -.5em;'>1</sub>),</p>
+
+<p style="text-align:center">h<sup>1</sup><sub style='position: relative; left: -.5em;'>2</sub> = f(x<sub>1</sub>w<sup>1</sup><sub style='position: relative; left: -.5em;'>1,2</sub> + x<sub>2</sub>w<sup>1</sup><sub style='position: relative; left: -.5em;'>2,2</sub> + b<sup>1</sup><sub style='position: relative; left: -.5em;'>2</sub>),</p>
+
+<p style="text-align:center">y&#770;<sub>1</sub> = f(h<sup>1</sup><sub style='position: relative; left: -.5em;'>1</sub>w<sup>2</sup><sub style='position: relative; left: -.5em;'>1,1</sub> + h<sup>1</sup><sub style='position: relative; left: -.5em;'>2</sub>w<sup>2</sup><sub style='position: relative; left: -.5em;'>2,1</sub> + b<sup>2</sup><sub style='position: relative; left: -.5em;'>1</sub>),</p>
+
+<p style="text-align:center">y&#770;<sub>2</sub> = f(h<sup>1</sup><sub style='position: relative; left: -.5em;'>1</sub>w<sup>2</sup><sub style='position: relative; left: -.5em;'>1,2</sub> + h<sup>1</sup><sub style='position: relative; left: -.5em;'>2</sub>w<sup>2</sup><sub style='position: relative; left: -.5em;'>2,2</sub> + b<sup>2</sup><sub style='position: relative; left: -.5em;'>2</sub>)</p>
+
+<p>此時，對於 w<sup>2</sup> 和 b<sup>2</sup> 來說，由於各自都只有一條路徑通往 y&#770;，因此以損失函數 L 對其偏微分相對簡單，依照連鎖律(chain rule)直接展開即可，如下：</p>
+
+<p style="text-align:center">&part;L / &part;b<sup>2</sup><sub style='position: relative; left: -.5em;'>1</sub> = (&part;L / &part;y&#770;<sub>1</sub>)(&part;y&#770;<sub>1</sub> / &part;b<sup>2</sup><sub style='position: relative; left: -.5em;'>1</sub>),</p>
+
+<p style="text-align:center">&part;L / &part;b<sup>2</sup><sub style='position: relative; left: -.5em;'>2</sub> = (&part;L / &part;y&#770;<sub>2</sub>)(&part;y&#770;<sub>2</sub> / &part;b<sup>2</sup><sub style='position: relative; left: -.5em;'>2</sub>),</p>
+
+<p style="text-align:center">&part;L / w<sup>2</sup><sub style='position: relative; left: -.5em;'>1,1</sub> = (&part;L / &part;y&#770;<sub>1</sub>)(&part;y&#770;<sub>1</sub> / &part;w<sup>2</sup><sub style='position: relative; left: -.5em;'>1,1</sub>),</p>
+
+<p style="text-align:center">&part;L / w<sup>2</sup><sub style='position: relative; left: -.5em;'>1,2</sub> = (&part;L / &part;y&#770;<sub>2</sub>)(&part;y&#770;<sub>2</sub> / &part;w<sup>2</sup><sub style='position: relative; left: -.5em;'>1,2</sub>),</p>
+
+<p style="text-align:center">...</p>
+
+<p>而對於 w<sup>1</sup> 和 b<sup>1</sup> 來說，由於各自有兩條路徑通往 y&#770;，因此以損失函數 L 對其偏微分時，需要同時考慮這兩條路徑的影響，亦即將其相加。以 w<sup>1</sup><sub style='position: relative; left: -.5em;'>1,1</sub> 和 b<sup>1</sup><sub style='position: relative; left: -.5em;'>1</sub> 作為範例，如下：</p>
+
+<p style="text-align:center">&part;L / &part;b<sup>1</sup><sub style='position: relative; left: -.5em;'>1</sub> = (&part;L / &part;y&#770;<sub>1</sub>)(&part;y&#770;<sub>1</sub> / &part;h<sup>1</sup><sub style='position: relative; left: -.5em;'>1</sub>)(&part;h<sup>1</sup><sub style='position: relative; left: -.5em;'>1</sub> / &part;b<sup>1</sup><sub style='position: relative; left: -.5em;'>1</sub>) + (&part;L / &part;y&#770;<sub>2</sub>)(&part;y&#770;<sub>2</sub> / &part;h<sup>1</sup><sub style='position: relative; left: -.5em;'>1</sub>)(&part;h<sup>1</sup><sub style='position: relative; left: -.5em;'>1</sub> / &part;b<sup>1</sup><sub style='position: relative; left: -.5em;'>1</sub>),</p>
+
+<p style="text-align:center">&part;L / &part;w<sup>1</sup><sub style='position: relative; left: -.5em;'>1,1</sub> = (&part;L / &part;y&#770;<sub>1</sub>)(&part;y&#770;<sub>1</sub> / &part;h<sup>1</sup><sub style='position: relative; left: -.5em;'>1</sub>)(&part;h<sup>1</sup><sub style='position: relative; left: -.5em;'>1</sub> / &part;w<sup>1</sup><sub style='position: relative; left: -.5em;'>1,1</sub>) + (&part;L / &part;y&#770;<sub>2</sub>)(&part;y&#770;<sub>2</sub> / &part;h<sup>1</sup><sub style='position: relative; left: -.5em;'>2</sub>)(&part;h<sup>1</sup><sub style='position: relative; left: -.5em;'>2</sub> / &part;w<sup>1</sup><sub style='position: relative; left: -.5em;'>1,1</sub>)</p>
+
+<p>在上述算式中，你可以發現有一些相同的部份，例如 &part;L / &part;y&#770;<sub>1</sub> 以及 &part;y&#770;<sub>1</sub> / &part;h<sup>1</sup><sub style='position: relative; left: -.5em;'>1</sub> 等等，這些部份在各家工具的實作中，通常會將重複的部份保留起來，避免重複計算，以節省資源。此外，由於在算式中，我們除了對損失函數先微分以外，在計算中途也需要多次對激勵函數在某一些點進行微分並連續相乘，因此若函數在那些點的微分太大或太小，連續相乘起來就會讓梯度爆炸或者消失；目前已有多項技巧用於緩解或繞開相關問題，較經典的方式有梯度剪切(clipping gradient)以及殘差連接(residual connection)，或者你可以直接避免連續使用容易造成問題的激勵函數。</p>
+
+<p>而更新參數的方法，最基本的是梯度下降法(gradient descent)；而由於通常訓練類神經網路時，是將資料分成小批次餵進去，因此在這種情境下，會特別稱為隨機梯度下降法(stochastic gradient descent, SGD)。SGD 的公式是 p<sup>t+1</sup> = p<sup>t</sup> - r * &part;L / &part;p<sup>t</sup>，其中的 p<sup>t</sup> 和 p<sup>t+1</sup> 分別代表目前的和更新後的參數；而 r 則稱為學習率(learning rate)，代表每次更新的時候你「大膽」的程度。而為了比 SGD 更快找到好的參數，或者找到更好的參數，還有其他各種最佳化方法被開發出來，此處就不一一介紹。</p>
+
+</blockquote>
+
+</body></html>

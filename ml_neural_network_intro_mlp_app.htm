@@ -1,0 +1,63 @@
+﻿<html>
+<head>
+	<title>線上教材：音樂資訊分析</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<link rel=stylesheet type="text/css" href="myCss.css">
+	<base target="_blank">
+	<script type="text/javascript" src="myJs.js"></script>
+	<script type="text/javascript" src="shCore.js"></script>
+	<script type="text/javascript" src="shBrushPython.js"></script>
+	<link href="shCore.css" rel="stylesheet" type="text/css" />
+	<link href="shThemeDefault.css" rel="stylesheet" type="text/css" />
+	<script type="text/javascript">
+		SyntaxHighlighter.all();
+	</script>
+</head>
+
+<body bgcolor="#ccccff">
+
+<blockquote>
+
+<script>
+showWarning('以下內容不假設你看過原理篇，但是有看過會更好');
+</script>
+
+<p>
+多層感知器(Multilayer perceptron, MLP)的一層，可以表示為 <b>y&#770;</b> = f(<b>x</b><sup>T</sup>W + <b>b</b>)，其中的 <b>x</b> 為輸入向量，W 為權重矩陣，<b>b</b> 為偏差向量，f 為激勵函數(activation function)，<b>y&#770;</b> 為輸出向量。並且由於堆疊多層時，每一層的每個輸出都是完全連接到下一層的每個輸入，所以這樣的每一層又叫做全連接層(fully connected layer)。多層感知器或者其他各種類神經網路的訓練，則首先需要使用損失函數(loss function)評估網路算出來的 <b>y&#770;</b> 和標準答案的 <b>y</b> 之間的差異，經由你所選用的工具（例如 PyTorch 或者 Tensorflow）進行微分求出梯度以後，再使用各種最佳化（求極值）的方法(optmizer)來更新每個 W 和 <b>b</b>。如此反覆進行之後，通常就可以訓練出恰當的類神經網路。
+</p>
+
+<p>
+對於激勵函數、損失函數以及最佳化方法，可以依照你要處理的問題特性，或者實際效果來選擇。常用的激勵函數有 sigmoid、ReLU、tanh，損失函數則有常用於回歸問題的 mean squared error (MSE)，以及常用於分類問題的 cross entropy 等可以選擇。最佳化方法則通常有 SGD (stochastic gradient descent)、Momentum、AdaGrad、RMSProp，以及 Adam 等方式，若無特殊需求，且在可以選擇的情況下，通常你可以先試試看 Adam。
+</p>
+
+<p>若要使用 MLP 解決問題，有很多工具可以幫忙，常見的有像是 <a href="https://pytorch.org/">PyTorch</a>、<a href="https://www.tensorflow.org/?hl=zh-tw">TensorFlow</a>，以及 <a href="https://chainer.org/">Chainer</a> 等等，不過這些工具為了能讓你做更自由的調整，所以在真正的類神經網路本身和資料的事前處理，都有許多工作要自己做，因此以下還是先使用 scikit-learn 的 <a href="https://scikit-learn.org/stable/modules/generated/sklearn.neural_network.MLPClassifier.html">neural_network.MLPClassifier</a> 來示範 MLP 的使用，範例的資料集是 <a href="https://archive.ics.uci.edu/ml/datasets/wine">Wine Data Set</a>。</p>
+<pre class="brush: py">
+import numpy as np
+from sklearn.datasets import load_wine
+from sklearn.model_selection import train_test_split
+from sklearn.neural_network import MLPClassifier
+
+dataset = load_wine()
+print('Data shapes:', dataset.data.shape, dataset.target.shape)
+
+X_train, X_test, y_train, y_test = train_test_split(dataset.data, dataset.target)
+print('Training data shapes:', X_train.shape, y_train.shape)
+print('Test data shapes:', X_test.shape, y_test.shape)
+
+model = MLPClassifier(hidden_layer_sizes=(256, 256))
+model.fit(X_train, y_train)
+pred = model.predict(X_test)
+print('Accuracy: {:.2f}%'.format(100*np.mean(pred == y_test)))
+
+hidden = np.maximum(X_test @ model.coefs_[0] + model.intercepts_[0], 0)
+hidden = np.maximum(hidden @ model.coefs_[1] + model.intercepts_[1], 0)
+pred = np.argmax(hidden @ model.coefs_[2] + model.intercepts_[2], axis=1)
+
+print('Accuracy: {:.2f}%'.format(100*np.mean(pred == y_test)))
+</pre>
+
+<p>在上述範例中，我們只調整了隱藏層的數目，而其他如 learning rate（相當於每次更新權重時「大膽」的程度，通常太大會讓網路不容易收斂到好的結果，太小會導致網路收斂很慢）及 batch size（每次更新權重時，要看多少資料）等參數則維持預設。範例中的隱藏層數目是一組有機會讓測試集準確率在 90% 上下（實際結果會隨著訓練與測試集的亂數切分而有差異）的參數，各位可以試著跟其他的參數一併調整看看。</p>
+
+</blockquote>
+
+</body></html>
