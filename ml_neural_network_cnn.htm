@@ -18,7 +18,7 @@
 <blockquote>
 
 <p>除了 MLP 以外，卷積神經網路(convolutional neural network, CNN)也是一種經常被使用的神經網路。它的概念比較像是用濾波器模擬人眼的視野，經由一層一層的處理，來過濾出從小處的邊邊角角，到全景的花草樹木。因此，convolution 本身的操作，是由一塊小的矩陣（濾波器 filter，或者稱為卷積核 kernel）對一個大的矩陣（例如影像）逐次進行點對點相乘後再相加的動作。以下圖為例，大矩陣的尺寸是 5 * 5，kernel 的尺寸是 2 * 2，逐點移動後，會得到 (5-2+1) * (5-2+1) 的輸出。當然，你也可以不要逐點移動，而是一次跳過兩點、三點，甚至更多，這個就是 PyTorch 或其他常見工具裡的 stride 參數；而如果希望輸出的矩陣大小與輸入相同，也可以事先在輸入矩陣的四周多補上一些內容，我們稱之為 padding。</p>
-<center><img src="pics/ml/conv_op.png" width="450"/></center>
+<center><img src="pics/ml/conv_op.png" width="450"></center>
 
 <p>
 而在神經網路中，一個 convolution layer 會由多個 kernels 所組成，若仍以影像為例，則假設輸入是一張高和寬都是 100 的 RGB（所以有 3 個 channels)影像，並且有 5 個 4 * 4 * 3 的 kernel（kernel 的 channel 數量，必須跟輸入一樣）時，輸出會是一個 97 * 97 * 5 的影像；對於輸出影像上面每個 channel 的每個點，都是由一個 kernel 跟輸入影像做 convolution 運算得到的。
