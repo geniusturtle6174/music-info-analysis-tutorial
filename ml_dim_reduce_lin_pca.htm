@@ -87,7 +87,7 @@ plt.show()
 	<li>使用 np.linalg.eig 計算的 eigenvectors 會乘上負號，是因為其內部實作細節與 sklearn 不同，導致 eigenvectors 的方向可能在大多數情況下恰好相反，而範例中為了圖片呈現上的一致，所以乘上負號。</li>
 </ul>
 
-<p>對於影像類型的資料，我們可以用繪製的方式，來觀察看看 PCA 投影到的方向。以下範例是以 50 x 37 = 1850 維的人臉影像資料，找出前 150 個投影的方向，並繪製原始圖片，以及前 12 個投影方向（此範例需要經由網路連線下載資料，若你的網路不順暢，或者伺服器有問題的話，可能會無法執行此範例）：</p>
+<p>對於影像類型的資料，我們可以用繪製的方式，來觀察看看 PCA 投影到的方向。以下範例是以 50 x 37 = 1850 維的人臉影像資料，找出前 150 個投影的方向，並繪製前 12 張原始圖片，以及前 12 個投影方向（此範例需要經由網路連線下載資料，若你的網路不順暢，或者伺服器有問題的話，可能會無法執行此範例）：</p>
 <pre class="brush: py">
 import matplotlib.pyplot as plt
 import numpy as np
@@ -99,6 +99,7 @@ print('Data shapes:', lfw_people.images.shape, lfw_people.data.shape)
 
 model = PCA(n_components=150)
 model.fit(lfw_people.data)
+print(model.components_.shape)
 eigenfaces = model.components_.reshape(
 	(150, lfw_people.images.shape[1], lfw_people.images.shape[2])
 )
@@ -115,6 +116,8 @@ for i in range(12):
 
 plt.show()
 </pre>
+
+<p>在上述範例中，model.components_ 是 150 個位於 1850 維空間中的向量（並且皆互相垂直），因此我們可以把任意一個向量 reshape 成 50 x 37，以當作影像來顯示。</p>
 
 </blockquote>
 
