@@ -25,14 +25,14 @@ import numpy as np
 from sklearn.datasets import load_wine
 from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
- 
+
 dataset = load_wine()
 print('Data shapes:', dataset.data.shape, dataset.target.shape)
- 
+
 X_train, X_test, y_train, y_test = train_test_split(dataset.data, dataset.target)
 print('Training data shapes:', X_train.shape, y_train.shape)
 print('Test data shapes:', X_test.shape, y_test.shape)
- 
+
 model = KNeighborsClassifier(n_neighbors=1)
 model.fit(X_train, y_train)
 pred = model.predict(X_test)
