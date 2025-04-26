@@ -22,15 +22,220 @@
 </p>
 
 <p>
-若考慮到生物的一個神經元中，樹突會有多個輸入端，但假設輸出端還是只有一個的情況，則前面的式子會變成 y&#770; = f(<b>x</b><sup>T</sup><b>w</b> + b)，此時的 <b>x</b> 和 <b>w</b> 都各自是一個 column vector，而 b 和經過運算的 y&#770; 還是單一數值。進一步再考慮輸入和輸出端都有多個的情況，則算式會再進一步變成 <b>y&#770;</b> = f(<b>x</b><sup>T</sup>W + <b>b</b>)，此時的輸入 <b>x</b>、偏差 <b>b</b> 和輸出 <b>y&#770;</b> 都是向量，而 W 是矩陣。把這樣的神經元堆疊多層，就是所謂的多層感知器(Multilayer perceptron, MLP)，並且由於每一層的每個輸出都是完全連接到下一層的每個輸入，所以這樣的每一層叫做全連接層(fully connected layer)。如果有 n 層的話，這個網路寫成算式會是這樣： <b>h<sub>1</sub></b> = f(<b>x</b><sup>T</sup>W<sub>1</sub> + <b>b<sub>1</sub></b>), <b>h<sub>2</sub></b> = f(<b>h<sub>1</sub></b><sup>T</sup>W<sub>2</sub> + <b>b<sub>2</sub></b>), ..., <b>y&#770;</b> = f(<b>h<sub>n-1</sub></b><sup>T</sup>W<sub>n</sub> + <b>b<sub>n</sub></b>)。
+若考慮到生物的一個神經元中，樹突會有多個輸入端，但假設輸出端還是只有一個的情況，則前面的式子會變成 y&#770; = f(<b>x</b><sup>T</sup><b>w</b> + b)，此時的 <b>x</b> 和 <b>w</b> 都各自是一個 column vector，而 b 和經過運算的 y&#770; 還是單一數值。進一步再考慮輸入和輸出端都有多個的情況，則算式會再進一步變成 <b>y&#770;</b> = f(<b>x</b><sup>T</sup>W + <b>b</b>)，此時的輸入 <b>x</b>、偏差 <b>b</b> 和輸出 <b>y&#770;</b> 都是向量，而 W 是矩陣。把這樣的神經元堆疊多層，就是所謂的多層感知器(Multilayer perceptron, MLP)，並且由於我們通常會讓每一層的每個輸出都是完全連接到下一層的每個輸入，所以這樣的每一層叫做全連接層(fully connected layer)。如果有 n 層的話，這個網路寫成算式會是這樣： <b>h<sub>1</sub></b> = f(<b>x</b><sup>T</sup>W<sub>1</sub> + <b>b<sub>1</sub></b>), <b>h<sub>2</sub></b> = f(<b>h<sub>1</sub></b><sup>T</sup>W<sub>2</sub> + <b>b<sub>2</sub></b>), ..., <b>y&#770;</b> = f(<b>h<sub>n-1</sub></b><sup>T</sup>W<sub>n</sub> + <b>b<sub>n</sub></b>)。因此，若以一個恰好有一個隱藏層，且輸入、隱藏、輸出層都是維度 2 的神經網路為例，可以繪製示意圖如下，其中 w、b 以及 h 的上標代表其所屬為第幾層，w 的下標代表由前一層的第幾維度連接到後一層的第幾維度，其餘的下標代表其為第幾維度：
 </p>
+
+<center><canvas id="canvas_nn01" width="400" height="190" style="border: 0px solid;"></canvas></center>
+<script>
+var canvas = document.getElementById("canvas_nn01");
+var ctx = canvas.getContext("2d");
+
+ctx.font = '30px 標楷體';
+ctx.fillText("x", 10, 60);
+ctx.font = '15px 標楷體';
+ctx.fillText("1", 25, 65);
+
+ctx.font = '30px 標楷體';
+ctx.fillText("x", 10, 160);
+ctx.font = '15px 標楷體';
+ctx.fillText("2", 25, 165);
+
+ctx.font = '40px 標楷體';
+ctx.fillText("⊕", 150, 65);
+
+ctx.font = '40px 標楷體';
+ctx.fillText("⊕", 150, 165);
+
+// --------------------
+
+ctx.beginPath();
+ctx.moveTo(40, 52);
+ctx.lineTo(150, 52);
+ctx.stroke();
+
+ctx.font = '30px 標楷體';
+ctx.fillText("w", 85, 40);
+ctx.font = '15px 標楷體';
+ctx.fillText("1,1", 100, 45);
+ctx.font = '15px 標楷體';
+ctx.fillText("1", 100, 30);
+
+ctx.beginPath();
+ctx.moveTo(40, 152);
+ctx.lineTo(150, 152);
+ctx.stroke();
+
+ctx.font = '30px 標楷體';
+ctx.fillText("w", 85, 180);
+ctx.font = '15px 標楷體';
+ctx.fillText("2,2", 100, 185);
+ctx.font = '15px 標楷體';
+ctx.fillText("1", 100, 170);
+
+ctx.beginPath();
+ctx.moveTo(40, 152);
+ctx.lineTo(150, 52);
+ctx.stroke();
+
+ctx.font = '30px 標楷體';
+ctx.fillText("w", 25, 125);
+ctx.font = '15px 標楷體';
+ctx.fillText("2,1", 40, 130);
+ctx.font = '15px 標楷體';
+ctx.fillText("1", 40, 115);
+
+ctx.beginPath();
+ctx.moveTo(40, 52);
+ctx.lineTo(150, 152);
+ctx.stroke();
+
+ctx.font = '30px 標楷體';
+ctx.fillText("w", 25, 90);
+ctx.font = '15px 標楷體';
+ctx.fillText("1,2", 40, 95);
+ctx.font = '15px 標楷體';
+ctx.fillText("1", 40, 80);
+
+ctx.beginPath();
+ctx.moveTo(170, 140);
+ctx.lineTo(170, 130);
+ctx.stroke();
+
+ctx.font = '30px 標楷體';
+ctx.fillText("b", 160, 125);
+ctx.font = '15px 標楷體';
+ctx.fillText("2", 175, 130);
+ctx.font = '15px 標楷體';
+ctx.fillText("1", 175, 115);
+
+ctx.beginPath();
+ctx.moveTo(170, 40);
+ctx.lineTo(170, 30);
+ctx.stroke();
+
+ctx.font = '30px 標楷體';
+ctx.fillText("b", 160, 25);
+ctx.font = '15px 標楷體';
+ctx.fillText("1", 175, 30);
+ctx.font = '15px 標楷體';
+ctx.fillText("1", 175, 15);
+
+// --------------------
+
+ctx.font = '30px 標楷體';
+ctx.fillText("h", 190, 60);
+ctx.font = '15px 標楷體';
+ctx.fillText("1", 205, 65);
+ctx.font = '15px 標楷體';
+ctx.fillText("1", 205, 50);
+
+ctx.font = '30px 標楷體';
+ctx.fillText("h", 190, 160);
+ctx.font = '15px 標楷體';
+ctx.fillText("2", 205, 165);
+ctx.font = '15px 標楷體';
+ctx.fillText("1", 205, 150);
+
+ctx.font = '40px 標楷體';
+ctx.fillText("⊕", 330, 65);
+
+ctx.font = '40px 標楷體';
+ctx.fillText("⊕", 330, 165);
+
+// --------------------
+
+ctx.beginPath();
+ctx.moveTo(220, 52);
+ctx.lineTo(330, 52);
+ctx.stroke();
+
+ctx.font = '30px 標楷體';
+ctx.fillText("w", 265, 40);
+ctx.font = '15px 標楷體';
+ctx.fillText("1,1", 280, 45);
+ctx.font = '15px 標楷體';
+ctx.fillText("2", 280, 30);
+
+ctx.beginPath();
+ctx.moveTo(220, 152);
+ctx.lineTo(330, 152);
+ctx.stroke();
+
+ctx.font = '30px 標楷體';
+ctx.fillText("w", 265, 180);
+ctx.font = '15px 標楷體';
+ctx.fillText("2,2", 280, 185);
+ctx.font = '15px 標楷體';
+ctx.fillText("2", 280, 170);
+
+ctx.beginPath();
+ctx.moveTo(220, 152);
+ctx.lineTo(330, 52);
+ctx.stroke();
+
+ctx.font = '30px 標楷體';
+ctx.fillText("w", 205, 125);
+ctx.font = '15px 標楷體';
+ctx.fillText("2,1", 220, 130);
+ctx.font = '15px 標楷體';
+ctx.fillText("2", 220, 115);
+
+ctx.beginPath();
+ctx.moveTo(220, 52);
+ctx.lineTo(330, 152);
+ctx.stroke();
+
+ctx.font = '30px 標楷體';
+ctx.fillText("w", 205, 90);
+ctx.font = '15px 標楷體';
+ctx.fillText("1,2", 220, 95);
+ctx.font = '15px 標楷體';
+ctx.fillText("2", 220, 80);
+
+ctx.beginPath();
+ctx.moveTo(350, 140);
+ctx.lineTo(350, 130);
+ctx.stroke();
+
+ctx.font = '30px 標楷體';
+ctx.fillText("b", 340, 125);
+ctx.font = '15px 標楷體';
+ctx.fillText("2", 355, 130);
+ctx.font = '15px 標楷體';
+ctx.fillText("2", 355, 115);
+
+ctx.beginPath();
+ctx.moveTo(350, 40);
+ctx.lineTo(350, 30);
+ctx.stroke();
+
+ctx.font = '30px 標楷體';
+ctx.fillText("b", 340, 25);
+ctx.font = '15px 標楷體';
+ctx.fillText("1", 355, 30);
+ctx.font = '15px 標楷體';
+ctx.fillText("2", 355, 15);
+
+// --------------------
+
+ctx.font = '30px 標楷體';
+ctx.fillText("ŷ", 370, 60);
+ctx.font = '15px 標楷體';
+ctx.fillText("1", 385, 65);
+
+ctx.font = '30px 標楷體';
+ctx.fillText("ŷ", 370, 160);
+ctx.font = '15px 標楷體';
+ctx.fillText("2", 385, 165);
+
+</script>
 
 <p>
 假設一路上的每個 W 和 <b>b</b> 已經給定，則對於一個輸入 <b>x</b>，要計算 <b>y&#770;</b> 是相當簡單的事情，就是高中學過的矩陣運算而已，此步驟稱為向前傳播(forward propagation, forward pass)。而要訓練這個類神經網路，也就是說要更新每個 W 和 <b>b</b>，則需要先使用損失函數(loss function)評估網路算出來的 <b>y&#770;</b> 和標準答案的 <b>y</b> 之間的差異，接著以損失函數對每個參數進行偏微分求取梯度，最後再利用各種最佳化（求極值）的方法(optmizer)來更新每個 W 和 <b>b</b>。其中，由於求梯度的步驟是由算出來的 loss 倒回去進行，所以通稱為反向傳播(backpropagation)。如此反覆的向前傳播、反向傳播以及最佳化更新參數以後，通常就可以訓練出恰當的類神經網路。
 </p>
 
 <p>
-具體來說，以恰好有一個隱藏層，且輸入、隱藏、輸出層都是維度 2 的神經網路為例，把向前傳播的矩陣形式展開回數值時，可以寫為以下方式，其中 w、b 以及 h 的上標代表其所屬為第幾層，w 的下標代表由前一層的第幾維度連接到後一層的第幾維度，其餘的下標代表其為第幾維度：
+以前述的那個恰好有一個隱藏層，且輸入、隱藏、輸出層都是維度 2 的神經網路為例，把向前傳播的矩陣形式展開回數值時，可以寫為以下方式：
 </p>
 
 <p style="text-align:center">h<sup>1</sup><sub style='position: relative; left: -.5em;'>1</sub> = f(x<sub>1</sub>w<sup>1</sup><sub style='position: relative; left: -.5em;'>1,1</sub> + x<sub>2</sub>w<sup>1</sup><sub style='position: relative; left: -.5em;'>2,1</sub> + b<sup>1</sup><sub style='position: relative; left: -.5em;'>1</sub>),</p>
