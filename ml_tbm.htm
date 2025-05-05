@@ -1,0 +1,187 @@
+﻿<html>
+<head>
+	<title>線上教材：音樂資訊分析</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<link rel=stylesheet type="text/css" href="myCss.css">
+	<base target="_blank">
+	<script type="text/javascript" src="shCore.js"></script>
+	<script type="text/javascript" src="shBrushPython.js"></script>
+	<link href="shCore.css" rel="stylesheet" type="text/css" />
+	<link href="shThemeDefault.css" rel="stylesheet" type="text/css" />
+	<script type="text/javascript">
+		SyntaxHighlighter.all();
+	</script>
+</head>
+
+<body bgcolor="#ccccff">
+
+<blockquote>
+
+<p>在資訊工程中，樹是一種由節點及邊構成的資料結構，並且會從一個根節點開始，長出數個以邊連接的其他節點作為分支；這些其他節點也可以再分支出節點，而不再長出分支時的節點則稱為葉節點。示意圖如下：</p>
+
+<center><canvas id="canvas_nn01" width="400" height="210" style="border: 0px solid;"></canvas></center>
+<script>
+var canvas = document.getElementById("canvas_nn01");
+var ctx = canvas.getContext("2d");
+
+ctx.font = '40px 標楷體';
+ctx.fillText("○", 180, 50);
+
+ctx.beginPath();
+ctx.moveTo(187, 50);
+ctx.lineTo(150, 95);
+ctx.stroke();
+
+ctx.font = '40px 標楷體';
+ctx.fillText("○", 120, 120);
+
+ctx.beginPath();
+ctx.moveTo(210, 50);
+ctx.lineTo(250, 95);
+ctx.stroke();
+
+ctx.font = '40px 標楷體';
+ctx.fillText("○", 240, 120);
+
+// --------------------
+
+ctx.beginPath();
+ctx.moveTo(127, 120);
+ctx.lineTo(105, 165);
+ctx.stroke();
+
+ctx.font = '40px 標楷體';
+ctx.fillText("○", 75, 190);
+
+ctx.beginPath();
+ctx.moveTo(150, 120);
+ctx.lineTo(175, 165);
+ctx.stroke();
+
+ctx.font = '40px 標楷體';
+ctx.fillText("○", 165, 190);
+</script>
+
+<p>而在機器學習中，如果我們在非葉節點上執行「判斷某個特徵是否符合某個條件」的動作，並在符合條件時往某個分支走去，不符合時往另一個分支走去，直到抵達葉節點為止，則這樣的一棵樹，就可以是一個模型。基於樹的模型有相當多種，複雜的模型甚至需要組合多棵樹的結果，例如 random forest、<a href="https://xgboost.readthedocs.io/en/release_3.0.0/">XGBoost</a>、<a href="https://lightgbm.readthedocs.io/en/stable/">LightGBM</a>、...等等，本篇在使用上，將介紹 XGBoost。</p>
+
+<p>XGBoost 在分類或回歸問題都可以使用。以下範例先以分類問題作為示範：</p>
+<pre class="brush: py">
+import numpy as np
+from sklearn.datasets import make_moons
+from xgboost import XGBClassifier
+
+x_train, y_train = make_moons(n_samples=800, shuffle=True, noise=0.1)
+x_test, y_test = make_moons(n_samples=200, shuffle=True, noise=0.1)
+
+param = {
+	'n_estimators': 5,
+	'max_depth': 3,
+	'learning_rate': 0.01,
+}
+
+model = XGBClassifier(**param)
+model.fit(x_train, y_train)
+pred = model.predict(x_test)
+print(f'Accuracy: {np.mean(pred == y_test)*100:.2f}%')
+</pre>
+
+<p>在上述範例中：</p>
+<ul>
+	<li>make_moons 產生的資料集，是二維平面上兩個互相勾住的半月形，兩個半月分屬兩個不同類別。</li>
+	<li>n_estimators 是要種幾棵樹，max_depth 是樹的最大深度。關於其他超參數，請參考官方文件。</li>
+	<li>若要套用 XGBoost 於回歸問題，可以使用 XGBRegressor。</li>
+	<li>訓練與測試的用法，可以跟 Scikit-learn 一樣是用 fit 和 predict。</li>
+	<li>上數超參數是一組會讓 accuracy 在大約 91.5% 的超參數，你可以自己調整看看其他超參數。</li>
+</ul>
+
+<p>如果你想要知道在訓練過程中，loss 變化的狀況，可以在 fit 的時候，將相關資料集帶入，如下：</p>
+<pre class="brush: py">
+import numpy as np
+from sklearn.datasets import make_moons
+from xgboost import XGBClassifier
+
+x_train, y_train = make_moons(n_samples=800, shuffle=True, noise=0.1)
+x_val, y_val = make_moons(n_samples=200, shuffle=True, noise=0.1)
+x_test, y_test = make_moons(n_samples=200, shuffle=True, noise=0.1)
+
+param = {
+	'n_estimators': 5,
+	'max_depth': 3,
+	'learning_rate': 0.01,
+}
+
+model = XGBClassifier(**param)
+model.fit(
+	x_train,
+	y_train,
+	eval_set=[
+		(x_val, y_val),
+		(x_train, y_train),
+	],
+)
+pred = model.predict(x_test)
+print(f'Accuracy: {np.mean(pred == y_test)*100:.2f}%')
+</pre>
+
+<p>Scikit-learn 的分類器通常不允許你自己設計 loss function，但是 XGBoost 可以。以下用回歸問題示範如何撰寫：</p>
+<pre class="brush: py">
+import numpy as np
+from sklearn.datasets import make_regression
+from xgboost import XGBRegressor
+
+x_train, y_train = make_regression(n_samples=1600, shuffle=True, noise=0.01)
+x_val, y_val = make_regression(n_samples=400, shuffle=True, noise=0.01)
+x_test, y_test = make_regression(n_samples=400, shuffle=True, noise=0.01)
+
+param = {
+	'n_estimators': 50,
+	'max_depth': 5,
+	'learning_rate': 0.01,
+}
+
+model = XGBRegressor(**param)
+model.fit(
+	x_train,
+	y_train,
+	eval_set=[
+		(x_val, y_val),
+		(x_train, y_train),
+	],
+)
+pred = model.predict(x_test)
+print(f'RMSE: {np.mean((pred - y_test) ** 2) ** 0.5:.4f}')
+
+
+def my_loss(label, pred):
+	"""
+	loss = (label - pred) ** 2
+	"""
+	grad = -2 * (label - pred)
+	hess = 2 * np.ones_like(pred)
+	return grad, hess
+
+
+param['objective'] = my_loss
+model = XGBRegressor(**param)
+model.fit(
+	x_train,
+	y_train,
+	eval_set=[
+		(x_val, y_val),
+		(x_train, y_train),
+	],
+)
+pred = model.predict(x_test)
+print(f'RMSE: {np.mean((pred - y_test) ** 2) ** 0.5:.4f}')
+</pre>
+
+<p>在上述範例中：</p>
+<ul>
+	<li>若使用 Scikit-learn 的訓練與測試形式，則你自訂的 loss function，輸入參數順序是先 label 再 prediction。</li>
+	<li>你自訂的 function，需要回傳 loss function 對 pred 的一次和二次的微分。</li>
+	<li>基於細部實作差異等原因，因此兩次訓練的 loss 和 accuracy 會有些微不同。</li>
+</ul>
+
+</blockquote>
+
+</body></html>
