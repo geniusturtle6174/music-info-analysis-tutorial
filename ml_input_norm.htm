@@ -1,0 +1,63 @@
+﻿<html>
+<head>
+	<title>線上教材：音樂資訊分析</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<link rel=stylesheet type="text/css" href="myCss.css">
+	<base target="_blank">
+	<script type="text/javascript" src="shCore.js"></script>
+	<script type="text/javascript" src="shBrushPython.js"></script>
+	<link href="shCore.css" rel="stylesheet" type="text/css" />
+	<link href="shThemeDefault.css" rel="stylesheet" type="text/css" />
+	<script type="text/javascript">
+		SyntaxHighlighter.all();
+	</script>
+</head>
+
+<body bgcolor="#ccccff">
+
+<blockquote>
+
+<p>在機器學習中，不同的特徵常具有不同的範圍，例如身高和體重就是如此。而對於某些分類器來說，是否將不同特徵的範圍調整至相近，可能會對辨識效果有明顯的影響。下列是使用 scikit-learn 的 preprocessing.StandardScaler，將每一維的特徵正規化至平均為 0 且標準差為 1 的範例：</p>
+<pre class="brush: py">
+import numpy as np
+from sklearn.datasets import load_wine
+from sklearn.model_selection import train_test_split
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.preprocessing import StandardScaler
+
+dataset = load_wine()
+total_data_num = dataset.data.shape[0]
+print('Data shapes:', dataset.data.shape, dataset.target.shape)
+
+X_train, X_test, y_train, y_test = train_test_split(dataset.data, dataset.target)
+print('Training data shapes:', X_train.shape, y_train.shape)
+print('Test data shapes:', X_test.shape, y_test.shape)
+
+model = KNeighborsClassifier(n_neighbors=1)
+model.fit(X_train, y_train)
+pred = model.predict(X_test)
+print('Acc using raw feature:', np.mean(100 * np.mean(pred == y_test)))
+
+ss = StandardScaler()
+X_train_norm = ss.fit_transform(X_train)
+X_test_norm = ss.transform(X_test)
+model = KNeighborsClassifier(n_neighbors=1)
+model.fit(X_train_norm, y_train)
+pred = model.predict(X_test_norm)
+print('Acc using normalised feature:', np.mean(100 * np.mean(pred == y_test)))
+print('Training data mean (by sklearn):', ss.mean_)
+print('Training data mean (by numpy):', np.mean(X_train, axis=0))
+print('Training data var (by sklearn):', ss.var_)
+print('Training data var (by numpy):', np.std(X_train, axis=0) ** 2)
+</pre>
+
+<p>在上述範例中：</p>
+<ul>
+	<li>將正規化的目標設定為平均為 0 且標準差為 1 只是其中一種方式，你也可以嘗試其他的目標，例如將特徵線性平移至 0 到 1 之間。</li>
+	<li>正規化的計算，要先用訓練資料算出相關參數（此範例中為原始的平均和變異數），再來分別對訓練資料及測試資料做轉換。如果計算相關參數時加入了測試資料，可能會在模型評估上變得過於樂觀。</li>
+	<li>雖然範例中的準確度在特徵正規化後剛好有進步，但面對其他問題或使用其他分類（或回歸，下同）器時，做了正規化不一定會有進步，甚至有可能是沒有變化或者退步。一般來說，像是最近鄰居分類這種數值的實際值很重要的分類器，是否對輸入做正規化會有所差別；而一些看中數值相對關係的分類器，則是否做正規化就不一定有差別。</li>
+</ul>
+
+</blockquote>
+
+</body></html>
