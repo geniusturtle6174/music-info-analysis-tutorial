@@ -1,0 +1,136 @@
+﻿<html>
+<head>
+	<title>線上教材：音樂資訊分析</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<link rel=stylesheet type="text/css" href="myCss.css">
+	<base target="_blank">
+	<script type="text/javascript" src="shCore.js"></script>
+	<script type="text/javascript" src="shBrushPython.js"></script>
+	<link href="shCore.css" rel="stylesheet" type="text/css" />
+	<link href="shThemeDefault.css" rel="stylesheet" type="text/css" />
+	<script type="text/javascript">
+		SyntaxHighlighter.all();
+	</script>
+</head>
+
+<body bgcolor="#ccccff">
+
+<blockquote>
+
+<p>支撐向量機(Support Vector Machine, SVM)的目的，是找到一個超平面，以盡可能的將兩類資料分開，並且間隔要愈大愈好。我們先以能完全分開的狀況來說明，以下圖的藍色和橘色兩類為例，黑色和紅色的實線都可以將兩類資料分開，但是紅色線能產生的間隔比較大，所以我們要認為紅色線比黑色線適合。</p>
+
+<center><canvas id="canvas_nn01" width="400" height="210" style="border: 0px solid;"></canvas></center>
+<script>
+var canvas = document.getElementById("canvas_nn01");
+var ctx = canvas.getContext("2d");
+
+ctx.beginPath();
+ctx.strokeStyle = "blue";
+ctx.ellipse(100, 100, 50, 75, -Math.PI / 4, 0, 2 * Math.PI);
+ctx.stroke();
+
+ctx.beginPath();
+ctx.strokeStyle = "orange";
+ctx.ellipse(300, 100, 50, 75, -Math.PI / 6, 0, 2 * Math.PI);
+ctx.stroke();
+
+ctx.beginPath();
+ctx.strokeStyle = "black";
+ctx.moveTo(253, 10);
+ctx.lineTo(147, 205);
+ctx.stroke();
+
+ctx.beginPath();
+ctx.setLineDash([5,10]);
+ctx.moveTo(270, 10);
+ctx.lineTo(165, 205);
+ctx.stroke();
+
+ctx.beginPath();
+ctx.moveTo(233, 10);
+ctx.lineTo(127, 205);
+ctx.stroke();
+
+ctx.beginPath();
+ctx.strokeStyle = "red";
+ctx.setLineDash([1,0]);
+ctx.moveTo(160, 10);
+ctx.lineTo(250, 205);
+ctx.stroke();
+
+ctx.beginPath();
+ctx.setLineDash([5,10]);
+ctx.moveTo(118, 10);
+ctx.lineTo(208, 205);
+ctx.stroke();
+
+ctx.beginPath();
+ctx.setLineDash([5,10]);
+ctx.moveTo(202, 10);
+ctx.lineTo(292, 205);
+ctx.stroke();
+</script>
+
+<p>而在實務上，因為資料可能處在高維空間，因此我們會稱呼上圖的那條實線為「超平面」，而超平面的方程式可以寫成 w<sup>⊤</sup>x + b = 0，其中 w 是超平面的法向量。因此，某個資料點 x<sub>i</sub> 與超平面間的有符號距離 d<sub>i</sub>，是：</p>
+
+<p align=center>d<sub>i</sub> = y<sub>i</sub>(w<sup>⊤</sup> * x<sub>i</sub> + b) / ||w||</p>
+
+<p>其中，y<sub>i</sub> ∈ {-1, 1} 是 x<sub>i</sub> 所屬的類別，而有符號距離 d<sub>i</sub> 是用來判斷資料點與超平面的相對位置，與其與資料所屬類別是否一致的，若 d<sub>i</sub> &gt; 0 則代表一致，d<sub>i</sub> &lt; 0 則代表不一致。因此，我們可以構建這樣的最佳化問題：</p>
+
+<p align=center>max<sub>w, b</sub> d</p>
+<p align=center>subject to y<sub>i</sub>(w<sup>⊤</sup> * x<sub>i</sub> + b) / ||w|| &ge; d</p>
+
+<p>也就是讓最小的距離 d 盡可能的增大。而如果考慮到實際資料不太容易出現能用超平面完全分開的狀況，則最佳化問題會寫成：</p>
+
+<p align=center>max<sub>w, b, &xi;</sub> d - C &Sigma;&xi;<sub>i</sub></p>
+<p align=center>subject to y<sub>i</sub>(w<sup>⊤</sup> * x<sub>i</sub> + b) / ||w|| &ge; d - &xi;<sub>i</sub></p>
+
+<p>其中，&xi;<sub>i</sub> 代表資料點 x<sub>i</sub> 違反間隔的程度，而 C 是用來控制「間隔盡量大」與「違規容忍程度盡量小」這兩者之間權衡的超參數。實際求解這個最佳化問題的方法不在本教材的範圍內，若有興趣可以參考 Lagrange multiplier 與 dual problem 等關鍵字。</p>
+
+<p>然而，在更接近真實的狀況中，資料甚至連用一個超平面大略的分開都不太可能，例如 scikit-learn 的 make_circles 產生的範例資料就是如此。因此，我們需要對空間進行變換，以將座標平方為例，就是將原始空間中，圓形的分類邊界：</p>
+
+<p align=center>w<sub>1</sub>x<sub>1</sub><sup>2</sup> + w<sub>2</sub>x<sub>2</sub><sup>2</sup> + b = 0</p>
+
+<p>變成新空間中，直線的分類邊界：</p>
+
+<p align=center>w<sub>1</sub>z<sub>1</sub> + w<sub>2</sub>z<sub>2</sub> + b = 0</p>
+
+<p>而在實務上，我們不必真的將資料轉換到高維空間，而是求取兩兩資料點在新空間中的內積，這樣的做法稱為 kernel method 或者 kernel trick。以把圓形分類邊界變成直線分類邊界來說，若使用 kernel method 求取內積，則可以寫成如下的式子，其中「∘」運算是 hadamard product：</p>
+
+<p align=center>K(x<sub>i</sub>, x<sub>j</sub>) = (x<sub>i</sub>∘x<sub>i</sub>)<sup>⊤</sup>(x<sub>j</sub>∘x<sub>j</sub>)</p>
+
+<p>上述的 kernel function 在實務上比較少見。常用的 kernel function 有這些：</p>
+<ul>
+	<li>Polynomial kernel: K(x<sub>i</sub>, x<sub>j</sub>) = (x<sub>i</sub><sup>⊤</sup>x<sub>j</sub> + c)<sup>d</sup>，其中的 c 和 d 是超參數。</li>
+	<li>RBF (Radial Basis Function) kernel: K(x<sub>i</sub>, x<sub>j</sub>) = exp(- || x<sub>i</sub> - x<sub>j</sub> ||<sup>2</sup> / (2 * &sigma;<sup>2</sup>))，對應到無限高維的空間，其中&sigma;是超參數。</li>
+	<li>Sigmoid kernel: K(x<sub>i</sub>, x<sub>j</sub>) = tanh(&alpha;x<sub>i</sub><sup>⊤</sup>x<sub>j</sub> + c)，其中的 &alpha; 和 c 是超參數。</li>
+</ul>
+
+<p>若有需要，你也可以設計自己的 kernel funtion，只要其所構成的 kernel matrix 是 symmetric positive semi-definite 即可，否則在求取最佳化的計算上可能會不穩定，甚至於無法計算。</p>
+
+<p>我們可以使用 scikit-learn 的 <a href="https://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html">svm.SVC</a> 來幫我們執行 SVM 演算法，使用的資料集是 <a href="https://archive.ics.uci.edu/ml/datasets/wine">Wine Data Set</a>，該資料集在 scikit-learn 有內建一版，你可以直接透過 import 相關函式來使用，不必自己下載：</p>
+<pre class="brush: py">
+import numpy as np
+from sklearn.datasets import load_wine
+from sklearn.model_selection import train_test_split
+from sklearn.svm import SVC
+ 
+dataset = load_wine()
+print('Data shapes:', dataset.data.shape, dataset.target.shape)
+ 
+X_train, X_test, y_train, y_test = train_test_split(dataset.data, dataset.target)
+classes = np.unique(y_train)
+print('Training data info:', X_train.shape, y_train.shape, classes)
+print('Test data shapes:', X_test.shape, y_test.shape)
+ 
+model = SVC()
+model.fit(X_train, y_train)
+pred = model.predict(X_test)
+print('Accuracy: {:.2f}%'.format(100*np.mean(pred==y_test)))
+</pre>
+
+<p>在上述範例中，若你想要調整超參數，請參照文件；若要改為處理回歸問題，可以使用 sklearn.svm.SVR。</p>
+
+</blockquote>
+
+</body></html>
