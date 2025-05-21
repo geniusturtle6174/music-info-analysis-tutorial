@@ -38,8 +38,8 @@ print('Training data shapes:', x_train.shape, y_train.shape)
 N_FOLD = 3
 accuracies = []
 for i in range(N_FOLD):
-	idx_fold_tr = np.where(np.arange(tr_data_num) % N_FOLD != 0)[0]
-	idx_fold_va = np.where(np.arange(tr_data_num) % N_FOLD == 0)[0]
+	idx_fold_tr = np.where(np.arange(tr_data_num) % N_FOLD != i)[0]
+	idx_fold_va = np.where(np.arange(tr_data_num) % N_FOLD == i)[0]
 	model = KNeighborsClassifier(n_neighbors=1)
 	model.fit(x_train[idx_fold_tr], y_train[idx_fold_tr])
 	pred = model.predict(x_train[idx_fold_va])
@@ -100,8 +100,8 @@ N_FOLD = 3
 models = []
 accuracies = []
 for i in range(N_FOLD):
-	idx_fold_tr = np.where(np.arange(tr_data_num) % N_FOLD != 0)[0]
-	idx_fold_va = np.where(np.arange(tr_data_num) % N_FOLD == 0)[0]
+	idx_fold_tr = np.where(np.arange(tr_data_num) % N_FOLD != i)[0]
+	idx_fold_va = np.where(np.arange(tr_data_num) % N_FOLD == i)[0]
 	model = KNeighborsClassifier(n_neighbors=1)
 	model.fit(x_train[idx_fold_tr], y_train[idx_fold_tr])
 	pred = model.predict(x_train[idx_fold_va])
