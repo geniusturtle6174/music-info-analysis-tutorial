@@ -56,6 +56,51 @@ print('Accuracy (for loop): {:.2f}%'.format(100*np.mean(pred==y_test)))
 	<li>algorithm: 找最鄰居的演算法，除了最簡單的暴力法以外，也提供了一些 tree-based 的近似方法。預設會幫你自動選擇。</li>
 </ul>
 
+<p>K-NN 演算法在看待不同維度時是一視同仁的，亦即對各個特徵維度給予相同權重，並不會自動區分哪些維度具有判別力因此若你的資料中，包含有很多雜訊維度的話，則很有可能讓 k-NN 演算法的準確度變差，稱為「高維詛咒」。以下範例是在固定只有兩個有效維度的狀況下，依次加入愈來愈多雜訊維度的範例：</p>
+<pre class="brush: py">
+import matplotlib.pyplot as plt
+import numpy as np
+
+from sklearn.datasets import make_classification
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+from sklearn.neighbors import KNeighborsClassifier
+
+dimensions = [2, 5, 10, 20, 50, 100]
+accs_knn = []
+accs_another = []
+
+for d in dimensions:
+	X, y = make_classification(
+		n_samples=2000,
+		n_features=d,
+		n_informative=2,
+		n_redundant=0,
+		n_repeated=0,
+		n_classes=2,
+	)
+
+	X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
+
+	knn = KNeighborsClassifier(n_neighbors=3)
+	knn.fit(X_train, y_train)
+	accs_knn.append(knn.score(X_test, y_test))
+
+	clf = LogisticRegression(max_iter=1000)
+	clf.fit(X_train, y_train)
+	accs_another.append(clf.score(X_test, y_test))
+
+plt.figure()
+plt.plot(dimensions, accs_knn, label='KNN')
+plt.plot(dimensions, accs_another, label='Another method')
+plt.xlabel("# Features")
+plt.ylabel("Accuracy")
+plt.legend()
+plt.show()
+</pre>
+
+<p>在上述範例中，make_classification 函式是用來產生範例資料的，範例中的設定是產生兩類分類問題的資料，有用的維度有兩個，其餘都是雜訊。此外，我們同時使用了另一個叫做 Logistic Regression 的分類器，於本篇中，各位只需要知道並不是每種分類方式都會受到雜訊維度的影響即可。</p>
+
 </blockquote>
 
 </body></html>

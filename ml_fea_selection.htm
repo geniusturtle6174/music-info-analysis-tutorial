@@ -1,0 +1,59 @@
+﻿<html>
+<head>
+	<title>線上教材：音樂資訊分析</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<link rel=stylesheet type="text/css" href="myCss.css">
+	<base target="_blank">
+	<script type="text/javascript" src="shCore.js"></script>
+	<script type="text/javascript" src="shBrushPython.js"></script>
+	<link href="shCore.css" rel="stylesheet" type="text/css" />
+	<link href="shThemeDefault.css" rel="stylesheet" type="text/css" />
+	<script type="text/javascript">
+		SyntaxHighlighter.all();
+	</script>
+</head>
+
+<body bgcolor="#ccccff">
+
+<blockquote>
+
+<p>特徵選取(feature selection)的⽬標，是要從原有的特徵中挑選出部分可能較有鑑別力的特徵，以期改進辨識效果。但由於求取最佳組合的複雜度，會隨著特徵數量呈指數增長，因此其中一個較常用的近似解法，是 sequential forward selection，它的演算步驟如下：</p>
+<ol>
+	<li>先挑選出一個能取得最好辨識效果的特徵。</li>
+	<li>從剩下的特徵當中，挑選出跟已挑選特徵一起使用後，能取得最好辨識效果的特徵。</li>
+	<li>重複步驟 2，直到達到預定的挑選數量目標，或者辨識效果不升反降。</li>
+</ol>
+
+<p>我們使用 scikit-learn 的 <a href="https://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.SequentialFeatureSelector.html">feature_selection.SequentialFeatureSelector</a> 來幫我們執行 sequential forward selection 演算法，使用的資料集是 <a href="https://archive.ics.uci.edu/ml/datasets/wine">Wine Data Set</a>：</p>
+<pre class="brush: py">
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.datasets import load_wine
+from sklearn.feature_selection import SequentialFeatureSelector
+from sklearn.neighbors import KNeighborsClassifier
+
+dataset = load_wine()
+print('Data shapes:', dataset.data.shape, dataset.target.shape)
+
+model = KNeighborsClassifier(n_neighbors=3)
+sfs = SequentialFeatureSelector(model, n_features_to_select=5)
+
+sfs.fit(dataset.data, dataset.target)
+
+print('Is selected:', sfs.get_support())
+</pre>
+
+<p>在上述範例中：</p>
+<ul>
+	<li>SequentialFeatureSelector 在辨識時所採用的分類器，需要由你自己決定。一般來說，我們會挑選比較簡單的分類器，以節省運算效能。</li>
+	<li>我們直接使用了整個 dataset 做示範。在實務上，你還是應該切分出訓練集和測試集，再把訓練集丟給 SequentialFeatureSelector 做選取。</li>
+	<li>若需要做更細節的控制，請參考官方文件。</li>
+</ul>
+
+<!-- 什麼時候不該做 feature selection
+SHAP 或 Feature Importance： 實作完模型後，如何畫圖解釋哪個特徵最重要？這對寫論文很有幫助。
+ -->
+
+</blockquote>
+
+</body></html>

@@ -44,19 +44,21 @@ y = f(x)
 plt.plot(x, y)
 
 x = -3
-lr = 0.01
-for i in range(500):
+lr = 0.1
+for i in range(100):
 	x_new = x - lr * df(x)
 	y_new = f(x_new)
-	if i % 50 == 0:
-		plt.plot(x_new, y_new, '.')
-		plt.text(x_new, y_new, f'{i+1}')
+	print(x_new, y_new)
+	plt.plot(x_new, y_new, '.')
+	plt.text(x_new, y_new, f'{i}')
 	x = x_new
 
 plt.show()
 </pre>
 
 <p>在上述範例中，除非你使用比較先進的函式庫，例如 PyTorch 等，否則函數的微分仍然需要自己計算。此外，你可以試著改變起始點和學習率，看看效果是否有所不同。</p>
+
+<p>Question: 在上述範例中，如果 learning rate 小到大約 0.0001，或者大到約 0.8，則各別會發生什麼事？</p>
 
 <p>多變數的狀況也非常類似，以下用 f(x, y) = e<sup>x+y</sup> + x<sup>2</sup> - y<sup>2</sup> 來做示範：</p>
 <pre class="brush: py">
@@ -111,11 +113,11 @@ plt.show()
 
 <p>上列算式對 θ<sub>1</sub>、θ<sub>2</sub>、θ<sub>3</sub> 的偏微分分別是：</p>
 
-<p align=center>∂ℒ(ŷ, y) / ∂θ<sub>1</sub> = 2(ŷ - y)e<sup>-θ<sub>1</sub>x</sup>(-x)，</p>
+<p align=center>∂ℒ(ŷ, y) / ∂θ<sub>1</sub> = 2(ŷ - y) ∂ŷ / ∂θ<sub>1</sub>  = 2(ŷ - y)e<sup>-θ<sub>1</sub>x</sup>(-x)，</p>
 
-<p align=center>∂ℒ(ŷ, y) / ∂θ<sub>2</sub> = 2(ŷ - y)x，以及</p>
+<p align=center>∂ℒ(ŷ, y) / ∂θ<sub>2</sub> = 2(ŷ - y) ∂ŷ / ∂θ<sub>2</sub> = 2(ŷ - y)x，以及</p>
 
-<p align=center>∂ℒ(ŷ, y) / ∂θ<sub>3</sub> = 2(ŷ - y)</p>
+<p align=center>∂ℒ(ŷ, y) / ∂θ<sub>3</sub> = 2(ŷ - y) ∂ŷ / ∂θ<sub>3</sub> = 2(ŷ - y)</p>
 
 <p>以下範例會亂數產生一堆分布像是 ŷ = f(x) = e<sup>-θ<sub>1</sub>x</sup> + θ<sub>2</sub>x + θ<sub>3</sub> 的點，並在假設不知道原本 function 參數的情況下，用梯度下降法試圖推測出參數：</p>
 <pre class="brush: py">
@@ -236,6 +238,48 @@ plt.show()
 </pre>
 
 <p>Mini-batch 的技巧，在訓練類神經網路時會經常被使用，並且通常會將資料點隨機打亂順序，以提升梯度下降時的多樣性。</p>
+
+<p>梯度下降的改進方法之一是 Momentum，亦即在梯度中加入慣性，就像一顆球在地形上滾動，當坡度方向一致時會加速前進；當坡度改變時，不會立刻停下，而是逐漸調整方向；它的好處是有機會學習的更快，在實務上也較不容易卡在平坦或淺的局部極小值附近；它的公式是：</p>
+
+<p align=center>V<sub>t+1</sub> = &beta;V<sub>t</sub> - &eta;∇f(θ<sub>t</sub>)，以及</p>
+
+<p align=center>θ<sub>t+1</sub> = θ<sub>t</sub> + V<sub>t+1</sub></p>
+
+<p>我們回到一開始的 f(x) = e<sup>x</sup> + x<sup>2</sup>，來做 Momentum 的實作示範：</p>
+<pre class="brush: py">
+import matplotlib.pyplot as plt
+import numpy as np
+
+
+def f(x):
+	return np.exp(x) + x ** 2
+
+
+def df(x):
+	return np.exp(x) + x * 2
+
+
+x = np.linspace(-4, 4, 1000)
+y = f(x)
+plt.plot(x, y)
+
+x = -3
+lr = 0.1
+v = 0
+beta = 0.9
+for i in range(100):
+	v = beta * v - lr * df(x)
+	x_new = x + v
+	y_new = f(x_new)
+	print(x_new, y_new)
+	plt.plot(x_new, y_new, '.')
+	plt.text(x_new, y_new, f'{i}')
+	x = x_new
+
+plt.show()
+</pre>
+
+<p>梯度下降的其他改進方法，還有 AdaGrad 以及 ADAM 等，若有興趣可以自行研讀。</p>
 
 </blockquote>
 
