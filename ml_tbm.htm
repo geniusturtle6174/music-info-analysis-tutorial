@@ -62,7 +62,7 @@ ctx.font = '40px 標楷體';
 ctx.fillText("○", 165, 190);
 </script>
 
-<p>而在機器學習中，如果我們在非葉節點上執行「判斷某個特徵是否符合某個條件」的動作，並在符合條件時往某個分支走去，不符合時往另一個分支走去，直到抵達葉節點為止，則這樣的一棵樹，就可以是一個模型。基於樹的模型有相當多種，複雜的模型甚至需要組合多棵樹的結果，例如 random forest、<a href="https://xgboost.readthedocs.io/en/release_3.0.0/">XGBoost</a>、<a href="https://lightgbm.readthedocs.io/en/stable/">LightGBM</a>、...等等，本篇在使用上，將介紹 XGBoost。</p>
+<p>而在機器學習中，如果我們在非葉節點上執行「判斷某個特徵是否符合某個條件」的動作，並在符合條件時往某個分支走去，不符合時往另一個分支走去，直到抵達葉節點為止，則這樣的一棵樹，就可以是一個模型。基於樹的模型有相當多種，複雜的模型甚至需要組合多棵樹的結果，例如 <a href="https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html">random forest</a>、<a href="https://xgboost.readthedocs.io/en/release_3.0.0/">XGBoost</a>、<a href="https://lightgbm.readthedocs.io/en/stable/">LightGBM</a>、<a href="https://catboost.ai/">CatBoost</a>、...等等，本篇在使用上，將介紹 XGBoost。</p>
 
 <p>XGBoost 在分類或回歸問題都可以使用。以下範例先以分類問題作為示範：</p>
 <pre class="brush: py">
@@ -181,6 +181,77 @@ print(f'RMSE: {np.mean((pred - y_test) ** 2) ** 0.5:.4f}')
 	<li>你自訂的 function，需要回傳 loss function 對 pred 的一次和二次的微分。</li>
 	<li>基於細部實作差異等原因，因此兩次訓練的 loss 和 accuracy 會有些微不同。</li>
 </ul>
+
+<p>在 XGBoost 中，特徵重要性(Feature Importance)是一項強大的分析工具。它可以讓我們更清楚的知道各項特徵對於預測結果的貢獻度排名。透過此功能，我們不僅能理解哪些關鍵變數主導了模型的判斷，更能作為後續特徵工程與維度刪減的依據：</p>
+<pre class="brush: py">
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.datasets import load_breast_cancer
+from sklearn.model_selection import train_test_split
+from xgboost import XGBClassifier, plot_importance
+
+data = load_breast_cancer()
+X, y = data.data, data.target
+feature_names = data.feature_names
+print('Shapes:', X.shape, y.shape)
+
+x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+param = {
+	'n_estimators': 50,  
+	'max_depth': 3,
+	'learning_rate': 0.1,
+}
+
+model = XGBClassifier(**param)
+model.fit(x_train, y_train)
+pred = model.predict(x_test)
+print(f'Accuracy: {np.mean(pred == y_test)*100:.2f}%')
+
+fea_dim = model.feature_importances_.shape[0]
+"""
+Weight（預設）：該特徵在所有樹中被用來分割節點的「總次數」。
+Gain：該特徵在分割時帶來的「平均資訊增益」，通常最能反映特徵對模型的貢獻。
+Cover：受該特徵分割影響的「樣本數量」。
+"""
+importance = model.get_booster().get_score(importance_type='gain')
+importance = np.array([importance.get('f'+str(d), 0) for d in range(fea_dim)]).astype('float32')
+for imp, name in zip(importance, feature_names):
+	print(name, imp)
+</pre>
+
+<p>Feature Importance 只能告訴我們哪個特徵重要，但 SHAP (SHapley Additive exPlanations)則可以告訴我們某個特徵是如何影響單一個案的預測。雖然 SHAP 不限制只用在樹模型，但我們仍以樹模型來做示範：</p>
+<pre class="brush: py">
+import numpy as np
+import matplotlib.pyplot as plt
+import shap
+from sklearn.datasets import load_breast_cancer
+from sklearn.model_selection import train_test_split
+from xgboost import XGBClassifier, plot_importance
+
+data = load_breast_cancer()
+X, y = data.data, data.target
+feature_names = data.feature_names
+print('Shapes:', X.shape, y.shape)
+
+x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+param = {
+    'n_estimators': 50,  
+    'max_depth': 3,
+    'learning_rate': 0.1,
+}
+
+model = XGBClassifier(**param)
+model.fit(x_train, y_train)
+pred = model.predict(x_test)
+print(f'Accuracy: {np.mean(pred == y_test)*100:.2f}%')
+
+explainer = shap.TreeExplainer(model)
+shap_values = explainer(x_test)
+shap_values.feature_names = feature_names
+shap.summary_plot(shap_values, x_test)
+</pre>
 
 </blockquote>
 

@@ -56,7 +56,20 @@ print('Accuracy (for loop): {:.2f}%'.format(100*np.mean(pred==y_test)))
 	<li>algorithm: 找最鄰居的演算法，除了最簡單的暴力法以外，也提供了一些 tree-based 的近似方法。預設會幫你自動選擇。</li>
 </ul>
 
-<p>K-NN 演算法在看待不同維度時是一視同仁的，亦即對各個特徵維度給予相同權重，並不會自動區分哪些維度具有判別力因此若你的資料中，包含有很多雜訊維度的話，則很有可能讓 k-NN 演算法的準確度變差，稱為「高維詛咒」。以下範例是在固定只有兩個有效維度的狀況下，依次加入愈來愈多雜訊維度的範例：</p>
+<p>K-NN 在 k = 1 時，每個點的勢力範圍，會是一個 Voronoi Diagram，其中每一條邊界線，就是相鄰樣本的中垂線，範例如下：</p>
+<pre class="brush: py">
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy.spatial import Voronoi, voronoi_plot_2d
+
+points = np.random.rand(10, 2)
+vor = Voronoi(points)
+voronoi_plot_2d(vor)
+plt.axis('equal')
+plt.show()
+</pre>
+
+<p>K-NN 演算法在看待不同維度時是一視同仁的，亦即對各個特徵維度給予相同權重，並不會自動區分哪些維度具有判別力。因此若你的資料中，包含有很多雜訊維度的話，則很有可能讓 k-NN 演算法的準確度變差，稱為「高維詛咒」。以下範例是在固定只有兩個有效維度的狀況下，依次加入愈來愈多雜訊維度的範例：</p>
 <pre class="brush: py">
 import matplotlib.pyplot as plt
 import numpy as np

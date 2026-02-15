@@ -17,7 +17,11 @@
 
 <blockquote>
 
-<p>線性回歸(linear regression)的目標是找出一條直線，使得所有點到直線的距離（y 軸方向）之平方和為最小。我們可以使用 scikit-learn 的 <a href="https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LinearRegression.html">linear_model.LinearRegression</a> 來幫我們進行線性回歸，以下範例將會隨機的產生一些資料點來示範：</p>
+<p>線性回歸(linear regression)的目標是找出一條直線，使得所有點到直線的距離（y 軸方向）之平方和為最小；即你有一堆資料點 (x<sub>1</sub>, y<sub>1</sub>), (x<sub>2</sub>, y<sub>2</sub>), ..., (x<sub>n</sub>, y<sub>n</sub>)，並想找出一條 ŷ = wx+b，使得下列式子為最小：</p>
+
+<p align=center>&Sigma;(y<sub>i</sub>−ŷ<sub>i</sub>)<sup>2</sup> = &Sigma;(y<sub>i</sub>−(wx<sub>i</sub>+b))<sup>2</sup></p>
+
+<p>這個式子有正規的解析解，也可以用梯度下降來解。實作上，我們通常可以使用 scikit-learn 的 <a href="https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LinearRegression.html">linear_model.LinearRegression</a> 來幫我們進行線性回歸的求解，以下範例將會隨機的產生一些資料點來示範：</p>
 <pre class="brush: py">
 import numpy as np
 from sklearn.linear_model import LinearRegression
@@ -81,10 +85,48 @@ plt.show()
 	<li>由於範例中的資料依然是亂數產生，所以每次執行所得到的係數可能不太一樣。</li>
 </ul>
 
+<p>當你的特徵之中，有幾個是高度相關的時候，普通的 linear regression 可能會產生不太穩定的結果，亦即係數過大。這時候，我們可以透過 Lasso 或者 Ridge regression，來限制係數的絕對值或者平方不要太大，以讓求解係數的過程比較穩定，即：</p>
+
+<p align=center>L(θ) = &Sigma;(y<sub>i</sub>−(x<sub>i</sub><sup>T</sup>θ))<sup>2</sup> + α &Sigma; | θ<sub>j</sub> |，或者</p>
+
+<p align=center>L(θ) = &Sigma;(y<sub>i</sub>−(x<sub>i</sub><sup>T</sup>θ))<sup>2</sup> + α &Sigma; θ<sub>j</sub><sup>2</sup>。</p>
+
+<p>上述關於 linear、Lasso、Ridge 三者的比較如下：</p>
+<pre class="brush: py">
+import numpy as np
+from sklearn.linear_model import LinearRegression, Lasso, Ridge
+
+np.random.seed(42)
+n = 100
+X1 = np.random.randn(n)
+X2 = X1 + np.random.randn(n) * 0.0001
+
+X = np.column_stack([X1, X2])
+y = 3 * X1 + np.random.randn(n) * 0.1
+
+lr = LinearRegression()
+lr.fit(X, y)
+print("Linear Regression:")
+print(f"  w1 = {lr.coef_[0]:.2f}")
+print(f"  w2 = {lr.coef_[1]:.2f}")
+print(f"  w1 + w2 = {lr.coef_[0] + lr.coef_[1]:.2f}")
+
+lasso = Lasso(alpha=1.0)
+lasso.fit(X, y)
+print("\nLasso Regression:")
+print(f"  w1 = {lasso.coef_[0]:.2f}")
+print(f"  w2 = {lasso.coef_[1]:.2f}")
+
+# Ridge
+ridge = Ridge(alpha=1.0)
+ridge.fit(X, y)
+print("\nRidge Regression:")
+print(f"  w1 = {ridge.coef_[0]:.2f}")
+print(f"  w2 = {ridge.coef_[1]:.2f}")
+</pre>
+
 <!-- 
-為什麼 RMSE 很低還是不能用
-係數爆炸示例
-Regularization Ridge vs Lasso
+加權最小平方法（WLS）
  -->
 
 </blockquote>

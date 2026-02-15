@@ -60,7 +60,7 @@ plt.show()
 
 <p>Question: 在上述範例中，如果 learning rate 小到大約 0.0001，或者大到約 0.8，則各別會發生什麼事？</p>
 
-<p>多變數的狀況也非常類似，以下用 f(x, y) = e<sup>x+y</sup> + x<sup>2</sup> - y<sup>2</sup> 來做示範：</p>
+<p>多變數的狀況也非常類似，但你需要對兩個變數分別作偏微分。以下用 f(x, y) = e<sup>x+y</sup> + x<sup>2</sup> - y<sup>2</sup> 來做示範：</p>
 <pre class="brush: py">
 import matplotlib.pyplot as plt
 import numpy as np
@@ -102,6 +102,83 @@ plt.show()
 </pre>
 
 <p>在上述範例中，由於初始位置的梯度非常大，在一步跨太遠的情況下，很容易造成結果發散，因此我們透過降低學習率的方式，來讓每一步不要跨太遠，使得結果可以呈現收斂。</p>
+
+<p>在比較實際的問題中，起始點的選擇可能是很有影響的。下列是一個四次式的範例，各位可以看到，我們選的起始點，並不會讓結果走到全域的最小值：</p>
+<pre class="brush: py">
+import matplotlib.pyplot as plt
+import numpy as np
+ 
+ 
+def f(x):
+	return x ** 4 - 5 * x ** 2 + 2 * x + 10
+ 
+ 
+def df(x):
+	return 4 * x ** 3 - 10 * x + 2
+ 
+ 
+x = np.linspace(-2.5, 2.5, 500)
+y = f(x)
+plt.plot(x, y)
+ 
+x = 2
+lr = 0.01
+for i in range(100):
+	x_new = x - lr * df(x)
+	y_new = f(x_new)
+	print(x_new, y_new)
+	plt.plot(x_new, y_new, '.')
+	plt.text(x_new, y_new, f'{i}')
+	x = x_new
+ 
+plt.show()
+</pre>
+
+<p>這時，透過 learning rate scheduling 的方式，也許有機會讓你找到比較好的解：</p>
+<pre class="brush: py">
+import matplotlib.pyplot as plt
+import numpy as np
+
+
+def f(x):
+	return x ** 4 - 5 * x ** 2 + 2 * x + 10
+
+
+def df(x):
+	return 4 * x ** 3 - 10 * x + 2
+
+
+def train(start_x, lr_type='fixed', base_lr=0.15, epochs=30):
+	x = start_x
+	path = [x]
+	lr = base_lr
+	
+	for epoch in range(1, epochs + 1):
+		# Step Decay
+		if lr_type == 'scheduling':
+			if epoch % 10 == 0:
+				lr = lr * 0.5
+		
+		grad = df(x)
+		x = x - lr * grad
+		path.append(x)
+	return np.array(path)
+
+start_pos = 2.1
+path_fixed = train(start_pos, lr_type='fixed', base_lr=0.15)
+path_sched = train(start_pos, lr_type='scheduling', base_lr=0.15)
+
+x_range = np.linspace(-2.5, 2.5, 100)
+plt.plot(x_range, f(x_range), 'k--', alpha=0.3)
+plt.plot(path_fixed, f(path_fixed), 'ro-', label='Fixed LR (0.15)', alpha=0.3)
+plt.plot(path_sched, f(path_sched), 'go-', label='Step Decay LR', alpha=0.3)
+
+plt.title("Fixed Learning Rate vs. Learning Rate Scheduling")
+plt.xlabel("x")
+plt.ylabel("y")
+plt.legend()
+plt.show()
+</pre>
 
 <p>機器學習中，我們會希望模型的輸出與標準答案的誤差盡可能的小，也就是對某個可以評估誤差的函數(loss function)求取極值。該函數的輸入分成兩部分，一部分是模型的輸出，另一部分是標準答案，而我們能變更的只有模型如何輸出，因此在計算梯度時，只會對模型輸出相關的那一部分作偏微分。舉例來說，假設你看到二維平面上有一堆點，它們的位置分布長的像是下面的 function，只是你不知道實際參數的話：</p>
 

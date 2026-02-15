@@ -39,19 +39,19 @@ import numpy as np
 from sklearn.datasets import load_wine
 from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import GaussianNB
- 
+  
 dataset = load_wine()
 print('Data shapes:', dataset.data.shape, dataset.target.shape)
- 
+  
 X_train, X_test, y_train, y_test = train_test_split(dataset.data, dataset.target)
-classes = np.unique(y_train)
-print('Training data info:', X_train.shape, y_train.shape, classes)
+classes, counts = np.unique(y_train, return_counts=True)
+print('Training data info:', X_train.shape, y_train.shape, classes, counts)
 print('Test data shapes:', X_test.shape, y_test.shape)
- 
+  
 model = GaussianNB()
 model.fit(X_train, y_train)
 pred = model.predict(X_test)
-print('Accuracy (sklearn): {:.2f}%'.format(100*np.mean(pred==y_test)))
+print(f'Accuracy (sklearn): {100*np.mean(pred==y_test):.2f}%')
 
 n_class = classes.size
 mean_train = np.zeros((n_class, X_train.shape[1]))
@@ -60,19 +60,21 @@ log_class_probs = np.zeros(n_class)
 for c_idx in range(n_class):
     idx = np.where(y_train == c_idx)[0]
     mean_train[c_idx] = np.mean(X_train[idx], axis=0)
-    sigma_train[c_idx] = np.var(X_train[idx], axis=0)
-    log_class_probs[c_idx] = np.mean(y_train == c_idx)
-
+    sigma_train[c_idx] = np.var(X_train[idx], axis=0) + 1e-9
+    log_class_probs[c_idx] = np.log(np.mean(y_train == c_idx) + 1e-9)
+ 
 predictions = np.zeros((y_test.shape[0], n_class))
 for i, p in enumerate(X_test):
     for c_idx in range(n_class):
         log_p_x_given_y = np.sum(
-            -0.5 * np.log(2 * 3.14 * sigma_train[c_idx]) - \
+            -0.5 * np.log(2 * np.pi * sigma_train[c_idx]) - \
             (p - mean_train[c_idx]) ** 2 / (2 * sigma_train[c_idx])
         )
         predictions[i][c_idx] = log_class_probs[c_idx] + log_p_x_given_y
 predictions = np.argmax(predictions, axis=1)
-print('Accuracy (self-implemented): {:.2f}%'.format(100*np.mean(predictions==y_test)))
+print(f'Accuracy (self-implemented): {100*np.mean(predictions == y_test):.2f}%')
+
+print(f'Are two sets of predictions equal: {100*np.mean(predictions == pred)}%')
 </pre>
 
 <p>在上述範例中：</p>
@@ -82,16 +84,25 @@ print('Accuracy (self-implemented): {:.2f}%'.format(100*np.mean(predictions==y_t
 	<li>除了使用 sklearn 以外，也同時示範了如何依照公式來實作，以便讓各位更容易了解內部的演算方式。</li>
 </ul>
 
-<!--
-correlated features
-小樣本 vs 大樣本比較
-為什麼「假設錯了，模型還能用」
+<p>在前面的範例中，雖然我們沒有檢驗過特徵之間是否獨立，但仍然直接使用了貝氏分類器，而且效果看似還不錯，這是因為對於分類任務來說，我們並不在意機率值是否精準，而只要相對大小的關係正確即可；以音樂分類的狀況來說，節奏快慢跟音量大小之間可能具有高度相關性，但我們想要找出搖滾樂時，則只要 只要 P(搖滾|{快, 大聲}) 大於 P(古典|{快,大聲})，模型的分類結果就是正確的。</p>
 
-實作重點： 貝式分類在「文本分類」最直觀。
-擴充內容： * 詞袋模型 (Bag of Words)： 實作時資料如何轉換成頻率矩陣。
-拉普拉斯平滑 (Laplace Smoothing)： 解釋為什麼遇到沒看過的詞，機率不會直接變成 0（這對實作穩定性很重要）。
- -->
+<p>然而，仍需注意的是，因為我們只把每類資料（的每個維度）用一個高斯分布來表示，因此如果你的資料中，每個類別會各自分成很多小群的話，則高斯貝氏分類就不適用。以下的範例中，在二維平面上，第一和第三象限的點是一個類別，第二和第四象限的點是另外一個類別，每個類別各自分成了兩群，因此套用高斯貝氏分類的效果就會很差：</p>
+<pre class="brush: py">
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.naive_bayes import GaussianNB
 
+X = np.random.randn(1000, 2)
+y = np.logical_xor(X[:, 0] > 0, X[:, 1] > 0).astype(int)
+X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42)
+
+model = GaussianNB()
+model.fit(X_train, y_train)
+pred = model.predict(X_test)
+
+print(f'Accuracy (sklearn): {100*np.mean(pred==y_test):.2f}%')
+</pre>
 
 </blockquote>
 

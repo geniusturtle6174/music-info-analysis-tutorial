@@ -31,14 +31,22 @@ import numpy as np
 from sklearn.datasets import load_wine
 from sklearn.feature_selection import SequentialFeatureSelector
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.model_selection import train_test_split
 
 dataset = load_wine()
 print('Data shapes:', dataset.data.shape, dataset.target.shape)
 
+# 分割資料集
+X_train, X_test, y_train, y_test = train_test_split(
+	dataset.data, dataset.target, test_size=0.2, random_state=42
+)
+print('Training data shapes:', X_train.shape, y_train.shape)
+print('Test data shapes:', X_test.shape, y_test.shape)
+
 model = KNeighborsClassifier(n_neighbors=3)
 sfs = SequentialFeatureSelector(model, n_features_to_select=5)
 
-sfs.fit(dataset.data, dataset.target)
+sfs.fit(X_train, y_train)
 
 print('Is selected:', sfs.get_support())
 </pre>
@@ -46,13 +54,37 @@ print('Is selected:', sfs.get_support())
 <p>在上述範例中：</p>
 <ul>
 	<li>SequentialFeatureSelector 在辨識時所採用的分類器，需要由你自己決定。一般來說，我們會挑選比較簡單的分類器，以節省運算效能。</li>
-	<li>我們直接使用了整個 dataset 做示範。在實務上，你還是應該切分出訓練集和測試集，再把訓練集丟給 SequentialFeatureSelector 做選取。</li>
+	<li>在實務上，請務必如同範例一般，先切分出訓練集和測試集，再把訓練集丟給 SequentialFeatureSelector 做選取，否則選取時就會看到測試資料，造成後續的評估結果過於樂觀。</li>
 	<li>若需要做更細節的控制，請參考官方文件。</li>
 </ul>
 
-<!-- 什麼時候不該做 feature selection
-SHAP 或 Feature Importance： 實作完模型後，如何畫圖解釋哪個特徵最重要？這對寫論文很有幫助。
- -->
+<p>也有一些特徵選取的方法，不需要依賴特定的模型，例如方差篩選、相關係數、卡方檢定等等。以下介紹方差篩選，其目標是移除較低變異度的特徵：</p>
+<pre class="brush: py">
+import numpy as np
+from sklearn.datasets import load_wine
+from sklearn.feature_selection import VarianceThreshold
+from sklearn.model_selection import train_test_split
+
+dataset = load_wine()
+X_train, X_test, y_train, y_test = train_test_split(
+	dataset.data, dataset.target, test_size=0.2, random_state=42
+)
+print('Training data shapes:', X_train.shape, y_train.shape)
+print('Test data shapes:', X_test.shape, y_test.shape)
+
+selector = VarianceThreshold(threshold=0.5)
+X_train_selected = selector.fit_transform(X_train)
+X_test_selected = selector.transform(X_test)
+
+print("Selected feature dim:", X_train_selected.shape[1])
+print("Is selected:", selector.get_support())
+print("Selected feature name:", [dataset.feature_names[i] for i in np.where(selector.get_support())[0]])
+
+variances = np.var(X_train, axis=0)
+for i, (name, var) in enumerate(zip(dataset.feature_names, variances)):
+	status = "Kept" if selector.get_support()[i] else "Removed"
+	print(f"{status:8s} {name:30s} var={var:.4f}")
+</pre>
 
 </blockquote>
 
