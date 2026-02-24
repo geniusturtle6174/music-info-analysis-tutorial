@@ -1,0 +1,59 @@
+﻿<html>
+<head>
+	<title>線上教材：音樂資訊分析</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<link rel=stylesheet type="text/css" href="myCss.css">
+	<base target="_blank">
+	<script type="text/javascript" src="shCore.js"></script>
+	<script type="text/javascript" src="shBrushPython.js"></script>
+	<link href="shCore.css" rel="stylesheet" type="text/css" />
+	<link href="shThemeDefault.css" rel="stylesheet" type="text/css" />
+	<script type="text/javascript">
+		SyntaxHighlighter.all();
+	</script>
+</head>
+
+<body bgcolor="#ccccff">
+
+<blockquote>
+
+<p>有時候你會發現，讀書時讀太久把書背太死，考試時題型變化一點點可能就不會寫；對應到機器學習的情境下，就是較複雜的模型訓練了很久之後，雖然能把訓練集的模樣學得更透徹，但是到測試集上的表現就會炸掉，這樣的情況稱為過擬合(overfitting)。相反地，如果模型太簡單，可能連訓練集都學不好，這種情況則稱為欠擬合(underfitting)。一個基本的範例如下，其中資料是由三次多項式加上雜訊所產生，而我們分別使用一次式（太簡單）、三次式（剛好）以及十五次式（太複雜）來進行擬合：</p>
+<pre class="brush: py">
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.linear_model import LinearRegression
+
+np.random.seed(42)
+X = np.linspace(0, 10, 20).reshape(-1, 1)
+y = 0.1 * X[:, 0] ** 3 - 2 * X[:, 0] ** 2 + 10 * X[:, 0] + 3 + np.random.randn(20) * 3
+
+X_plot = np.linspace(0, 10, 100).reshape(-1, 1)
+
+_, axes = plt.subplots(1, 3)
+titles = ['Underfitting (degree 1)', 'Good Fit (degree 3)', 'Overfitting (degree 15)']
+
+for i, degree in enumerate([1, 3, 15]):
+    poly = PolynomialFeatures(degree=degree)
+    X_poly = poly.fit_transform(X)
+    X_plot_poly = poly.transform(X_plot)
+    
+    model = LinearRegression()
+    model.fit(X_poly, y)
+    y_plot = model.predict(X_plot_poly)
+    
+    axes[i].scatter(X, y, s=50, label='Training data')
+    axes[i].plot(X_plot, y_plot, 'r-', linewidth=2, label=f'Degree {degree}')
+    axes[i].set_title(titles[i], fontsize=14)
+    axes[i].set_xlabel('x')
+    axes[i].set_ylabel('y')
+    axes[i].legend()
+
+plt.show()
+</pre>
+
+<p>因此，為了防止模型過擬合，為了保護模型的穩定，就該輪到驗證集登場，我們可以在模型訓練當中，不時的將目前的模型用驗證集來測試，萬一由驗證集算出來的準確度下降了，就代表過擬合可能已經發生了。這樣子的做法是一個訓練集對一個驗證集，我們甚至可以把訓練集和驗證集混在一起，再拆成 K 份來使用，輪流用 K - 1 份訓練和 1 份驗證，稱為 K 折交叉驗證(K-fold cross validation)。除了透過驗證集來監控過擬合之外，也有許多其他的手段可以避免過擬合的發生，例如正規化(regularization)、提前停止訓練(early stopping)、或者減少模型的複雜度等等，這些方法會在後續的篇章中陸續介紹。</p>
+
+</blockquote>
+
+</body></html>

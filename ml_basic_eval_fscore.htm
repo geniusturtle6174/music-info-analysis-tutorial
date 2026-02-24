@@ -58,6 +58,25 @@ print('Precision (%):', tp / (tp + fp) * 100)
 print('Recall (%):', tp / (fn + tp) * 100)
 </pre>
 
+<p>在上述範例中，採用了自行撰寫的程式碼，來計算出二分類問題的混淆矩陣。若要應對多類別的分類問題，或者就是懶得自己寫，也可以使用 sklearn.metrics 的 <a href="https://scikit-learn.org/stable/modules/generated/sklearn.metrics.confusion_matrix.html">confusion_matrix</a> 來進行，相關說明請自行參考文件。</p>
+
+<p>此外，雖然上述範例的預測資料，是用「60% 亂猜，40% 抄答案」來直接產生二分類的結果，但實際運作的模型，其行為通常會是產生一個預測的信心度或機率值，並另外由某種方式決定一個門檻(threshold)，來轉換成二分類的結果。如果你希望觀察不同門檻對於模型表現的影響，或者想找出最佳的門檻值，則可以用 sklearn.metrics 的 <a href="https://scikit-learn.org/stable/modules/generated/sklearn.metrics.roc_curve.html">roc_curve</a> 來繪製 ROC 曲線（Receiver Operating Characteristic curve）。ROC 曲線的橫軸是 False Positive Rate (FPR = FP / (FP + TN))，縱軸是 True Positive Rate (TPR = TP / (TP + FN)，也就是 Recall)。曲線下方的面積稱為 AUC（Area Under Curve），AUC 越接近 1 表示模型的分類能力越好，而 AUC = 0.5 則相當於隨機猜測。以下範例展示如何繪製 ROC 曲線：</p>
+<pre class="brush: py">
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.metrics import roc_curve
+
+groundtruth = np.random.randint(0, 2, 100)
+scores = np.random.rand(groundtruth.size)
+prediction = scores >= 0.4
+
+fpr, tpr, thresholds = roc_curve(groundtruth, scores)
+plt.plot(fpr, tpr)
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.show()
+</pre>
+
 </blockquote>
 
 </body></html>
