@@ -1,0 +1,52 @@
+﻿<html>
+<head>
+	<title>線上教材：音樂資訊分析</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<link rel=stylesheet type="text/css" href="myCss.css">
+	<base target="_blank">
+	<script type="text/javascript" src="shCore.js"></script>
+	<script type="text/javascript" src="shBrushPython.js"></script>
+	<link href="shCore.css" rel="stylesheet" type="text/css" />
+	<link href="shThemeDefault.css" rel="stylesheet" type="text/css" />
+	<script type="text/javascript">
+		SyntaxHighlighter.all();
+	</script>
+</head>
+
+<body bgcolor="#ccccff">
+
+<blockquote>
+
+<p>端點偵測(End-Point Detection, EPD)是指找出一段音訊的開始和結束的位置。比較簡單的方法，是在時域上用音量和過零率等方法計算。以單純使用音量來說，可以設定門檻為「整段音訊音量最大值的 1/n」、「整段音訊音量最小值的 n 倍」等方法，其中的參數要經過經驗或實驗來取得。此外，反覆對波型計算差分再計算音量，也會因為可以凸顯氣音的音量，因此可以跟音量結合來執行 EPD。若要觀察，你可以使用此範例，並將音檔更換為一個氣音比較多的音檔（原始音檔為「<a href="pics/intro/hello.wav">Hello</a>」的發音）：</p>
+<pre class="brush: py">
+import librosa
+import matplotlib.pyplot as plt
+import numpy as np
+ 
+WAV_PATH = 'hello.wav'
+
+y, sr = librosa.load(WAV_PATH, sr=None)
+t = np.arange(y.shape[0]) / sr
+
+plt.subplot(2, 1, 1)
+plt.plot(t, y)
+
+plt.subplot(2, 1, 2)
+frames = librosa.util.frame(y, frame_length=1024, hop_length=512).T # (n_frames, frame_size)
+vol_0 = np.sum(np.abs(frames), axis=1)
+vol_1 = np.sum(np.abs(np.diff(frames, axis=1)), axis=1)
+vol_2 = np.sum(np.abs(np.diff(np.diff(frames, axis=1), axis=1)), axis=1)
+t = librosa.frames_to_time(np.arange(frames.shape[0]), sr=sr, hop_length=512)
+plt.plot(t, vol_0, label='Vol')
+plt.plot(t, vol_1, label='Vol (1st diff)')
+plt.plot(t, vol_2, label='Vol (2nd diff)')
+plt.legend()
+
+plt.xlabel('Time (sec)')
+
+plt.show()
+</pre>
+
+</blockquote>
+
+</body></html>

@@ -1,0 +1,76 @@
+﻿<html>
+<head>
+	<title>線上教材：音樂資訊分析</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<link rel=stylesheet type="text/css" href="myCss.css">
+	<base target="_blank">
+	<script type="text/javascript" src="shCore.js"></script>
+	<script type="text/javascript" src="shBrushPython.js"></script>
+	<link href="shCore.css" rel="stylesheet" type="text/css" />
+	<link href="shThemeDefault.css" rel="stylesheet" type="text/css" />
+	<script type="text/javascript">
+		SyntaxHighlighter.all();
+	</script>
+</head>
+
+<body bgcolor="#ccccff">
+
+<blockquote>
+
+<script>
+showWarning('以下內容假設你看過「高斯貝氏分類」及「資料分群」篇章');
+</script>
+
+<p>你可能記得，在高斯貝氏分類當中，我們有個範例是二維平面上的第一和第三象限的點是一個類別，第二和第四象限的點是另外一個類別，每個類別各自分成了兩群，導致套用高斯貝氏分類的效果很差。而如果我們可以把每個類別，用多個高斯分布來表示呢？這個就是 sklearn.mixture 的 <a href="https://scikit-learn.org/stable/modules/generated/sklearn.mixture.GaussianMixture.html">GaussianMixture</a>（高斯混合模型，GMM）可以辦到的事情，如下：</p>
+<pre class="brush: py">
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.mixture import GaussianMixture
+
+X = np.random.randn(1000, 2)
+y = np.logical_xor(X[:, 0] > 0, X[:, 1] > 0).astype(int)
+X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42)
+
+n_classes = np.unique(y_train)
+gmms = {}
+for c in n_classes:
+	gmms[c] = GaussianMixture(n_components=2)
+	gmms[c].fit(X_train[y_train==c])
+
+logps = np.column_stack([gmms[c].score_samples(X_test) for c in n_classes])
+pred = n_classes[np.argmax(logps, axis=1)]
+
+print(f'Accuracy (GMM): {100*np.mean(pred==y_test):.2f}%')
+</pre>
+
+<p>在上述範例中：</p>
+<ul>
+	<li>每個類別內部需要做資料分群，預設的方法是 以 k-means 進行初始化後再用 EM 演算法估計參數，你也可以選擇其他初始化方法。</li>
+	<li>我們假設每個類別都是需要用兩個高斯分布來描述，你在其他資料上若有需要，也可以改成每個類別用不同數目的高斯分布。</li>
+	<li>不同於高斯貝氏分類假設特徵之間獨立，我們在 GMM 當中可以設定變數之間有共變異，可設定的類型與說明如下；若需圖片說明，可參考 sklearn 文件中的<a href="https://scikit-learn.org/stable/modules/mixture.html#gaussian-mixture">此連結</a>：
+		<ul>
+			<li>full（預設）：各個分群有自己的共變異矩陣。以二維平面而言，相當於各個分群的高斯分布可繪製成角度不一且可旋轉的橢圓。</li>
+			<li>tied：各個分群有相同的共變異矩陣。以二維平面而言，相當於各個分群的高斯分布可繪製成角度一致但可旋轉的橢圓。</li>
+			<li>diag：各個分群有自己的共變異矩陣，但變數之間獨立。以二維平面而言，相當於各個分群的高斯分布可繪製成軸對齊且不可旋轉的橢圓。</li>
+			<li>spherical：各個分群的共變異矩陣為純量乘以單位矩陣（各維度變異數相同）。以二維平面而言，相當於各個分群的高斯分布可繪製成大小不一的圓。</li>
+		</ul>
+	</li>
+</ul>
+
+<!-- 
+anomaly detection
+Demo
+生成：兩個 cluster + 一些亂點
+畫：density contour，低密度的就是 anomaly。
+
+segmentation（影像或聲音）
+Demo（簡單版）
+拿 RGB pixel：X = image.reshape(-1,3)
+用 GMM：n_components=3
+可以做：color segmentation
+-->
+
+</blockquote>
+
+</body></html>

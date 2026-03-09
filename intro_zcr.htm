@@ -1,0 +1,17 @@
+﻿<html>
+<head>
+	<title>線上教材：音樂資訊分析</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<link rel=stylesheet type="text/css" href="myCss.css">
+	<base target="_blank">
+</head>
+
+<body bgcolor="#ccccff">
+
+<blockquote>
+
+<p>過零率(Zero-Crossing Rate, ZCR)是指在一個音框中，訊號穿過 y = 0 的次數。一般而言，無音高的聲音（例如氣音、雜音）的 ZCR 會大於有音高的聲音（例如母音），因此 ZCR 的計算結果，可以在後續應用於簡單的端點偵測與訊號分類等。計算 ZCR 時須注意，因為訊號可能有直流偏移的狀況存在，因此須將訊號的平均平移到 0。此外，若訊號取樣點剛好位於 y = 0 上，你可以依據自己的需求，來決定是否算做「穿過」 y = 0；雖然不同定義下的計算結果會有差別，但大致趨勢是一樣的。在實作上，除了自己計算以外，也可以使用 librosa 的 <a href="https://librosa.org/doc/main/generated/librosa.feature.zero_crossing_rate.html">feature.zero_crossing_rate</a> 來計算。</p>
+
+</blockquote>
+
+</body></html>
