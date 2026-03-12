@@ -22,13 +22,9 @@
 showWarning('以下內容不假設你看過原理篇，但是有看過會更好');
 </script>
 
-<p>
-多層感知器(Multilayer perceptron, MLP)的一層，可以表示為 <b>y&#770;</b> = f(<b>x</b><sup>T</sup>W + <b>b</b>)，其中的 <b>x</b> 為輸入向量，W 為權重矩陣，<b>b</b> 為偏差向量，f 為激勵函數(activation function)，<b>y&#770;</b> 為輸出向量。並且由於堆疊多層時，每一層的每個輸出都是完全連接到下一層的每個輸入，所以這樣的每一層又叫做全連接層(fully connected layer)。多層感知器或者其他各種類神經網路的訓練，則首先需要使用損失函數(loss function)評估網路算出來的 <b>y&#770;</b> 和標準答案的 <b>y</b> 之間的差異，經由你所選用的工具（例如 PyTorch 或者 Tensorflow）進行微分求出梯度以後，再使用各種最佳化（求極值）的方法(optmizer)來更新每個 W 和 <b>b</b>。如此反覆進行之後，通常就可以訓練出恰當的類神經網路。
-</p>
+<p>多層感知器(Multilayer perceptron, MLP)的一層，可以表示為 <b>y&#770;</b> = f(<b>x</b><sup>T</sup>W + <b>b</b>)，其中的 <b>x</b> 為輸入向量，W 為權重矩陣，<b>b</b> 為偏差向量，f 為 activation function，<b>y&#770;</b> 為輸出向量。並且由於堆疊多層時，每一層的每個輸出都是完全連接到下一層的每個輸入，所以這樣的每一層又叫做全連接層(fully connected layer)。多層感知器或者其他各種類神經網路的訓練，則首先需要使用損失函數(loss function)評估網路算出來的 <b>y&#770;</b> 和標準答案 <b>y</b> 之間的差異，透過你所選用的工具（例如 PyTorch 或者 TensorFlow）進行反向傳播求出梯度以後，再使用優化器(optimizer)來更新每個 W 和 <b>b</b>。如此反覆進行之後，通常就可以訓練出恰當的類神經網路。</p>
 
-<p>
-對於激勵函數、損失函數以及最佳化方法，可以依照你要處理的問題特性，或者實際效果來選擇。常用的激勵函數有 sigmoid、ReLU、tanh，損失函數則有常用於回歸問題的 mean squared error (MSE)，以及常用於分類問題的 cross entropy 等可以選擇。最佳化方法則通常有 SGD (stochastic gradient descent)、Momentum、AdaGrad、RMSProp，以及 Adam 等方式，若無特殊需求，且在可以選擇的情況下，通常你可以先試試看 Adam。
-</p>
+<p>對於 activation function、損失函數以及最佳化方法，可以依照你要處理的問題特性，或者實際效果來選擇。常用的 activation function 有 sigmoid、ReLU、tanh，損失函數則有常用於回歸問題的 mean squared error (MSE)，以及常用於分類問題的 cross entropy 等可以選擇。最佳化方法則通常有 SGD (stochastic gradient descent)、Momentum、AdaGrad、RMSProp，以及 Adam 等方式，若無特殊需求，且在可以選擇的情況下，通常你可以先試試看 Adam。</p>
 
 <p>若要使用 MLP 解決問題，有很多工具可以幫忙，常見的有像是 <a href="https://pytorch.org/">PyTorch</a>、<a href="https://www.tensorflow.org/?hl=zh-tw">TensorFlow</a>，以及 <a href="https://chainer.org/">Chainer</a> 等等，不過這些工具為了能讓你做更自由的調整，所以在真正的類神經網路本身和資料的事前處理，都有許多工作要自己做，因此以下還是先使用 scikit-learn 的 <a href="https://scikit-learn.org/stable/modules/generated/sklearn.neural_network.MLPClassifier.html">neural_network.MLPClassifier</a> 來示範 MLP 的使用，範例的資料集是 <a href="https://archive.ics.uci.edu/ml/datasets/wine">Wine Data Set</a>。</p>
 <pre class="brush: py">

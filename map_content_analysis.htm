@@ -1,0 +1,24 @@
+﻿<html>
+<head>
+	<title>線上教材：音樂資訊分析</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<link rel=stylesheet type="text/css" href="myCss.css">
+	<base target="_blank">
+	<script type="text/javascript" src="myJs.js"></script>
+</head>
+
+<body bgcolor="#ccccff">
+
+<blockquote>
+
+<script>
+showWarning('本篇最後更新時間為 2026 年三月');
+</script>
+
+<p>在音樂研究領域，內容分析的具體目標有很多種，例如曲風、情緒、使用的樂器，或語言的分類，或者是自動標記等等。本篇將整理出部分主題的部分知名論文與資料集，並做簡單的解說。</p>
+
+<p>GTZAN dataset 是曲風分類的經典資料集，它是由 George Tzanetakis 在本世紀初期發布，包含 10 個曲風共 1000 個的 30 秒音樂片段（每個曲風含 100 個片段）。雖然此資料集後來逐漸被發現有重複的片段等問題，但仍是相關研究的重要起點；且因資料容量不大，因此也相當適用於教材示範。FMA（Free Music Archive）是一個開放的音樂分析資料集，由 École Polytechnique Fédérale de Lausanne 在 2017 年發布，資料總量超過十萬首音檔，並包含標籤、預先抽取出之特徵，與中繼資料（如演唱或演奏者、所屬專輯、持續時間）等。為了平衡規模與可存取性，FMA 資料集包含了多層級子集，如 FMA Small（8,000 曲）、Medium（25,000 曲）、Large（106,000 曲）與 Full 版本。此資料集的應用範圍相當多，曲風分類為其中之一。MagnaTagATune 則是一個主要任務為自動標記的資料集，但其中也包含一些曲風標籤。它結合了 Magnatune 唱片庫的音訊，與由線上遊戲 TagATune 收集而來的標籤，共有 25,863 個 29 秒音訊片段，以及 188 個包含歌手性別、演奏樂器、樂曲情緒等不同的標籤。需要注意的是，由於該資料集的標籤是由群眾標註，因此在標籤一致性上等方面會較為分散，例如標籤中有拼字錯誤，或是同時出現 man 及 male 等複數相似標籤等等問題，因此常被後續研究用來討論標註噪聲與標籤品質驗證方法等相關題目。</p>
+
+</blockquote>
+
+</body></html>
