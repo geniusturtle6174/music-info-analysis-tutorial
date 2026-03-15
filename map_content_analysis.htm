@@ -15,9 +15,38 @@
 showWarning('本篇最後更新時間為 2026 年三月');
 </script>
 
-<p>在音樂研究領域，內容分析的具體目標有很多種，例如曲風、情緒、使用的樂器，或語言的分類，或者是自動標記等等。本篇將整理出部分主題的部分知名論文與資料集，並做簡單的解說。</p>
+<p>在音樂研究領域，內容分析的具體目標有很多種，例如將樂曲中的曲風、情緒、使用的樂器，或語言等方面進行分類，或者是對樂曲進行自動標記等等。本篇將整理出部分主題中，從早先的手工特徵時代，到較近代的深度學習初期，再到目前的大型預訓練模型時期中，部分可能較為重要的資料集與論文，並做簡單的解說。</p>
 
-<p>GTZAN dataset 是曲風分類的經典資料集，它是由 George Tzanetakis 在本世紀初期發布，包含 10 個曲風共 1000 個的 30 秒音樂片段（每個曲風含 100 個片段）。雖然此資料集後來逐漸被發現有重複的片段等問題，但仍是相關研究的重要起點；且因資料容量不大，因此也相當適用於教材示範。FMA（Free Music Archive）是一個開放的音樂分析資料集，由 École Polytechnique Fédérale de Lausanne 在 2017 年發布，資料總量超過十萬首音檔，並包含標籤、預先抽取出之特徵，與中繼資料（如演唱或演奏者、所屬專輯、持續時間）等。為了平衡規模與可存取性，FMA 資料集包含了多層級子集，如 FMA Small（8,000 曲）、Medium（25,000 曲）、Large（106,000 曲）與 Full 版本。此資料集的應用範圍相當多，曲風分類為其中之一。MagnaTagATune 則是一個主要任務為自動標記的資料集，但其中也包含一些曲風標籤。它結合了 Magnatune 唱片庫的音訊，與由線上遊戲 TagATune 收集而來的標籤，共有 25,863 個 29 秒音訊片段，以及 188 個包含歌手性別、演奏樂器、樂曲情緒等不同的標籤。需要注意的是，由於該資料集的標籤是由群眾標註，因此在標籤一致性上等方面會較為分散，例如標籤中有拼字錯誤，或是同時出現 man 及 male 等複數相似標籤等等問題，因此常被後續研究用來討論標註噪聲與標籤品質驗證方法等相關題目。</p>
+<p>可能較為重要的資料集列出如下：</p>
+<ul>
+	<li>RWC (Real World Computing) Music Database 發表於 2000 年代初期，是一個由日本理化學研究所（RIKEN，理研）開發的開放研究資料集。其由多個子集構成，包括流行樂、古典樂、爵士樂等等；每個子集包含錄音音訊、對應的 MIDI 檔案、標註資訊與 mata data（如拍速、調性、結構等），以支援系統化的音樂特徵分析，是早期常用的資料集之一。</li>
+	<li>GTZAN dataset 發表於 2002 年，是曲風分類的經典資料集，它是由 George Tzanetakis 等人所發布，包含 10 個曲風共 1000 個的 30 秒音樂片段（每個曲風含 100 個片段）。雖然此資料集後來逐漸被發現有重複的片段等問題（參考連結：<a href="https://arxiv.org/abs/1306.1461">https://arxiv.org/abs/1306.1461</a>），但因其是相關研究的重要起點；且資料容量不大，因此仍相當適用於教材示範與初步研討。</li>
+	<li>MagnaTagATune 發表於 2009 年，是一個主要任務為自動標記的資料集，但其中也包含一些曲風標籤。它結合了 Magnatune 唱片庫的音訊，與由線上遊戲 TagATune 收集而來的標籤，共有 25,863 個 29 秒音訊片段，以及 188 個包含歌手性別、演奏樂器、樂曲情緒等不同的標籤。需要注意的是，由於該資料集的標籤是由群眾標註，因此在標籤一致性上等方面會較為分散，例如標籤中有拼字錯誤，或是同時出現 man 及 male 等複數相似標籤等等問題（參考連結：<a href="https://github.com/keunwoochoi/magnatagatune-list">https://github.com/keunwoochoi/magnatagatune-list</a>），因此常被後續研究用來討論標註噪聲與標籤品質驗證方法等相關題目。</li>
+	<li>MedleyDB 發表於 2014 年，是一個由 New York University 音樂與音訊研究實驗室發表的多軌音樂資料集，包含超過 100 首曲目，每首曲目包含數條單獨軌道（例如人聲、鼓、吉他、鍵盤）、對主旋律與伴奏的標註，以及演奏者資訊等等的 meta data，因此常用於樂器分類、聲源分離、音高追蹤等等研究。</li>
+	<li>FMA（Free Music Archive）發表於 2017 年，是一個開放的音樂分析資料集，由 École Polytechnique Fédérale de Lausanne 發布，資料總量超過十萬首音檔，並包含標籤、預先抽取出之特徵，與中繼資料（如演唱或演奏者、所屬專輯、持續時間）等。為了平衡規模與可存取性，FMA 資料集包含了多層級子集，如 FMA Small（8,000 曲）、Medium（25,000 曲）、Large（106,000 曲）與 Full 版本。此資料集的應用範圍相當多，曲風分類為其中之一。</li>
+	<li>AudioSet 發表於 2017 年，是一個由 Google 發表的大規模音訊事件標註資料集，它涵蓋了來自 YouTube 影片超過 200 萬筆的 10 秒音訊片段，涵蓋了日常聲音、人聲、樂器、自然與環境聲等多樣類別，並含有五百多類的標籤，因此被廣泛用於 audio tagging 與 sound event detection 等主題。</li>
+	<li>MTG-Jamendo dataset 發表於 2019 年，是一個由 Music Technology Group 建立的大規模音樂標註資料集，主要用於音樂標籤（music tagging）、自動音樂分類與推薦等任務。資料集來源於開放音樂平台 Jamendo，包含超過 50,000 首歌曲，以及超過 180 種涵蓋情感、樂器、風格等等方面的標籤。相較於過往一些授權受限的商業音樂資料集，MTG-Jamendo dataset 完全基於 Creative Commons 授權曲目，使研究者能較容易的合法分享模型與成果。</li>
+</ul>
+
+<p>另有更多子領域專用的資料集，以及使用 symbolic data（例如 MIDI）的資料集，就不一一列入。</p>
+
+<p>曲風及情緒的辨識或分類中，可能較為重要的論文列出如下：</p>
+<ul>
+	<li>G. Tzanetakis, P. Cook. "Musical genre classification of audio signals," in IEEE Transactions on speech and audio processing, vol. 10, no. 5, pp. 293–302, 2002.：這是手工特徵時代的重要論文，其搭配了 MFCC 等特徵以及 GMM 等模型進行音樂曲風辨識，並且也是發佈了 GTZAN dataset 的論文。</li>
+	<li>P. Hamel, D. Eck, "Learning features from music audio with deep belief networks.," in ISMIR, 2010, pp. 339–344.：這是類神經網路開始進入 MIR 領域時期的論文，該論文使用了 Deep Belief Network 自動抽取特徵，並在 GTZAN 等資料集上超越了 MFCC 等手工特徵。</li>
+	<li>Kong, Q., et al. "Panns: Large-scale pretrained audio neural networks for audio pattern recognition," in IEEE/ACM Transactions on Audio, Speech, and Language Processing, vol. 28, pp. 2880–2894, 2020.：該論文提出了一系列不同大小的，以 AudioSet 進行預訓練的音訊神經網路，提供了強大的通用音訊特徵，可供廣泛使用於風格、樂器、情緒等下游任務。若有需要使用，可以到第一作者　孔老師的 <a href="https://github.com/qiuqiangkong/audioset_tagging_cnn">Github repo</a> 以及 <a href="https://zenodo.org/records/3987831">Zenodo</a> 分別取得程式碼與預訓練模型。</li>
+	<li>Y. Feng, Y. Zhuang, Y. Pan, "Popular music retrieval by detecting mood," in Proceedings of the 26th annual international ACM SIGIR conference on Research and development in informaion retrieval, 2003, pp. 375–376.：這是情緒分類的早期論文，該論文以 Tempo、Loudness、Timbre 等特徵，搭配機率模型來分辨四類情緒（快樂、悲傷、憤怒、害怕）。</li>
+	<li>Yang, Y., et al. "A regression approach to music emotion recognition," in IEEE Transactions on audio, speech, and language processing, vol. 16, no. 2, pp. 448–457, 2008.：該論文改用心理學上的 valence（情緒的正向或負向）和 arousal（情緒的激動或平靜）兩個數值，將原本情緒辨識的分類問題，改視為回歸問題。</li>
+</ul>
+
+<p>樂器辨識、自動標記，或其他子題中，可能較為重要的論文列出如下：</p>
+<ul>
+	<li>A. Eronen, A. Klapuri, "Musical instrument recognition using cepstral coefficients and temporal features," in 2000 IEEE International Conference on Acoustics, Speech, and Signal Processing. Proceedings (Cat. No. 00CH37100), 2000, pp. II753–II756.：這是樂器辨識的早期論文之一，該論文以多種手工特徵，搭配高斯或 k-nn 等模型進行階層式分類，可在樂器獨奏的情況下，達到約 94% 的辨識準確度。</li>
+	<li>Bosch Vicente, J., et al, "A comparison of sound segregation techniques for predominant instrument recognition in musical audio signals," in International Society for Music Information Retrieval (ISMIR), 2012.：此論文比較了多種音源分離策略（包含 harmonic-percussive separation、NMF、melody extraction 前處理）對佔主導地位的樂器的辨識準確率的影響，從而推動了多聲部情境下的樂器識別研究。該論文也公開了 IRMAS 資料集，以供後續研究使用。</li>
+	<li>Y. Han, J. Kim, K. Lee. "Deep convolutional neural networks for predominant instrument recognition in polyphonic music," in IEEE/ACM Transactions on Audio, Speech, and Language Processing, vol. 25, no. 1, pp. 208–221, 2016.：這是深度學習在混音樂器辨識任務確立優勢的里程碑論文，該論文以固定長度音訊片段（每片段單一主旋律樂器標籤）訓練 CNN 模型，並在推論時以滑動視窗聚合輸出，來處理可變長音訊，並估計任意數量的主旋律樂器。</li>
+	<li>J. Pons, X. Serra. "musicnn: Pre-trained convolutional neural networks for music audio tagging," in arXiv preprint arXiv:1909.06654, 2019.：該論文提出了基於音樂特性設計的卷積神經網路，並公開程式碼與預訓練模型，以供研究者用於基礎特徵提取及後續下游主題之研究。</li>
+	<li>Li, Y., et al. "Mert: Acoustic music understanding model with large-scale self-supervised training," in arXiv preprint arXiv:2306.00107, 2023.：該論文參照 BERT 的方式，以 160 萬小時經過遮罩之音訊進行自監督預訓練；其模型經微調後，可在標籤、風格、情緒、節拍、調性等多下游任務上，達到當時的 SOTA (State-of-the-Art)，是近期最強的通用音樂表徵模型之一。</li>
+</ul>
 
 </blockquote>
 
