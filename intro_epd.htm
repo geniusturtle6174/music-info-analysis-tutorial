@@ -17,7 +17,13 @@
 
 <blockquote>
 
-<p>端點偵測(End-Point Detection, EPD)是指找出一段音訊的開始和結束的位置。比較簡單的方法，是在時域上用音量和過零率等方法計算。以單純使用音量來說，可以設定門檻為「整段音訊音量最大值的 1/n」、「整段音訊音量最小值的 n 倍」等方法，其中的參數要經過經驗或實驗來取得。此外，反覆對波型計算差分再計算音量，也會因為可以凸顯氣音的音量，因此可以跟音量結合來執行 EPD。若要觀察，你可以使用此範例，或者自己錄製一個氣音比較多的音檔（原始音檔為「<a href="pics/intro/successes.wav">successes</a>」的發音）：</p>
+<p>端點偵測(End-Point Detection, EPD)的要點說明如下：</p>
+<ul>
+	<li>EPD 是指找出一段音訊的開始和結束的位置。</li>
+	<li>比較簡單的方法，是在時域上用音量和過零率等方法計算。</li>
+	<li>以單純使用音量來說，可以設定門檻為「整段音訊音量最大值的 1/n」、「整段音訊音量最小值的 n 倍」等方法，其中的參數要經過經驗或實驗來取得。</li>
+	<li>反覆對波型計算差分再計算音量，也會因為可以凸顯氣音的音量，因此可以跟音量結合來執行 EPD。</li>
+	<li>以音檔 <a href="pics/intro/successes.wav">successes</a> 計算原始音量與反覆對波型差分後的音量的範例如下：
 <pre class="brush: py">
 import librosa
 import matplotlib.pyplot as plt
@@ -54,6 +60,8 @@ plt.xlabel('Time (sec)')
  
 plt.show()
 </pre>
+	</li>
+</ul>
 
 </blockquote>
 

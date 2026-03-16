@@ -4,13 +4,51 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<link rel=stylesheet type="text/css" href="myCss.css">
 	<base target="_blank">
+	<script type="text/javascript" src="shCore.js"></script>
+	<script type="text/javascript" src="shBrushPython.js"></script>
+	<link href="shCore.css" rel="stylesheet" type="text/css" />
+	<link href="shThemeDefault.css" rel="stylesheet" type="text/css" />
+	<script type="text/javascript">
+		SyntaxHighlighter.all();
+	</script>
 </head>
 
 <body bgcolor="#ccccff">
 
 <blockquote>
 
-<p>過零率(Zero-Crossing Rate, ZCR)是指在一個音框中，訊號穿過 y = 0 的次數。一般而言，無音高的聲音（例如氣音、雜音）的 ZCR 會大於有音高的聲音（例如母音），因此 ZCR 的計算結果，可以在後續應用於簡單的端點偵測與訊號分類等。計算 ZCR 時須注意，因為訊號可能有直流偏移的狀況存在，因此須將訊號的平均平移到 0。此外，若訊號取樣點剛好位於 y = 0 上，你可以依據自己的需求，來決定是否算做「穿過」 y = 0；雖然不同定義下的計算結果會有差別，但大致趨勢是一樣的。在實作上，除了自己計算以外，也可以使用 librosa 的 <a href="https://librosa.org/doc/main/generated/librosa.feature.zero_crossing_rate.html">feature.zero_crossing_rate</a> 來計算。</p>
+<p>過零率(Zero-Crossing Rate, ZCR)的要點說明如下：</p>
+<ul>
+	<li>ZCR 是指在一個音框中，訊號穿過 y = 0 的次數。</li>
+	<li>一般而言，無音高的聲音（例如氣音、雜音）的 ZCR 會大於有音高的聲音（例如母音），因此 ZCR 的計算結果，可以在後續應用於簡單的端點偵測與訊號分類等。</li>
+	<li>計算 ZCR 時須注意，因為訊號可能有直流偏移的狀況存在，因此須將訊號的平均平移到 0。</li>
+	<li>由於 wav 的原始格式是以整數來儲存，若訊號取樣點因此剛好位於 y = 0 上時，你可以依據自己的需求，來決定是否算做「穿過」 y = 0；雖然不同定義下的計算結果會有差別，但大致趨勢是一樣的。</li>
+	<li>在實作上，除了自己計算以外，也可以使用 librosa 的 <a href="https://librosa.org/doc/main/generated/librosa.feature.zero_crossing_rate.html">feature.zero_crossing_rate</a> 或 <a href="https://librosa.org/doc/latest/generated/librosa.zero_crossings.html">librosa.zero_crossings</a> 等方法來計算。以音檔 <a href="pics/intro/successes.wav">successes</a> 套用後者計算的範例如下：
+<pre class="brush: py">
+import librosa
+import matplotlib.pyplot as plt
+import numpy as np
+ 
+WAV_PATH = 'successes.wav'
+
+y, sr = librosa.load(WAV_PATH, sr=None)
+t = np.arange(y.shape[0]) / sr
+
+plt.subplot(2, 1, 1)
+plt.plot(t, y, '.-')
+plt.plot([0, np.max(t)], [0, 0], 'r-')
+
+plt.subplot(2, 1, 2)
+frames = librosa.util.frame(y, frame_length=1024, hop_length=512).T # (n_frames, frame_size)
+zcrs = np.sum(librosa.zero_crossings(frames, axis=-1), axis=-1)
+t = librosa.frames_to_time(np.arange(frames.shape[0]), sr=sr, hop_length=512)
+plt.plot(t, zcrs)
+plt.xlabel('Time (sec)')
+
+plt.show()
+</pre>
+	</li>
+</ul>
 
 </blockquote>
 
