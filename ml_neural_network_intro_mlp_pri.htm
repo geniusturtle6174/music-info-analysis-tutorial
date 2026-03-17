@@ -270,7 +270,7 @@ ctx.fillText("2", 385, 165);
 
 <p>在上述算式中，你可以發現有一些相同的部份，例如 &part;L / &part;y&#770;<sub>1</sub> 以及 &part;y&#770;<sub>1</sub> / &part;h<sup>1</sup><sub style='position: relative; left: -.5em;'>1</sub> 等等，這些部份在各家工具的實作中，通常會將重複的部份保留起來，避免重複計算，以節省資源。而在預測階段這類不需要計算反向傳播的時候，以 PyTorch 為例，則有「torch.no_grad()」等方法來略去梯度的計算。</p>
 
-<p>此外，由於在反向傳播的算式中，我們除了對損失函數微分以外，在反向傳播時也需要多次對 activation function 在某些點進行微分並連續相乘，因此若 activation function 在那些點的微分值太大（實務上較少碰到僅由 activation function 造成的此問題，通常與權重初始化或網路架構等方面有關）或太小（例如 sigmoid function 在 y 非常接近 0 或 1 的地方），連續相乘起來就會讓梯度爆炸或者消失；目前已有多項技巧用於緩解或繞開相關問題，較經典的方式有梯度剪切(gradient clipping)、殘差連接(residual connection)，以及 batch normalization等，或者你可以直接選用不易造成梯度問題的 activation function，如 ReLU 系列。</p>
+<p>此外，由於在反向傳播的算式中，我們除了對損失函數微分以外，在反向傳播時也需要多次對 activation function 在某些點進行微分並連續相乘，因此若 activation function 在那些點的微分值太大（實務上較少碰到僅由 activation function 造成的此問題，通常與權重初始化或網路架構等方面有關）或太小（例如 sigmoid function 在 y 非常接近 0 或 1 的地方），連續相乘起來就會讓梯度爆炸或者消失；目前已有多項技巧用於緩解或繞開相關問題，較經典的方式有梯度剪切(gradient clipping)、殘差連接(residual connection)，以及 batch normalization 等，或者你可以直接選用不易造成梯度問題的 activation function，如 ReLU 系列。</p>
 
 <p>而更新參數的方法，最基本的是梯度下降法(gradient descent)；而由於通常訓練類神經網路時，是將資料分成隨機切分的小批次餵進去，因此在這種情境下，會特別稱為隨機梯度下降法(stochastic gradient descent, SGD)。SGD 的公式是 p<sup>t+1</sup> = p<sup>t</sup> - r * &part;L / &part;p<sup>t</sup>，其中的 p<sup>t</sup> 和 p<sup>t+1</sup> 分別代表目前的和更新後的參數；而 r 則稱為學習率(learning rate)，代表每次更新的時候你「大膽」的程度。而為了比 SGD 更快找到好的參數，或者找到更好的參數，還有其他各種最佳化方法被開發出來，此處就不一一介紹。</p>
 

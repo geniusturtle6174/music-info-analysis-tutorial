@@ -85,7 +85,7 @@ ctx.stroke();
 <p align=center>max<sub>w, b, &xi;</sub> d - C &Sigma;&xi;<sub>i</sub></p>
 <p align=center>subject to y<sub>i</sub>(w<sup>⊤</sup> * x<sub>i</sub> + b) / ||w|| &ge; d - &xi;<sub>i</sub></p>
 
-<p>其中，&xi;<sub>i</sub> 代表資料點 x<sub>i</sub> 違反間隔的程度，而 C 是用來控制「間隔盡量大」與「違規容忍程度盡量小」這兩者之間權衡的超參數。實際求解這個最佳化問題的方法不在本教材的範圍內，若有興趣可以參考 Lagrange multiplier 與 dual problem 等關鍵字。</p>
+<p>其中，&xi;<sub>i</sub> 代表資料點 x<sub>i</sub> 違反間隔的程度，而 C 是用來控制「間隔最大化」與「分類錯誤容忍度」之間權衡的超參數。C 值越大，對錯誤分類的懲罰越重，模型會盡量正確分類每個訓練點，但可能容易過擬合；C 值越小，則容許更多分類錯誤，模型較穩健但可能欠擬合。實務上，通常透過交叉驗證來選擇合適的 C 值。實際求解以上最佳化問題的方法，不在本教材的範圍內，若有興趣可以參考 Lagrange multiplier 與 dual problem 等關鍵字。</p>
 
 <p>然而，在更接近真實的狀況中，資料甚至連用一個超平面大略的分開都不太可能，例如 scikit-learn 的 make_circles 產生的範例資料就是如此。因此，我們需要對空間進行變換，以將座標平方為例，就是將原始空間中，圓形的分類邊界：</p>
 
@@ -130,6 +130,152 @@ print('Accuracy: {:.2f}%'.format(100*np.mean(pred==y_test)))
 </pre>
 
 <p>在上述範例中，若你想要調整超參數，請參照文件；若要改為處理回歸問題，可以使用 sklearn.svm.SVR。</p>
+
+<p>因為 SVM 的目標是將邊界盡量撐開，所以資料中一定會有一些點位於邊界上，這些點稱為 support vectors，也就是 SVM 名稱的由來。我們以線性可分割的狀況展示如下：</p>
+<pre class="brush: py">
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn import datasets
+from sklearn.svm import SVC
+from sklearn.model_selection import train_test_split
+
+np.random.seed(42)
+X, y = datasets.make_blobs(n_samples=100, centers=2, random_state=42, cluster_std=1.5)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+model = SVC(kernel='linear', C=1.0)
+model.fit(X_train, y_train)
+
+def plot_svm_boundary(model, X, y, title):
+	plt.scatter(X[:, 0], X[:, 1], c=y)
+	
+	ax = plt.gca()
+	xlim = ax.get_xlim()
+	ylim = ax.get_ylim()
+	xx = np.linspace(xlim[0], xlim[1], 200)
+	yy = np.linspace(ylim[0], ylim[1], 200)
+	YY, XX = np.meshgrid(yy, xx)
+	xy = np.vstack([XX.ravel(), YY.ravel()]).T
+	Z = model.decision_function(xy).reshape(XX.shape)
+
+	ax.contour(
+		XX, YY, Z, colors='k', levels=[-1, 0, 1], alpha=0.5, linestyles=['--', '-', '--']
+	)
+	
+
+	ax.scatter(
+		model.support_vectors_[:, 0],
+		model.support_vectors_[:, 1],
+		facecolors='none',
+		edgecolors='green',
+		label='Support Vectors',
+	)
+
+	plt.title(title)
+	plt.legend()
+
+plt.subplot(1, 2, 1)
+plot_svm_boundary(model, X_train, y_train, 'Linear SVM - Training Set')
+
+plt.subplot(1, 2, 2)
+plot_svm_boundary(model, X_test, y_test, 'Linear SVM - Test Set')
+
+plt.show()
+
+print(f'Num of support vectors: {len(model.support_vectors_)}')
+print(f'Acc (tr): {model.score(X_train, y_train)*100:.2f}%')
+print(f'Acc (te): {model.score(X_test, y_test)*100:.2f}%')
+</pre>
+
+<p>在線性不可分割的狀況（例如 make_circles）中，不同 kernel 的效果展示如下：</p>
+<pre class="brush: py">
+from sklearn.datasets import make_circles
+from sklearn.svm import SVC
+import matplotlib.pyplot as plt
+import numpy as np
+
+X, y = make_circles(n_samples=200, factor=0.5, noise=0.1, random_state=42)
+
+kernels = ['linear', 'poly', 'rbf']
+titles = ['Linear Kernel', 'Polynomial Kernel (degree=3)', 'RBF Kernel']
+
+fig, axes = plt.subplots(1, 3)
+
+for ax, kernel, title in zip(axes, kernels, titles):
+	if kernel == 'poly':
+		model = SVC(kernel=kernel, degree=3, C=1)
+	else:
+		model = SVC(kernel=kernel, C=1)
+	
+	model.fit(X, y)
+	
+	# Draw decision boundary
+	xx, yy = np.meshgrid(
+		np.linspace(X[:, 0].min()-0.5, X[:, 0].max()+0.5, 200),
+		np.linspace(X[:, 1].min()-0.5, X[:, 1].max()+0.5, 200),
+	)
+	Z = model.predict(np.c_[xx.ravel(), yy.ravel()])
+	Z = Z.reshape(xx.shape)
+	
+	ax.contourf(xx, yy, Z, alpha=0.3, cmap='bwr')
+	ax.scatter(X[:, 0], X[:, 1], c=y, cmap='bwr', edgecolors='k', s=50)
+	ax.scatter(
+		model.support_vectors_[:, 0],
+		model.support_vectors_[:, 1],
+		s=200,
+		linewidth=1.5,
+		facecolors='none',
+		edgecolors='green',
+	)
+	ax.set_title(f'{title}\nAccuracy: {model.score(X, y)*100:.1f}%')
+
+plt.show()
+</pre>
+
+<p>前面提到，C 值越大，對錯誤分類的懲罰越重；C 值越小，則容許更多分類錯誤。相關展示如下：</p>
+<pre class="brush: py">
+from sklearn.datasets import make_blobs
+from sklearn.svm import SVC
+import matplotlib.pyplot as plt
+import numpy as np
+
+# 生成有噪音的資料
+X, y = make_blobs(n_samples=100, centers=2, random_state=42, cluster_std=3.0)
+
+# 測試不同 C 值
+C_values = [0.01, 1, 100]
+titles = ['C=0.01', 'C=1', 'C=100']
+
+fig, axes = plt.subplots(1, 3)
+
+for ax, C, title in zip(axes, C_values, titles):
+	model = SVC(kernel='linear', C=C)
+	model.fit(X, y)
+	
+	# 繪製決策邊界
+	xx, yy = np.meshgrid(
+		np.linspace(X[:, 0].min()-1, X[:, 0].max()+1, 200),
+		np.linspace(X[:, 1].min()-1, X[:, 1].max()+1, 200)
+	)
+	Z = model.decision_function(np.c_[xx.ravel(), yy.ravel()])
+	Z = Z.reshape(xx.shape)
+	
+	ax.contour(
+		xx, yy, Z, colors='k', levels=[-1, 0, 1], alpha=0.5, linestyles=['--', '-', '--']
+	)
+	ax.scatter(X[:, 0], X[:, 1], c=y, cmap='bwr', edgecolors='k', s=50)
+	ax.scatter(
+		model.support_vectors_[:, 0],
+		model.support_vectors_[:, 1],
+		s=200,
+		linewidth=1.5,
+		facecolors='none',
+		edgecolors='green'
+	)
+	ax.set_title(f'{title}\nNum of Support Vectors: {len(model.support_vectors_)}')
+
+plt.show()
+</pre>
 
 </blockquote>
 
