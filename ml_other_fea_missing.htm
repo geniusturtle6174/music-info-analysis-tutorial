@@ -1,0 +1,110 @@
+﻿<html>
+<head>
+	<title>線上教材：音樂資訊分析</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<link rel=stylesheet type="text/css" href="myCss.css">
+	<base target="_blank">
+	<script type="text/javascript" src="shCore.js"></script>
+	<script type="text/javascript" src="shBrushPython.js"></script>
+	<link href="shCore.css" rel="stylesheet" type="text/css" />
+	<link href="shThemeDefault.css" rel="stylesheet" type="text/css" />
+	<script type="text/javascript">
+		SyntaxHighlighter.all();
+	</script>
+</head>
+
+<body bgcolor="#ccccff">
+
+<blockquote>
+
+<p>在實務上，資料很有可能不是完美的，特徵缺失就是其中一類問題。比方說，有某個預測健康狀況的模型，需要測量四肢的血壓，但是可能有人剛好骨折打石膏，因此其中幾肢的血壓無法測量。而依據資料中缺值的欄位或比率分布等狀況，則各自有不同的方法適合來處理，包含但不限於：</p>
+<ul>
+	<li>如果含有缺值的樣本比率很低，可以嘗試直接刪除那些樣本。</li>
+	<li>如果某個特徵幾乎都是缺值，可以嘗試直接刪除該特徵。</li>
+	<li>如果「缺失」本身可能是一種資訊（例如問卷填答者，因隱私等原因拒答部分題目），則
+		<ul>
+			<li>對於數值特徵，例如年齡等，可以嘗試填寫明顯的異常值，例如 -1；也可以進一步新增一維特徵，來代表原本的那一維是缺失。</li>
+			<li>對於類別特徵，例如居住縣市等，可以嘗試新增一類代表缺失。</li>
+		</ul>
+	</li>
+	<li>如果資料是時間序列，例如股價等，可以嘗試填寫前一筆或後一筆有效資料。</li>
+	<li>如果不是前述的特定情況，或嘗試過以後效果不好，可以嘗試以非缺失資料的平均數、中位數或眾數等統計值，來填補缺失處。</li>
+	<li>如果效果仍然不好，或者資源允許，可以嘗試其他進階方法，例如基於相近樣本的 KNN Imputer，或者基於模型預測的 MICE (Multivariate Imputation by Chained Equations)。</li>
+</ul>
+
+<p>上述的「很低」、「幾乎」等形容詞，可能需要根據資料狀況等方面，來決定較具體的標準。</p>
+
+<p>以下範例，會示範當隨機缺值比率從 1~10% 時，補特定值與使用 KNN Imputer 的模型辨識效果差異：</p>
+<pre class="brush: py">
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.datasets import load_wine
+from sklearn.impute import KNNImputer
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
+from sklearn.model_selection import train_test_split
+
+np.random.seed(0)
+
+dataset = load_wine()
+X_train, X_test, y_train, y_test = train_test_split(
+	dataset.data, dataset.target, test_size=0.2, random_state=42
+)
+print('Training data shapes:', X_train.shape, y_train.shape)
+print('Test data shapes:', X_test.shape, y_test.shape)
+
+acc_fill = []
+acc_knn = []
+missing_rates = np.arange(0.01, 0.11, 0.01)
+for rate in missing_rates:
+
+	X_train_miss = X_train.copy()
+	X_test_miss = X_test.copy()
+
+	mask_train = np.random.rand(*X_train_miss.shape) < rate
+	mask_test = np.random.rand(*X_test_miss.shape) < rate
+
+	X_train_miss[mask_train] = np.nan
+	X_test_miss[mask_test] = np.nan
+
+	# Fill by fix val
+	X_train_fill = np.nan_to_num(X_train_miss, nan=0)
+	X_test_fill = np.nan_to_num(X_test_miss, nan=0)
+
+	# Fill by mean
+	# col_mean = np.nanmean(X_train_miss, axis=0)
+	# X_train_fill = np.where(np.isnan(X_train_miss), col_mean, X_train_miss)
+	# X_test_fill = np.where(np.isnan(X_test_miss), col_mean, X_test_miss)
+
+	model = LogisticRegression(max_iter=500)
+	model.fit(X_train_fill, y_train)
+	pred = model.predict(X_test_fill)
+
+	acc_fill.append(accuracy_score(y_test, pred) * 100)
+
+	# Impute by KNN
+	imputer = KNNImputer(n_neighbors=5)
+
+	X_train_knn = imputer.fit_transform(X_train_miss)
+	X_test_knn = imputer.transform(X_test_miss)
+
+	model = LogisticRegression(max_iter=500)
+	model.fit(X_train_knn, y_train)
+	pred = model.predict(X_test_knn)
+
+	acc_knn.append(accuracy_score(y_test, pred) * 100)
+
+plt.plot(missing_rates * 100, acc_fill, '.-', label='Impute by fix val')
+plt.plot(missing_rates * 100, acc_knn, '.-', label='Impute by KNN')
+plt.xlabel("Missing rate (%)")
+plt.ylabel("Accuracy (%)")
+plt.legend()
+
+plt.show()
+</pre>
+
+<p>上述範例中，也同時把補平均值的範例程式碼，以註解的形式提供給各位自行嘗試。</p>
+
+</blockquote>
+
+</body></html>

@@ -99,11 +99,20 @@ ctx.stroke();
 
 <p align=center>K(x<sub>i</sub>, x<sub>j</sub>) = (x<sub>i</sub>∘x<sub>i</sub>)<sup>⊤</sup>(x<sub>j</sub>∘x<sub>j</sub>)</p>
 
-<p>上述的 kernel function 在實務上比較少見。常用的 kernel function 有這些：</p>
+<p>上述的 kernel function 在實務上比較少見。常用的 kernel function 除了線性分割以外，有這兩個：</p>
 <ul>
-	<li>Polynomial kernel: K(x<sub>i</sub>, x<sub>j</sub>) = (x<sub>i</sub><sup>⊤</sup>x<sub>j</sub> + c)<sup>d</sup>，其中的 c 和 d 是超參數。</li>
-	<li>RBF (Radial Basis Function) kernel: K(x<sub>i</sub>, x<sub>j</sub>) = exp(- || x<sub>i</sub> - x<sub>j</sub> ||<sup>2</sup> / (2 * &sigma;<sup>2</sup>))，對應到無限高維的空間，其中&sigma;是超參數。</li>
-	<li>Sigmoid kernel: K(x<sub>i</sub>, x<sub>j</sub>) = tanh(&alpha;x<sub>i</sub><sup>⊤</sup>x<sub>j</sub> + c)，其中的 &alpha; 和 c 是超參數。</li>
+	<li>Polynomial kernel: K(x<sub>i</sub>, x<sub>j</sub>) = (x<sub>i</sub><sup>⊤</sup>x<sub>j</sub> + c)<sup>d</sup>，其中的 c 和 d 是超參數。
+		<ul>
+			<li>c 為常數項，愈大代表增加低次項的影響，使決策邊界更平滑；c 愈小代表增加高次項的影響，使決策邊界更複雜。</li>
+			<li>d 為次方數，愈大代表模型複雜度增加，愈小代表模型複雜度降低。</li>
+		</ul>
+	</li>
+	<li>RBF (Radial Basis Function) kernel: K(x<sub>i</sub>, x<sub>j</sub>) = exp(- || x<sub>i</sub> - x<sub>j</sub> ||<sup>2</sup> / (2 * &sigma;<sup>2</sup>)) = exp(-&gamma;|| x<sub>i</sub> - x<sub>j</sub> ||<sup>2</sup>)，對應到無限高維的空間，其中 &gamma; = 1 / (2&sigma;<sup>2</sup>) 是超參數。
+		<ul>
+			<li>&gamma; 減小（&sigma; 增大）代表決策邊界更平滑，模型更簡單；&gamma; 增大（&sigma; 減小）代表決策邊界更複雜，模型更複雜。</li>
+		</ul>
+	</li>
+	<!-- <li>Sigmoid kernel: K(x<sub>i</sub>, x<sub>j</sub>) = tanh(&alpha;x<sub>i</sub><sup>⊤</sup>x<sub>j</sub> + c)，其中的 &alpha; 和 c 是超參數。</li> -->
 </ul>
 
 <p>若有需要，你也可以設計自己的 kernel funtion，只要其所構成的 kernel matrix 是 symmetric positive semi-definite 即可，否則在求取最佳化的計算上可能會不穩定，甚至於無法計算。</p>
