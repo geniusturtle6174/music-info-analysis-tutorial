@@ -17,18 +17,87 @@
 
 <blockquote>
 
-<p>...：</p>
+<p>在真實的任務中，經常會遇到資料中不同類別的比率，極度不平衡的狀況，例如大型災害發生、罕見疾病診斷、垃圾郵件過濾，以及信用卡盜刷等；其中以 Kaggle 的 <a href="https://www.kaggle.com/competitions/ieee-fraud-detection/data?select=train_transaction.csv">IEEE-CIS Fraud Detection</a> 競賽提供的資料為例，盜刷的比率大約只佔了 3%。我們在先前的篇章中，提到過這種情況的評估指標，應使用 precision、recall，以及 F-score 較為適合；本篇則將介紹如何處理資料或訓練模型，來緩解嚴重不平衡帶來的問題。</p>
+
+<p>一般來說，在不做任何處理的情況下，模型的預測會嚴重偏向多數類，因此會有以下幾類方法處理，或者你也可以結合其中幾種：</p>
+<ul>
+	<li>過採樣(oversampling)：此種做法的目的是增加少數類樣本，包含但不限於以下做法：
+		<ul>
+			<li>隨機過採樣：重複抽樣少數類，直到與多數類接近平衡。</li>
+			<li>SMOTE (Synthetic Minority Over-sampling Technique)：在少數樣本之間做線性插值，以合成出新的少數樣本。</li>
+			<li>ADASYN (Adaptive Synthetic Sampling)：SMOTE 的改進版，對於愈靠近多數類的少數類樣本，會合成出更多的少數類樣本。</li>
+		</ul>
+	</li>
+	<li>欠採樣(Undersampling)：此種做法的目的是刪除多數類樣本，包含但不限於以下做法：
+		<ul>
+			<li>隨機欠採樣</li>
+			<li>刪除較靠近少數類的多數類樣本(Tomek Links)</li>
+			<li>刪除較遠離少數類的多數類樣本(NearMiss)</li>
+			<li>刪除被錯誤分類的多數類樣本(Edited Nearest Neighbors, ENN)</li>
+		</ul>
+	</li>
+	<li>類別權重：在模型訓練時的損失函數等處，給予少數類更高的權重，使少數類在錯誤時的懲罰更重</li>
+	<li>機率門檻調整：對於有輸出預測信心度或機率的模型，通常多數與少數類之間的門檻預設為 0.5；此法可藉由調高（低）門檻，來對多數類達到更保守（積極）的預測。</li>
+	<li>異常偵測視角：只使用多數類訓練可輸出預測信心度或機率的模型，當待測樣本機率低於預設門檻時，判定為少數類。</li>
+</ul>
+
+<p>以下是一個在不平衡資料的狀況中，嘗試比較不處理、隨機過採樣、隨機降採樣的辨識效果的範例：</p>
 <pre class="brush: py">
-...
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.datasets import make_classification
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import ConfusionMatrixDisplay, classification_report
+from sklearn.model_selection import train_test_split
+
+rng = np.random.default_rng(42)
+
+
+def oversample(X, y):
+	maj, min_ = (y == 0), (y == 1)
+	idx = rng.choice(np.where(min_)[0], size=maj.sum() - min_.sum(), replace=True)
+	return np.vstack([X, X[idx]]), np.hstack([y, y[idx]])
+
+
+def undersample(X, y):
+	maj, min_ = np.where(y == 0)[0], np.where(y == 1)[0]
+	idx = rng.choice(maj, size=len(min_), replace=False)
+	keep = np.sort(np.hstack([idx, min_]))
+	return X[keep], y[keep]
+
+
+X, y = make_classification(
+	n_samples=1000, n_features=10, weights=[0.9, 0.1], random_state=42
+)
+X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42)
+print("Class distribution (TR):", dict(zip(*np.unique(y_train, return_counts=True))))
+
+samplers = {
+	"Original": (X_train, y_train),
+	"Oversampling": oversample(X_train, y_train),
+	"Undersampling": undersample(X_train, y_train),
+}
+
+fig, axes = plt.subplots(1, 3)
+
+for ax, (name, (Xr, yr)) in zip(axes, samplers.items()):
+	clf = LogisticRegression(max_iter=1000).fit(Xr, yr)
+	print(f"\n=== {name} ===")
+	print(f"Class distribution after sampling: {dict(zip(*np.unique(yr, return_counts=True)))}")
+	print(classification_report(y_test, clf.predict(X_test)))
+	ConfusionMatrixDisplay.from_predictions(y_test, clf.predict(X_test), ax=ax)
+	ax.set_title(name)
+
+plt.show()
 </pre>
 
-<p>在上述範例中：</p>
+<!-- <p>在上述範例中：</p>
 <ul>
 	<li></li>
 	<li></li>
 	<li></li>
 </ul>
-
+ -->
 </blockquote>
 
 </body></html>
