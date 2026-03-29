@@ -85,7 +85,7 @@ ctx.stroke();
 <p align=center>max<sub>w, b, &xi;</sub> d - C &Sigma;&xi;<sub>i</sub></p>
 <p align=center>subject to y<sub>i</sub>(w<sup>⊤</sup> * x<sub>i</sub> + b) / ||w|| &ge; d - &xi;<sub>i</sub></p>
 
-<p>其中，&xi;<sub>i</sub> 代表資料點 x<sub>i</sub> 違反間隔的程度，而 C 是用來控制「間隔最大化」與「分類錯誤容忍度」之間權衡的超參數。C 值越大，對錯誤分類的懲罰越重，模型會盡量正確分類每個訓練點，但可能容易過擬合；C 值越小，則容許更多分類錯誤，模型較穩健但可能欠擬合。實務上，通常透過交叉驗證來選擇合適的 C 值。實際求解以上最佳化問題的方法，不在本教材的範圍內，若有興趣可以參考 Lagrange multiplier 與 dual problem 等關鍵字。</p>
+<p>其中，&xi;<sub>i</sub> 代表資料點 x<sub>i</sub> 違反間隔的程度，而 C 是用來控制「間隔最大化」與「分類錯誤容忍度」之間權衡的超參數。C 值愈大，對錯誤分類的懲罰越重，模型會盡量正確分類每個訓練點，但可能容易過擬合；C 值越小，則容許更多分類錯誤，模型較穩健但可能欠擬合。實務上，通常透過交叉驗證來選擇合適的 C 值。實際求解以上最佳化問題的方法，不在本教材的範圍內，若有興趣可以參考 Lagrange multiplier 與 dual problem 等關鍵字。</p>
 
 <p>然而，在更接近真實的狀況中，資料甚至連用一個超平面大略的分開都不太可能，例如 scikit-learn 的 make_circles 產生的範例資料就是如此。因此，我們需要對空間進行變換，以將座標平方為例，就是將原始空間中，圓形的分類邊界：</p>
 
@@ -241,7 +241,7 @@ for ax, kernel, title in zip(axes, kernels, titles):
 plt.show()
 </pre>
 
-<p>前面提到，C 值越大，對錯誤分類的懲罰越重；C 值越小，則容許更多分類錯誤。相關展示如下：</p>
+<p>前面提到，C 值愈大，對錯誤分類的懲罰越重；C 值越小，則容許更多分類錯誤。相關展示如下：</p>
 <pre class="brush: py">
 from sklearn.datasets import make_blobs
 from sklearn.svm import SVC

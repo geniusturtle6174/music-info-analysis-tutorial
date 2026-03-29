@@ -19,30 +19,39 @@ showWarning('本篇最後更新時間為 2026 年三月');
 
 <p>可能較為重要的資料集列出如下：</p>
 <ul>
-	<li>MIR-1K 發表於 2010 年，</li>
-	<li>MedleyDB 首版發表於 2014 年，</li>
-	<li>MUSDB 首版發表於 2017 年，</li>
-	<li>Slakh2100 發表於 2019 年，</li>
+	<li>MIR-1K 發表於 2010 年，共有 1,000 個約 10 秒鐘的錄音片段，源自餘數名非職業歌手的一百餘首華語卡拉 OK 歌曲錄音而成；每個錄音片段的左聲道為伴奏，右聲道為人聲。此資料集是早期人聲分離研究的標準測試集；唯缺點是曲風單一（華語流行歌），且音源只有伴奏與人聲兩軌。由於資料集亦含有旋律標記，因此除了音源分離外，亦經常被使用於旋律抽取之研究。</li>
+	<li><a herf="https://medleydb.weebly.com/">MedleyDB</a> 首版發表於 2014 年，次版發表於 2016 年，分別含有一百餘首與接近兩百首樂曲，每首包含了超過兩軌的錄音，並且在資料集中有多種音樂風格，如搖滾、爵士、民謠等。由於資料集除了多軌錄音之外，亦含有旋律等標記，因此除了音源分離外，亦經常被使用於樂器分類與旋律抽取等研究。</li>
+	<li><a href="https://sigsep.github.io/datasets/musdb.html">MUSDB</a> 首版發表於 2017 年，高音質版釋出於 2019 年；資料集中共有 150 首歌曲，每首有 vocals、drums、bass、other 四軌，曲風包含多種西方之流行、搖滾、電子音樂等。</li>
+	<li>Slakh2100 發表於 2019 年，內容為以 MIDI + 軟體合成器（Native Instruments）合成出之兩千餘首多軌音樂；此資料集的音色雖然為合成音，但解決了真實錄音資料量不足的問題，並在資料擴充與預訓練上被廣泛應用。</li>
 </ul>
 
 <p>可能較為重要的論文列出如下：</p>
 <ul>
-	<li>P. Smaragdis, J. Brown, "Non-negative matrix factorization for polyphonic music transcription," in 2003 IEEE Workshop on Applications of Signal Processing to Audio and Acoustics (IEEE Cat. No. 03TH8684), 2003, pp. 177–180.：</li>
-	<li>C. Hsu, J. Jang. "On the improvement of singing voice separation for monaural recordings using the MIR-1K dataset," in IEEE transactions on audio, speech, and language processing, vol. 18, no. 2, pp. 310–319, 2009.：</li>
-	<li>Huang, P., et al, "Singing-Voice Separation from Monaural Recordings using Deep Recurrent Neural Networks.," in ISMIR, 2014, pp. 477–482.：</li>
-	<li>Jansson, A., et al, "Singing voice separation with deep u-net convolutional networks," in 18th International Society for Music Information Retrieval Conference, 2017.：</li>
-	<li>Stoter, F., et al. "Open-unmix-a reference implementation for music source separation," in Journal of Open Source Software, vol. 4, no. 41, pp. 1667, 2019.：</li>
-	<li>Hennequin, R., et al. "Spleeter: a fast and efficient music source separation tool with pre-trained models," in Journal of Open Source Software, vol. 5, no. 50, pp. 2154, 2020.：</li>
-	<li>S. Rouard, F. Massa, A. Defossez, "Hybrid transformers for music source separation," in ICASSP 2023-2023 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 2023, pp. 1–5.：</li>
-	<li>Lu, W., et al, "Music source separation with band-split rope transformer," in ICASSP 2024-2024 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 2024, pp. 481–485.：</li>
+	<li>P. Smaragdis, J. Brown, "Non-negative matrix factorization for polyphonic music transcription," in 2003 IEEE Workshop on Applications of Signal Processing to Audio and Acoustics (IEEE Cat. No. 03TH8684), 2003, pp. 177–180.：此論文首次將非負矩陣分解(Non-negative Matrix Factorization, NMF)應用於多聲部音樂中的音符轉錄與音源分離，並奠定了 NMF 在音樂分析中的基礎地位，至今仍是可解釋性最強的無監督分離方法之一。
+		<ul>
+			<li>NMF 之目標為，將一矩陣 V 分解為 W 和 H，使得 V 大略等於 W * H，且三個矩陣的元素皆為非負值。</li>
+		</ul>
+	</li>
+	<li>C. Hsu, J. Jang. "On the improvement of singing voice separation for monaural recordings using the MIR-1K dataset," in IEEE transactions on audio, speech, and language processing, vol. 18, no. 2, pp. 310–319, 2009.：此論文發表了 MIR-1K 資料集，並同時加入了音高與諧波(harmonic)資訊以改良分離品質。</li>
+	<li>Huang, P., et al, "Singing-Voice Separation from Monaural Recordings using Deep Recurrent Neural Networks.," in ISMIR, 2014, pp. 477–482.：此論文率先將 Deep Recurrent Neural Networks (DRNN)應用於人聲分離，並確立了「頻域遮罩估計」的深度學習框架，且此深度學習方法之分離品質，相較傳統 NMF 方法有大幅之提升。
+		<ul>
+			<li>頻域遮罩估計(frequency mask estimation)：透過估計各音源在頻譜上所佔比例的遮罩，進而從混合頻譜中還原出個別音源。</li>
+		</ul>
+	</li>
+	<li>Jansson, A., et al, "Singing voice separation with deep u-net convolutional networks," in 18th International Society for Music Information Retrieval Conference, 2017.：此論文將電腦視覺中的 U-Net 架構移植到頻譜圖處理，以編碼器逐層萃取語義特徵，並透過 skip connections 連結解碼器讓模型同時保有高層語義與低層細節，並直接在 STFT 頻譜上估計人聲遮罩。此論文使 U-Net 架構成為此後音樂分離模型的標準骨幹之一，且在 MIR-1K 等資料集上達到當時最先進的效果。</li>
+	<li>(<a href="https://github.com/sigsep/open-unmix-pytorch">Open-unmix</a>) Stoter, F., et al. "Open-unmix: a reference implementation for music source separation," in Journal of Open Source Software, vol. 4, no. 41, pp. 1667, 2019.：此論文提出以 Bi-LSTM 為核心的頻域分離模型，並公開了完整的訓練程式碼與預訓練模型，建立了可重現的基準，帶動了研究社群對可重現性的重視，且至今仍常被用作比較基準之一。</li>
+	<li>(<a href="https://github.com/deezer/spleeter">Spleeter</a>) Hennequin, R., et al. "Spleeter: a fast and efficient music source separation tool with pre-trained models," in Journal of Open Source Software, vol. 5, no. 50, pp. 2154, 2020.：此論文提供了一個以卷積 U-Net 為架構，在大規模私有資料上訓練，可用於 2-stem（人聲及伴奏）、4-stem、5-stem 的預訓練分離模型，且有簡單的 API 介面，使非專業用戶也能輕鬆使用。</li>
+	<li>(<a href="https://github.com/adefossez/demucs">HTDemucs</a>) S. Rouard, F. Massa, A. Defossez, "Hybrid transformers for music source separation," in ICASSP 2023-2023 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 2023, pp. 1–5.：此論文在其前一代模型 Hybrid Demucs 的架構基礎上，於編碼器中段插入跨域 Transformer 模組，將 Transformer 架構成功引入時域上的音樂分離，並在 MUSDB18-HQ 達到當時的最佳品質，且是最廣為使用的高品質開源分離工具。</li>
+	<li>(<a href="https://github.com/lucidrains/BS-RoFormer">BS-RoFormer</a>) Lu, W., et al, "Music source separation with band-split rope transformer," in ICASSP 2024-2024 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 2024, pp. 481–485.：此論文以 BSRNN 的頻帶切割為前端，將後端的 RNN 替換為階層式 Transformer，分別在時間軸與頻帶軸交替建模，並引入旋轉位置編碼（RoPE）來穩定訓練以及提升效果。輸入為複數 STFT 頻譜，輸出為複數遮罩以還原各音源。</li>
 </ul>
 
-<p>此外，由於音源分離的評估指標，並不是常見的 accuracy、precision，或 recall 等等，因此也說明如下：</p>
+<p>此外，由於音源分離的評估指標，並不是常見的 accuracy、precision，或 recall 等等，因此也說明如下。以下的指標通常使用 BSS_Eval 工具箱來計算，所有指標的單位均為分貝（dB），且數值愈高愈好：</p>
 <ul>
-	<li></li>
-	<li></li>
-	<li></li>
-	<li></li>
+	<li>SDR（Signal-to-Distortion Ratio，訊號失真比）：衡量分離後音源與真實音源之間的整體差異，涵蓋所有類型的失真，包含其他音源的干擾、演算法產生的假影等。是最常被引用的綜合性評估指標，數值越高代表分離品質越好，一般認為超過 8–10 dB 為可接受的分離品質。</li>
+	<li>SIR（Signal-to-Interference Ratio，訊號干擾比）：衡量其他音源對目標音源造成的干擾程度，例如分離人聲時，鼓組或貝斯殘留的比例。SIR 高代表模型能有效抑制非目標音源的洩漏，但 SIR 高並不保證整體品質好，因為模型可能以引入假影為代價來壓低干擾。</li>
+	<li>SAR（Signal-to-Artifact Ratio，訊號假影比）：衡量演算法本身在分離過程中引入的人工假影（artifact）多寡，例如金屬聲、模糊感或不自然的頻率成分。SAR 與 SIR 之間常存在取捨關係：過度壓制干擾往往會同時產生更多假影，因此需要兩者一併觀察。</li>
+	<li>SI-SDR（Scale-Invariant SDR，尺度不變訊號失真比）：SDR 的改良版本，計算前會先對預測訊號做最佳振幅縮放，使指標對音量差異不敏感。此指標在端對端波形域模型（如 Conv-TasNet、Demucs）的訓練與評估中更為常用，因為這類模型的輸出振幅不一定與真實音源一致，若使用 SI-SDR 則能更公平地反映訊號形狀的相似程度。</li>
+	<li>NSDR (Normalized SDR)：以混合訊號本身的 SDR 為基準，計算分離後的 SDR 增益（即 SDR_separated - SDR_mixture），以消除不同歌曲因混合條件不同所帶來的基準差異，使跨曲目、跨資料集的比較更為公平，是 MIR-1K 等早期資料集評測時的慣用指標。</li>
 </ul>
 
 </blockquote>
