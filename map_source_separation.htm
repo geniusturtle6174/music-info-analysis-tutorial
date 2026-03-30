@@ -12,14 +12,14 @@
 <blockquote>
 
 <script>
-showWarning('本篇最後更新時間為 2026 年三月');
+showWarning('本篇最後較重要之更新時間為 2026 年三月');
 </script>
 
 <p>在音樂研究領域，音源分離的具體目標，是將一段混合錄音中的全部或部份音源分離出來，例如從一首完整的歌曲中分別提取出人聲、鼓組、貝斯與其他樂器的軌道。本篇將整理出此主題中，從早先以獨立成分分析(Independent Component Analysis, ICA)與非負矩陣分解(Non-negative Matrix Factorization, NMF)為代表的訊號處理與統計學習時代，到卷積神經網路與端對端波形域模型崛起的深度學習時期，再到目前以 Transformer 架構為核心的前沿研究階段中，部分可能較為重要的資料集與論文，並做簡單的解說。</p>
 
 <p>可能較為重要的資料集列出如下：</p>
 <ul>
-	<li>MIR-1K 發表於 2010 年，共有 1,000 個約 10 秒鐘的錄音片段，源自餘數名非職業歌手的一百餘首華語卡拉 OK 歌曲錄音而成；每個錄音片段的左聲道為伴奏，右聲道為人聲。此資料集是早期人聲分離研究的標準測試集；唯缺點是曲風單一（華語流行歌），且音源只有伴奏與人聲兩軌。由於資料集亦含有旋律標記，因此除了音源分離外，亦經常被使用於旋律抽取之研究。</li>
+	<li>MIR-1K 發表於 2009 年，共有 1,000 個約 10 秒鐘的錄音片段，源自於數名非職業歌手的一百餘首華語卡拉 OK 歌曲錄音而成；每個錄音片段的左聲道為伴奏，右聲道為人聲。此資料集是早期人聲分離研究的標準測試集；唯缺點是曲風單一（華語流行歌），且音源只有伴奏與人聲兩軌。由於資料集亦含有旋律標記，因此除了音源分離外，亦經常被使用於旋律抽取之研究。</li>
 	<li><a href="https://medleydb.weebly.com/">MedleyDB</a> 首版發表於 2014 年，次版發表於 2016 年，分別含有一百餘首與接近兩百首樂曲，每首包含了超過兩軌的錄音，並且在資料集中有多種音樂風格，如搖滾、爵士、民謠等。由於資料集除了多軌錄音之外，亦含有旋律等標記，因此除了音源分離外，亦經常被使用於樂器分類與旋律抽取等研究。</li>
 	<li><a href="https://sigsep.github.io/datasets/musdb.html">MUSDB</a> 首版發表於 2017 年，高音質版釋出於 2019 年；資料集中共有 150 首歌曲，每首有 vocals、drums、bass、other 四軌，曲風包含多種西方之流行、搖滾、電子音樂等。</li>
 	<li>Slakh2100 發表於 2019 年，內容為以 MIDI + 軟體合成器(Native Instruments)合成出之兩千餘首多軌音樂；此資料集的音色雖然為合成音，但解決了真實錄音資料量不足的問題，並在資料擴充與預訓練上被廣泛應用。</li>
@@ -41,8 +41,16 @@ showWarning('本篇最後更新時間為 2026 年三月');
 	<li>Jansson, A., et al, "Singing voice separation with deep u-net convolutional networks," in 18th International Society for Music Information Retrieval Conference, 2017.：此論文將電腦視覺中的 U-Net 架構移植到頻譜圖處理，以編碼器逐層萃取語義特徵，並透過 skip connections 連結解碼器讓模型同時保有高層語義與低層細節，並直接在 STFT 頻譜上估計人聲遮罩。此論文使 U-Net 架構成為此後音樂分離模型的標準骨幹之一，且在 MIR-1K 等資料集上達到當時最先進的效果。</li>
 	<li>(<a href="https://github.com/sigsep/open-unmix-pytorch">Open-unmix</a>) Stoter, F., et al. "Open-unmix: a reference implementation for music source separation," in Journal of Open Source Software, vol. 4, no. 41, pp. 1667, 2019.：此論文提出以 Bi-LSTM 為核心的頻域分離模型，並公開了完整的訓練程式碼與預訓練模型，建立了可重現的基準，帶動了研究社群對可重現性的重視，且至今仍常被用作比較基準之一。</li>
 	<li>(<a href="https://github.com/deezer/spleeter">Spleeter</a>) Hennequin, R., et al. "Spleeter: a fast and efficient music source separation tool with pre-trained models," in Journal of Open Source Software, vol. 5, no. 50, pp. 2154, 2020.：此論文提供了一個以卷積 U-Net 為架構，在大規模私有資料上訓練，可用於 2-stem（人聲及伴奏）、4-stem、5-stem 的預訓練分離模型，且有簡單的 API 介面，使非專業用戶也能輕鬆使用。</li>
-	<li>(<a href="https://github.com/adefossez/demucs">HTDemucs</a>) S. Rouard, F. Massa, A. Defossez, "Hybrid transformers for music source separation," in ICASSP 2023-2023 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 2023, pp. 1–5.：此論文在其前一代模型 Hybrid Demucs 的架構基礎上，於編碼器中段插入跨域 Transformer 模組，將 Transformer 架構成功引入時域上的音樂分離，並在 MUSDB18-HQ 達到當時的最佳品質，且是最廣為使用的高品質開源分離工具。</li>
+	<li>(<a href="https://github.com/adefossez/demucs">HTDemucs</a>) S. Rouard, F. Massa, A. Defossez, "Hybrid transformers for music source separation," in ICASSP 2023-2023 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 2023, pp. 1–5.：此論文在其前一代模型 Hybrid Demucs 的架構基礎上，於編碼器中段插入跨域 Transformer 模組，將 Transformer 架構成功引入時域上的音樂分離，同時作用於時域與頻域兩個分支，並在 MUSDB18-HQ 達到當時的最佳品質，且是最廣為使用的高品質開源分離工具。</li>
 	<li>(<a href="https://github.com/lucidrains/BS-RoFormer">BS-RoFormer</a>) Lu, W., et al, "Music source separation with band-split rope transformer," in ICASSP 2024-2024 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 2024, pp. 481–485.：此論文以 BSRNN 的頻帶切割為前端，將後端的 RNN 替換為階層式 Transformer，分別在時間軸與頻帶軸交替建模，並引入旋轉位置編碼（RoPE）來穩定訓練以及提升效果。輸入為複數 STFT 頻譜，輸出為複數遮罩以還原各音源。</li>
+</ul>
+
+<p>對於各種方法中，除了模型本身以外，其可能依賴的資料特性，或用到的前處理或後處理技巧等，整理如下：</p>
+<ul>
+	<li>STFT 參數選擇：短時傅立葉轉換(STFT)是頻域方法的入口，其中最關鍵的兩個參數是 window size 與 hop size。視窗越長，頻率解析度越高，但時間解析度越低，對快速變化的打擊樂器（如鼓組）較不利；視窗越短則相反，對瞬態訊號較為敏感，但對頻率細節則較為模糊。多數音樂分離論文採用 2048 點視窗搭配 512 點跳躍（即 75% 重疊），在 44.1kHz 下，時間解析度約為 12ms (512/44.1k)。近期亦有模型則採用更大的視窗尺寸（4096 點），以捕捉更細緻的低頻資訊。</li>
+	<li>音訊輸入聲道數：早期研究多針對多聲道錄音，即利用麥克風陣列之間的時間差與振幅差，來定位並分離音源，在音源數量不超過麥克風數量的情況下，問題會相對地良好確定(well-determined)。現代深度學習方法則主要處理單聲道輸入，因為這更符合處理串流音樂等實際應用場景，但欠定(Underdetermined)程度也較高，需要完全依賴模型從頻譜統計特性中，學習各音源的特徵。</li>
+	<li>Wiener Filtering 後處理：Wiener filter 是最常見的後處理步驟，概念是利用統計模型估計出每個時頻點的軟性遮罩；相較於直接使用音源分離模型模型輸出的遮罩，Wiener filter 可以更有效地抑制干擾並降低假影。Open-Unmix 等先輸出頻譜的模型，相當適合嘗試 Wiener filter 後處理，而 Demucs 系列等直接在波形域輸出的模型，則可能需要不同的後處理方式。</li>
+	<li>輸出音訊重建：在頻域進行分離的方法，通常只估計強度遮罩(magnitude mask)，而相位(phase)則直接沿用原始混合訊號的相位，再以 iSTFT 還原波形。這個假設在音源能量懸殊的情況下會造成相位干擾，因此近年較新的模型（如 BS-RoFormer 等）改為同時估計複數遮罩（complex mask），來直接預測幅度與相位，以減少相位引起的失真。</li>
 </ul>
 
 <p>此外，由於音源分離的評估指標，並不是常見的 accuracy、precision，或 recall 等等，因此也說明如下。以下的指標通常使用 <a href="https://mir-eval.readthedocs.io/latest/index.html">mir_eval</a> 函式庫來計算，所有指標的單位均為分貝（dB），且數值愈高愈好：</p>
@@ -52,6 +60,14 @@ showWarning('本篇最後更新時間為 2026 年三月');
 	<li>SAR（Signal-to-Artifact Ratio，訊號假影比）：衡量演算法本身在分離過程中引入的人工假影（artifact）多寡，例如金屬聲、模糊感或不自然的頻率成分。SAR 與 SIR 之間常存在取捨關係：過度壓制干擾往往會同時產生更多假影，因此需要兩者一併觀察。</li>
 	<li>SI-SDR（Scale-Invariant SDR，尺度不變訊號失真比）：SDR 的改良版本，計算前會先對預測訊號做最佳振幅縮放，使指標對音量差異不敏感。此指標在端對端波形域模型（如 Conv-TasNet、Demucs）的訓練與評估中更為常用，因為這類模型的輸出振幅不一定與真實音源一致，若使用 SI-SDR 則能更公平地反映訊號形狀的相似程度。</li>
 	<li>NSDR (Normalized SDR)：以混合訊號本身的 SDR 為基準，計算分離後的 SDR 增益（即 SDR_separated - SDR_mixture），以消除不同歌曲因混合條件不同所帶來的基準差異，使跨曲目、跨資料集的比較更為公平，是 MIR-1K 等早期資料集評測時的慣用指標。</li>
+</ul>
+
+<p>除了上述的將單軌音樂分離還原為多軌以外，其他可能與音源分離較有關的研究方向整理如下：</p>
+<ul>
+	<li>查詢式音源分離：讓使用者在推論時以一段參考音訊、文字描述或 MIDI 來指定目標音源，模型則動態調整分離目標。目前的相關研究包含 <a href="https://github.com/Audio-AGI/AudioSep">AudioSep</a> 等。</li>
+	<li>擴散模型應用：將生成式擴散模型(diffusion model)引入音源分離，以條件式去噪的方式逐步從混合訊號中還原目標音源。優點是生成品質高、假影少，且天然具備不確定性估計能力；缺點是推論速度慢，目前仍難以達到即時處理。目前的相關研究包含 <a href="https://arxiv.org/abs/2302.02257">Multi-Source Diffusion Models for Simultaneous Music Generation and Separation</a> 等。</li>
+	<li>音源分離與其他任務綜合的多任務學習：將音源分離與旋律抽取、樂器識別、或歌詞辨識等任務一起訓練，有機會讓各任務互相提供監督訊號。例如分離品質好的模型，往往對音高與音色有更深的理解，而旋律標記則可以引導模型更精準地定位人聲頻帶，兩者有機會相輔相成。</li>
+	<li>即時與低延遲分離：多數高品質模型（HTDemucs、BS-RoFormer）的推論延遲達數秒，無法用於現場演出或即時監聽。近年開始有研究針對因果模型（causal model，只使用過去的訊號）進行設計，嘗試在品質與延遲之間取得平衡，是具有強烈產業需求驅動的研究方向。目前的相關研究包含 <a href="https://ieeexplore.ieee.org/abstract/document/10800743">Improving Real-Time Music Accompaniment Separation with MMDenseNet</a> 等。</li>
 </ul>
 
 </blockquote>
