@@ -15,19 +15,19 @@
 showWarning('本篇最後更新時間為 2026 年三月');
 </script>
 
-<p>在音樂研究領域，音源分離的具體目標，是將一段混合錄音中的全部或部份音源分離出來，例如從一首完整的歌曲中分別提取出人聲、鼓組、貝斯與其他旋律樂器的軌道。本篇將整理出此主題中，從早先以獨立成分分析與非負矩陣分解為代表的訊號處理與統計學習時代，到卷積神經網路與端對端波形域模型崛起的深度學習時期，再到目前以 Transformer 架構為核心的前沿研究階段中，部分可能較為重要的資料集與論文，並做簡單的解說。</p>
+<p>在音樂研究領域，音源分離的具體目標，是將一段混合錄音中的全部或部份音源分離出來，例如從一首完整的歌曲中分別提取出人聲、鼓組、貝斯與其他樂器的軌道。本篇將整理出此主題中，從早先以獨立成分分析(Independent Component Analysis, ICA)與非負矩陣分解(Non-negative Matrix Factorization, NMF)為代表的訊號處理與統計學習時代，到卷積神經網路與端對端波形域模型崛起的深度學習時期，再到目前以 Transformer 架構為核心的前沿研究階段中，部分可能較為重要的資料集與論文，並做簡單的解說。</p>
 
 <p>可能較為重要的資料集列出如下：</p>
 <ul>
 	<li>MIR-1K 發表於 2010 年，共有 1,000 個約 10 秒鐘的錄音片段，源自餘數名非職業歌手的一百餘首華語卡拉 OK 歌曲錄音而成；每個錄音片段的左聲道為伴奏，右聲道為人聲。此資料集是早期人聲分離研究的標準測試集；唯缺點是曲風單一（華語流行歌），且音源只有伴奏與人聲兩軌。由於資料集亦含有旋律標記，因此除了音源分離外，亦經常被使用於旋律抽取之研究。</li>
-	<li><a herf="https://medleydb.weebly.com/">MedleyDB</a> 首版發表於 2014 年，次版發表於 2016 年，分別含有一百餘首與接近兩百首樂曲，每首包含了超過兩軌的錄音，並且在資料集中有多種音樂風格，如搖滾、爵士、民謠等。由於資料集除了多軌錄音之外，亦含有旋律等標記，因此除了音源分離外，亦經常被使用於樂器分類與旋律抽取等研究。</li>
+	<li><a href="https://medleydb.weebly.com/">MedleyDB</a> 首版發表於 2014 年，次版發表於 2016 年，分別含有一百餘首與接近兩百首樂曲，每首包含了超過兩軌的錄音，並且在資料集中有多種音樂風格，如搖滾、爵士、民謠等。由於資料集除了多軌錄音之外，亦含有旋律等標記，因此除了音源分離外，亦經常被使用於樂器分類與旋律抽取等研究。</li>
 	<li><a href="https://sigsep.github.io/datasets/musdb.html">MUSDB</a> 首版發表於 2017 年，高音質版釋出於 2019 年；資料集中共有 150 首歌曲，每首有 vocals、drums、bass、other 四軌，曲風包含多種西方之流行、搖滾、電子音樂等。</li>
-	<li>Slakh2100 發表於 2019 年，內容為以 MIDI + 軟體合成器（Native Instruments）合成出之兩千餘首多軌音樂；此資料集的音色雖然為合成音，但解決了真實錄音資料量不足的問題，並在資料擴充與預訓練上被廣泛應用。</li>
+	<li>Slakh2100 發表於 2019 年，內容為以 MIDI + 軟體合成器(Native Instruments)合成出之兩千餘首多軌音樂；此資料集的音色雖然為合成音，但解決了真實錄音資料量不足的問題，並在資料擴充與預訓練上被廣泛應用。</li>
 </ul>
 
 <p>可能較為重要的論文列出如下：</p>
 <ul>
-	<li>P. Smaragdis, J. Brown, "Non-negative matrix factorization for polyphonic music transcription," in 2003 IEEE Workshop on Applications of Signal Processing to Audio and Acoustics (IEEE Cat. No. 03TH8684), 2003, pp. 177–180.：此論文首次將非負矩陣分解(Non-negative Matrix Factorization, NMF)應用於多聲部音樂中的音符轉錄與音源分離，並奠定了 NMF 在音樂分析中的基礎地位，至今仍是可解釋性最強的無監督分離方法之一。
+	<li>P. Smaragdis, J. Brown, "Non-negative matrix factorization for polyphonic music transcription," in 2003 IEEE Workshop on Applications of Signal Processing to Audio and Acoustics (IEEE Cat. No. 03TH8684), 2003, pp. 177–180.：此論文首次將 NMF 應用於多聲部音樂中的音符轉錄與音源分離，並奠定了 NMF 在音樂分析中的基礎地位，至今仍是可解釋性最強的無監督分離方法之一。
 		<ul>
 			<li>NMF 之目標為，將一矩陣 V 分解為 W 和 H，使得 V 大略等於 W * H，且三個矩陣的元素皆為非負值。</li>
 		</ul>
@@ -45,7 +45,7 @@ showWarning('本篇最後更新時間為 2026 年三月');
 	<li>(<a href="https://github.com/lucidrains/BS-RoFormer">BS-RoFormer</a>) Lu, W., et al, "Music source separation with band-split rope transformer," in ICASSP 2024-2024 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 2024, pp. 481–485.：此論文以 BSRNN 的頻帶切割為前端，將後端的 RNN 替換為階層式 Transformer，分別在時間軸與頻帶軸交替建模，並引入旋轉位置編碼（RoPE）來穩定訓練以及提升效果。輸入為複數 STFT 頻譜，輸出為複數遮罩以還原各音源。</li>
 </ul>
 
-<p>此外，由於音源分離的評估指標，並不是常見的 accuracy、precision，或 recall 等等，因此也說明如下。以下的指標通常使用 BSS_Eval 工具箱來計算，所有指標的單位均為分貝（dB），且數值愈高愈好：</p>
+<p>此外，由於音源分離的評估指標，並不是常見的 accuracy、precision，或 recall 等等，因此也說明如下。以下的指標通常使用 <a href="https://mir-eval.readthedocs.io/latest/index.html">mir_eval</a> 函式庫來計算，所有指標的單位均為分貝（dB），且數值愈高愈好：</p>
 <ul>
 	<li>SDR（Signal-to-Distortion Ratio，訊號失真比）：衡量分離後音源與真實音源之間的整體差異，涵蓋所有類型的失真，包含其他音源的干擾、演算法產生的假影等。是最常被引用的綜合性評估指標，數值越高代表分離品質越好，一般認為超過 8–10 dB 為可接受的分離品質。</li>
 	<li>SIR（Signal-to-Interference Ratio，訊號干擾比）：衡量其他音源對目標音源造成的干擾程度，例如分離人聲時，鼓組或貝斯殘留的比例。SIR 高代表模型能有效抑制非目標音源的洩漏，但 SIR 高並不保證整體品質好，因為模型可能以引入假影為代價來壓低干擾。</li>
