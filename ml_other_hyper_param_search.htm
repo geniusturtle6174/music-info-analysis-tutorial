@@ -45,20 +45,21 @@ print(f'Accuracy: {np.mean(pred == y_test)*100:.2f}%')
 <p>在上述範例中：</p>
 <ul>
 	<li>GridSearchCV 的「CV」，是 cross validation 的意思，預設的切分方式是將原來的訓練資料分成五份，你可以透過「cv」參數去改變，例如「cv=7」。</li>
-	<li>承上，超參數選擇的依據，必須要用 validation data 來進行；切分出的測試資料只能在最後使用一次。</li>
+	<li>承上，超參數選擇的依據，必須要用 validation data 來進行；切分出的測試資料只能在最後使用一次，<b>請勿使用測試集來做超參數調整</b>。</li>
 	<li>被調整的超參數們，其網格刻度不一定要一致，甚是不一定要是線性的，例如 learning rate 就經常使用對數刻度。</li>
+	<li>GridSearchCV 在找到最佳超參數後，會自動用整個訓練集（不是只用某一個 fold）重新訓練模型。因此 model.predict() 使用的是已經用最佳參數訓練好的模型。</li>
 </ul>
 
-<p>如果你基於運算量或其他各種原因，不希望做 cross validation，而是希望使用自己切分出的 validatino set 的話，則可以透過 scikit-learn 的 <a href="https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html">model_selection.PredefinedSplit</a> 來輔助。使用時，我們需要將訓練集跟驗證集堆疊起來；並另外傳入一個變數，以代表堆疊完成的結果中，哪些要當作訓練集（標記為 -1），哪些要當作驗證集：</p>
+<p>如果你基於運算量或其他各種原因，不希望做 cross validation，而是希望使用自己切分出的 validatino set 的話，則可以透過 scikit-learn 的 <a href="https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.PredefinedSplit.html">model_selection.PredefinedSplit</a> 來輔助。使用時，我們需要將訓練集跟驗證集堆疊起來；並另外傳入一個變數，以代表堆疊完成的結果中，哪些要當作訓練集（標記為 -1），哪些要當作驗證集：</p>
 <pre class="brush: py">
 import numpy as np
 from sklearn.datasets import make_moons
 from sklearn.model_selection import GridSearchCV, PredefinedSplit
 from xgboost import XGBClassifier
 
-x_train, y_train = make_moons(n_samples=600, shuffle=True, noise=0.1, random_state=42)
-x_val, y_val = make_moons(n_samples=200, shuffle=True, noise=0.1, random_state=43)
-x_test, y_test = make_moons(n_samples=200, shuffle=True, noise=0.1, random_state=44)
+x_train, y_train = make_moons(n_samples=600, shuffle=True, noise=0.1)
+x_val, y_val = make_moons(n_samples=200, shuffle=True, noise=0.1)
+x_test, y_test = make_moons(n_samples=200, shuffle=True, noise=0.1)
 
 x_train_val = np.vstack([x_train, x_val])
 y_train_val = np.hstack([y_train, y_val])
@@ -140,9 +141,9 @@ import optuna
 from sklearn.datasets import make_moons
 from xgboost import XGBClassifier
 
-x_train, y_train = make_moons(n_samples=800, shuffle=True, noise=0.1, random_state=42)
-x_val, y_val = make_moons(n_samples=200, shuffle=True, noise=0.1, random_state=42)
-x_test, y_test = make_moons(n_samples=200, shuffle=True, noise=0.1, random_state=42)
+x_train, y_train = make_moons(n_samples=800, shuffle=True, noise=0.1)
+x_val, y_val = make_moons(n_samples=200, shuffle=True, noise=0.1)
+x_test, y_test = make_moons(n_samples=200, shuffle=True, noise=0.1)
 
 
 def objective(trial):
@@ -177,7 +178,7 @@ print(f'Final test accuracy: {np.mean(pred == y_test)*100:.2f}%')
 <ul>
 	<li>如果你想要觀看詳細的搜尋過程，可以移除「optuna.logging.set_verbosity(optuna.logging.WARNING)」這行。</li>
 	<li>我們需要定義一個評估的基準，並包裝成函式。範例中使用的是將 accuracy 最大化。</li>
-	<li>承上，原本的 param 字典必須改為包在該函式裡面，並用「trial.suggest_*」定義搜尋範圍，其中的「trial」是該函式的輸入輸入參數。</li>
+	<li>承上，原本的 param 字典必須改為包在該函式裡面，並用「trial.suggest_*」定義搜尋範圍，其中的「trial」是該函式的輸入參數。</li>
 </ul>
 
 </blockquote>
