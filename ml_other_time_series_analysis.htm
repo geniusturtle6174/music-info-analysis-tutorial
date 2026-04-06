@@ -1,0 +1,377 @@
+﻿<html>
+<head>
+	<title>線上教材：音樂資訊分析</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<link rel=stylesheet type="text/css" href="myCss.css">
+	<base target="_blank">
+	<script type="text/javascript" src="shCore.js"></script>
+	<script type="text/javascript" src="shBrushPython.js"></script>
+	<link href="shCore.css" rel="stylesheet" type="text/css" />
+	<link href="shThemeDefault.css" rel="stylesheet" type="text/css" />
+	<script type="text/javascript">
+		SyntaxHighlighter.all();
+	</script>
+</head>
+
+<body bgcolor="#ccccff">
+
+<blockquote>
+
+<p>時間序列的意思是，</p>
+
+<p>...：</p>
+<pre class="brush: py">
+...
+</pre>
+
+<p>在上述範例中：</p>
+<ul>
+	<li></li>
+	<li></li>
+	<li></li>
+</ul>
+<!-- 
+
+第一部分：基礎概念與視覺化
+1.1 什麼是時間序列？
+
+定義：按時間順序排列的資料點
+與一般資料的差異：
+
+有時間順序（不能隨機打亂）
+有時間依賴性（今天的值可能受昨天影響）
+不能用一般的交叉驗證
+
+
+實際應用場景：
+
+股價預測
+氣溫變化
+銷售預測
+網站流量
+音樂訊號（與課程主題相關）
+
+
+
+1.2 時間序列的組成成分
+
+趨勢（Trend）：長期的上升或下降趨勢
+季節性（Seasonality）：固定週期的重複模式（如每年、每月、每週）
+週期性（Cycle）：不固定週期的波動
+殘差/噪音（Residual/Noise）：隨機波動
+加法模型 vs 乘法模型：
+
+加法：Y = Trend + Seasonality + Residual
+乘法：Y = Trend × Seasonality × Residual
+
+
+
+1.3 時間序列的視覺化
+
+折線圖（基本）
+分解圖（Decomposition）
+自相關圖（ACF）
+偏自相關圖（PACF）
+移動平均圖
+
+
+第二部分：平穩性（Stationarity）
+2.1 什麼是平穩性？
+
+定義：統計特性（均值、變異數）不隨時間改變
+為什麼重要？大部分時間序列模型假設資料平穩
+平穩 vs 非平穩的視覺化範例
+
+2.2 檢驗平穩性
+
+視覺化檢查：
+
+滾動均值（Rolling Mean）
+滾動標準差（Rolling Std）
+
+
+統計檢驗：
+
+ADF 檢驗（Augmented Dickey-Fuller Test）
+KPSS 檢驗
+
+
+
+2.3 如何讓時間序列變平穩？
+
+差分（Differencing）：
+
+一階差分：y'(t) = y(t) - y(t-1)
+二階差分
+季節性差分
+
+
+對數轉換（Log Transform）：處理變異數隨時間增加的情況
+去趨勢（Detrending）：減去趨勢線
+範例展示：非平穩 → 轉換 → 平穩
+
+
+第三部分：傳統時間序列模型
+3.1 Baseline 模型
+
+Naive 方法：下一個值 = 當前值（最簡單）
+移動平均（Moving Average）：下一個值 = 過去 n 個值的平均
+季節性 Naive：下一個值 = 上一個季節的同期值
+
+3.2 指數平滑（Exponential Smoothing）
+
+簡單指數平滑（SES）：適合無趨勢、無季節性
+Holt 方法：考慮趨勢
+Holt-Winters 方法：考慮趨勢 + 季節性
+
+3.3 ARIMA 模型系列
+
+AR（AutoRegressive）：用過去的值預測未來
+
+參數 p：使用過去幾個值
+
+
+MA（Moving Average）：用過去的預測誤差
+
+參數 q：使用過去幾個誤差
+
+
+ARIMA（p, d, q）：
+
+p：AR 階數
+d：差分次數
+q：MA 階數
+
+
+SARIMA（p, d, q）×（P, D, Q, s）：
+
+加入季節性成分
+s：季節週期
+
+
+
+3.4 如何選擇 ARIMA 參數？
+
+ACF 和 PACF 圖的判讀
+AIC/BIC 準則
+Grid Search
+auto_arima（自動選擇）
+
+
+第四部分：機器學習方法
+4.1 特徵工程
+
+時間特徵：
+
+年、月、日、星期幾、小時
+是否週末、是否假日
+
+
+滯後特徵（Lag Features）：
+
+前一天的值、前一週的值
+
+
+滾動統計特徵：
+
+過去 7 天的平均值
+過去 7 天的標準差
+過去 7 天的最大/最小值
+
+
+差分特徵
+
+4.2 用傳統 ML 模型做時間序列
+
+將時間序列轉換為監督式學習問題
+適用的模型：
+
+Linear Regression
+Random Forest
+XGBoost
+LightGBM
+
+
+範例：用過去 7 天預測明天
+
+4.3 時間序列的交叉驗證
+
+不能用一般的 K-Fold（會打亂時間順序）
+TimeSeriesSplit：
+
+保持時間順序
+訓練集永遠在測試集之前
+
+
+Rolling Window Validation
+
+
+第五部分：深度學習方法（可選/進階）
+5.1 RNN/LSTM/GRU
+
+為什麼適合時間序列？
+基本架構
+簡單範例（如果要講的話）
+
+5.2 其他深度學習方法（簡單提及）
+
+CNN for Time Series
+Transformer
+Prophet（Facebook 開源）
+
+
+第六部分：評估指標
+6.1 常用指標
+
+MAE（Mean Absolute Error）：平均絕對誤差
+RMSE（Root Mean Squared Error）：均方根誤差
+MAPE（Mean Absolute Percentage Error）：平均絕對百分比誤差
+sMAPE（Symmetric MAPE）
+
+6.2 視覺化評估
+
+預測值 vs 實際值的折線圖
+殘差圖（Residual Plot）
+預測區間（Confidence Interval）
+
+
+第七部分：實務技巧與案例
+7.1 處理缺失值
+
+時間序列中的缺失值處理：
+
+前向填補（Forward Fill）
+後向填補（Backward Fill）
+插值（Interpolation）
+
+
+
+7.2 處理異常值
+
+檢測異常值：
+
+移動平均 ± 3 倍標準差
+IQR 方法
+
+
+處理異常值：
+
+替換為移動平均
+插值
+
+
+
+7.3 多變量時間序列（Multivariate）
+
+什麼是多變量時間序列？
+VAR 模型（Vector AutoRegression）
+用 ML 模型處理多變量
+
+7.4 實際案例
+
+案例 1：航空乘客預測（經典的季節性資料）
+案例 2：股價預測（趨勢 + 噪音）
+案例 3：電力需求預測（多重季節性）
+案例 4（與課程相關）：音樂訊號分析/預測
+
+
+第八部分：常見陷阱與注意事項
+8.1 過擬合問題
+
+時間序列容易過擬合
+如何避免？
+
+簡單模型優先
+正則化
+保留足夠的測試期
+
+
+
+8.2 資料洩漏
+
+不能用未來的資訊預測過去
+特徵工程要小心
+正確的訓練/測試分割
+
+8.3 概念漂移（Concept Drift）
+
+模型會隨時間失效
+需要定期重新訓練
+
+
+📊 建議的單元切分（可以拆成多個頁面）
+基礎篇（必學）：
+
+時間序列基礎與視覺化（第一部分）
+平穩性與資料轉換（第二部分）
+簡單預測方法（第三部分 3.1-3.2）
+時間序列的交叉驗證（第四部分 4.3）
+
+進階篇（選學）：
+
+ARIMA 模型（第三部分 3.3-3.4）
+機器學習方法（第四部分 4.1-4.2）
+深度學習方法（第五部分，可選）
+
+實務篇：
+
+評估與診斷（第六部分）
+實務案例與技巧（第七、八部分）
+
+
+🎯 教學重點
+核心概念（必須讓學生理解）：
+
+✅ 時間序列與一般資料的差異
+✅ 不能隨機打亂、不能用一般 CV
+✅ 平穩性的重要性
+✅ 趨勢、季節性、殘差的概念
+✅ 如何正確評估時間序列模型
+
+實用技能：
+
+✅ 視覺化時間序列
+✅ 檢驗平穩性
+✅ 建立 Baseline 模型
+✅ 用 ML 模型做時間序列（特徵工程）
+✅ 正確的交叉驗證
+
+可以簡化或跳過（除非學生有興趣）：
+
+⚠️ ARIMA 的數學推導
+⚠️ ACF/PACF 的理論細節
+⚠️ 深度學習方法（RNN/LSTM）
+⚠️ VAR 模型
+
+
+🎵 與音樂資訊分析的連結
+可以加入與課程主題相關的範例：
+
+音訊訊號本身就是時間序列
+音高追蹤：預測下一個音符
+節奏分析：週期性/季節性的概念
+音量包絡線：趨勢的概念
+和弦進行預測：時間序列分類
+
+
+📚 推薦的資料集
+入門級：
+
+航空乘客數（Air Passengers）：經典的季節性資料
+每日氣溫：簡單的趨勢 + 季節性
+股價資料（可用 yfinance 下載）
+
+進階級：
+
+電力需求：多重季節性（日、週、年）
+銷售資料（Walmart, Rossmann）
+
+音樂相關：
+
+音訊訊號：可以從 librosa 載入
+Spotify 播放次數：時間序列預測
+
+ -->
+</blockquote>
+
+</body></html>
