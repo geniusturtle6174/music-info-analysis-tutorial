@@ -29,26 +29,21 @@ showWarning('本篇最後較重要之更新時間為 2026 年四月');
 
 <p>可能較為重要的論文列出如下：</p>
 <ul>
-	<li>。</li>
-	<li>。</li>
-	<li>。</li>
-	<li>。</li>
-	<li>。</li>
-	<li>。</li>
-	<li>。</li>
-	<li>。</li>
-	<li>。</li>
+	<li>A. Mesaros, T. Virtanen, "Automatic alignment of music audio and lyrics," in Proceedings of the 11th Int. Conference on Digital Audio Effects (DAFx-08), 2008.：此論文是歌詞對位領域最早的奠基性論文之一。該論文提出以人聲分離為前處理步驟，再搭配基於隱藏式馬可夫模型(HMM)的語音辨識器進行歌詞對位，並對聲學模型做歌聲適應(singing adaptation)以提升辨識效果。</li>
+	<li>Fujihara, H., et al. "LyricSynchronizer: Automatic synchronization system between musical audio signals and lyrics," in IEEE Journal of Selected Topics in Signal Processing, vol. 5, no. 6, pp. 1252–1261, 2011.：此論文提出了可自動同步複音音樂音訊與歌詞的系統，針對 CD 錄音中人聲常與伴奏重疊、無法直接套用語音對齊方法的問題，在人聲分離之上加入摩擦音偵測與填充模型(filler model)，以改善對位精度。</li>
+	<li>D. Stoller, S. Durand, S. Ewert, "End-to-end lyrics alignment for polyphonic music using an audio-to-character recognition model," in ICASSP 2019-2019 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 2019, pp. 181–185.：此論文以改良版 Wave-U-Net 架構為基礎，直接從原始音訊預測字元機率，無須任何獨立的子模組（如人聲分離或語音辨識），訓練時也僅需行級（line-level）的弱標註，系統的平均對位誤差達到 0.35 秒，以一個數量級的幅度超越當時的最佳系統，是歌詞對位領域走向端對端深度學習的里程碑之作。</li>
+	<li>G. Meseguer-Brocal, A. Cohen-Hadria, G. Peeters. "Creating DALI, a Large Dataset of Synchronized Audio, Lyrics, and Notes," in Transactions of the International Society for Music Information Retrieval, vol. 3, no. 1, pp. 55–67, 2020.：此論文提出的師生範式資料集建構方法，本身即具有重要的方法論貢獻，確立了以大規模半自動標註取代人工標註的新典範，為後續歌詞對位與轉錄研究提供了主要的訓練資料來源，是近年幾乎所有主流系統都會引用的基礎論文。</li>
+	<li>S. Durand, D. Stoller, S. Ewert, "Contrastive learning-based audio to lyrics alignment for multiple languages," in ICASSP 2023-2023 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 2023, pp. 1–5.：此論文捨棄傳統 ASR 框架與 CTC 損失函數，改採對比學習方法建立音訊與文字之間的跨模態嵌入表示，設計出一個更簡潔的端對端訓練流程；系統在 Jamendo 資料集上首次將平均絕對誤差壓低至 0.2 秒以下，且僅以英語資料訓練，即可泛化至其他語言。</li>
 </ul>
 
-<p>歌詞對位與歌詞轉錄的評估指標，並不像分類任務那樣直接使用 accuracy 或 F1，而是有一套專門針對時間對齊與文字辨識的指標，因此也說明如下。以下指標通常使用 <a href="https://mir-eval.readthedocs.io/latest/index.html">mir_eval</a> 函式庫來計算：</p>
+<p>歌詞對位與歌詞轉錄的評估指標，並不像分類任務那樣直接使用 accuracy 或 F1，而是有一套專門針對時間對齊與文字辨識的指標，因此也說明如下。其中，歌詞對位的指標通常使用 <a href="https://mir-eval.readthedocs.io/latest/index.html">mir_eval</a> 函式庫來計算；歌詞轉錄的指標則源自自動語音辨識(Automatic Speech Recognition, ASR)領域，通常使用 <a href="https://github.com/jitsi/jiwer">JiWER</a> 等工具計算：</p>
 <ul>
 	<li>MAE（Mean Absolute Error，平均絕對誤差）：計算所有單詞起始時間戳記的預測值與真實值之間的絕對差值的平均，單位通常為秒，數值愈低愈好，是歌詞對位任務最基本的評估指標。</li>
-	<li>MedAE（Median Absolute Error，中位數絕對誤差）：與 MAE 相同的計算邏輯，但改以中位數取代平均數，對少數離群值（例如極端對位錯誤）的敏感度較低，能更穩健地反映系統在典型情境下的表現。</li>
-	<li>。</li>
-	<li>。</li>
-	<li>。</li>
-	<li>。</li>
-	<li>。</li>
+	<li>MedAE （Median Absolute Error，中位數絕對誤差）：與 MAE 相同的計算邏輯，但改以中位數取代平均數，對少數離群值（例如極端對位錯誤）的敏感度較低，能更穩健地反映系統在典型情境下的表現。</li>
+	<li>Percentage Correct（容忍窗口正確率）：計算預測時間戳記與真實時間戳記之差值，落在容忍窗口(tolerance window)內的比例，數值愈高愈好。常用的容忍窗口為 0.3 秒，意即預測誤差在 0.3 秒以內則視為正確；此指標之設計考量，在於人耳對歌詞與音訊同步的感知具有一定容忍範圍，低於此閾值的誤差通常不會被聆聽者察覺。</li>
+	<li>Percentage of Correct Segments（正確片段覆蓋率）：將預測時間戳記與真實時間戳記分別轉換為一系列時間片段（即相鄰兩個時間戳記所圍成的區間），再計算兩組片段之間重疊部分的總時長佔整體時長的比例，數值愈高愈好。與 Percentage Correct 著重於單一時間點的準確性不同，此指標從片段覆蓋的角度衡量對位品質，即便單詞起始點有所偏移，只要片段仍有充分重疊，依然能得到較高的分數；因此，兩者通常一併使用，以較全面地評估系統表現。</li>
+	<li>WER（Word Error Rate，單詞錯誤率）：沿用自 ASR 領域的標準指標，計算將預測文字轉換為真實文字所需的最少編輯操作次數（插入、刪除、替換）佔真實單詞總數的比例，單位為百分比，數值愈低愈好。</li>
+	<li>CER（Character Error Rate，字元錯誤率）：與 WER 計算邏輯相同，但以字元為單位進行計算，對部分拼寫錯誤或預測不完整的單詞懲罰較輕，適合用於觀察系統在字元層級的表現。</li>
 </ul>
 
 </blockquote>
