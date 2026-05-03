@@ -26,7 +26,7 @@ showWarning('以下內容不假設你看過原理篇，但是有看過會更好'
 
 <p>對於 activation function、損失函數以及最佳化方法，可以依照你要處理的問題特性，或者實際效果來選擇。常用的 activation function 有 sigmoid、ReLU、tanh，損失函數則有常用於回歸問題的 mean squared error (MSE)，以及常用於分類問題的 cross entropy 等可以選擇。最佳化方法則通常有 SGD (stochastic gradient descent)、Momentum、AdaGrad、RMSProp，以及 Adam 等方式，若無特殊需求，且在可以選擇的情況下，通常你可以先試試看 Adam。</p>
 
-<p>若要使用 MLP 解決問題，有很多工具可以幫忙，常見的有像是 <a href="https://pytorch.org/">PyTorch</a>、<a href="https://www.tensorflow.org/?hl=zh-tw">TensorFlow</a>，以及 <a href="https://chainer.org/">Chainer</a> 等等，不過這些工具為了能讓你做更自由的調整，所以在真正的類神經網路本身和資料的事前處理，都有許多工作要自己做，因此以下還是先使用 scikit-learn 的 <a href="https://scikit-learn.org/stable/modules/generated/sklearn.neural_network.MLPClassifier.html">neural_network.MLPClassifier</a> 來示範 MLP 的使用，範例的資料集是 <a href="https://archive.ics.uci.edu/ml/datasets/wine">Wine Data Set</a>。</p>
+<p>若要使用 MLP 解決問題，有很多工具可以幫忙，常見或曾經常見的有 <a href="https://pytorch.org/">PyTorch</a>、<a href="https://www.tensorflow.org/?hl=zh-tw">TensorFlow</a>，以及 <a href="https://chainer.org/">Chainer</a> 等等，不過這些工具為了能讓你做更自由的調整，所以在真正的類神經網路本身和資料的事前處理，都有許多工作要自己做，因此以下先使用 scikit-learn 的 <a href="https://scikit-learn.org/stable/modules/generated/sklearn.neural_network.MLPClassifier.html">neural_network.MLPClassifier</a> 來示範 MLP 的使用，範例的資料集是 <a href="https://archive.ics.uci.edu/dataset/109/wine">Wine Data Set</a>：</p>
 <pre class="brush: py">
 import numpy as np
 from sklearn.datasets import load_wine
@@ -52,7 +52,74 @@ pred = np.argmax(hidden @ model.coefs_[2] + model.intercepts_[2], axis=1)
 print('Accuracy: {:.2f}%'.format(100*np.mean(pred == y_test)))
 </pre>
 
-<p>在上述範例中，我們只調整了隱藏層的數目，而其他如 learning rate（相當於每次更新權重時「大膽」的程度，通常太大會讓網路不容易收斂到好的結果，太小會導致網路收斂很慢）及 batch size（每次更新權重時，要看多少資料）等超參數則維持預設。範例中的隱藏層數目是一組有機會讓測試集準確率在 90% 上下（實際結果會隨著訓練與測試集的亂數切分而有差異）的超參數，各位可以試著跟其他的超參數一併調整看看。如果你想要在二維平面上看看不同超參數在不同資料上的視覺化效果，可以前往 <a href="https://playground.tensorflow.org/">TensorFlow Playground</a> 網站嘗試。</p>
+<p>在上述範例中，</p>
+<ul>
+	<li>我們只調整了隱藏層的數目，而其他如 learning rate（相當於每次更新權重時「大膽」的程度，通常太大會讓網路不容易收斂到好的結果，太小會導致網路收斂很慢）及 batch size（每次更新權重時，要看多少資料）等超參數則維持預設。</li>
+	<li>使用的隱藏層數目是一組有機會讓測試集準確率在 90% 上下（實際結果會隨著訓練與測試集的亂數切分而有差異）的超參數，各位可以試著跟其他的超參數一併調整看看。</li>
+	<li>最後的那幾行，是將 scikit-learn 學習到的模型參數抽取出來，實際用多層感知器的公式來計算的結果。計算完畢後跟 0 取「np.maximum」，是因為 MLPClassifier 的預設 activation function 是 ReLU。</li>
+	<li>由於類神經網路是一個對數值變化比較敏感的模型，而 Wine dataset 剛好在數值範圍的方面有較大的變化，因此你也可以試試看先做輸入正規化以後，再用模型進行預測。</li>
+</ul>
+
+<p>如果你對超參數或特徵等方面的選擇不太有想法，或者想要在二維平面上，看看不同超參數在不同資料上的視覺化效果，可以前往 <a href="https://playground.tensorflow.org/">TensorFlow Playground</a> 網站嘗試。</p>
+
+<p>如前所述，若使用 PyTorch 等工具來訓練類神經網路，則為了能讓你做更自由的調整，有許多超參數都需要一一明確指定，以下是把前一個範的預測工作，改用 PyTorch 來進行：</p>
+<pre class="brush: py">
+import torch
+import torch.nn as nn
+from torch.utils.data import DataLoader, TensorDataset
+from sklearn.datasets import load_wine
+from sklearn.model_selection import train_test_split
+
+device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+
+dataset = load_wine()
+print('Data shapes:', dataset.data.shape, dataset.target.shape)
+
+X_train, X_test, y_train, y_test = train_test_split(dataset.data, dataset.target)
+print('Training data shapes:', X_train.shape, y_train.shape)
+print('Test data shapes:', X_test.shape, y_test.shape)
+
+X_train = torch.FloatTensor(X_train)
+X_test = torch.FloatTensor(X_test)
+y_train = torch.LongTensor(y_train)
+
+train_loader = DataLoader(
+	TensorDataset(X_train, y_train), batch_size=128, shuffle=True
+)
+
+model = nn.Sequential(
+	nn.Linear(13, 256),
+	nn.ReLU(),
+	nn.Linear(256, 256),
+	nn.ReLU(),
+	nn.Linear(256, 3)
+).to(device)
+optim = torch.optim.Adam(model.parameters())
+criterion = nn.CrossEntropyLoss()
+
+model.train()
+for _ in range(200):
+	for X_batch, y_batch in train_loader:
+		loss = criterion(model(X_batch.to(device)), y_batch.to(device))
+		optim.zero_grad()
+		loss.backward()
+		optim.step()
+
+model.eval()
+pred = model(X_test.to(device)).argmax(dim=1).detach().cpu().numpy()
+print('Accuracy: {:.2f}%'.format(100 * (pred == y_test).mean()))
+</pre>
+
+<p>在上述範例中，</p>
+<ul>
+	<li>因為工具的預設行為不同，以及為了示範如何指定超參數等緣由，範例中的參數與 scikit-learn 的 MLPClassifier 不盡相同，例如此處的 batch size 是 128。</li>
+	<li>外層迴圈的 200 是 epoch 數目，意義是整批資料要看過 200 次才完成訓練。</li>
+	<li>Epoch 數目跟 batch size 一樣，都是超參數，你可以根據自己或前人的經驗，或者在驗證集上的實驗結果調整。一般來說，epoch 數目要夠多，模型才能學得好，但是太多會造成過擬合；而 batch size 則通常會在硬體資源允許的狀況下設定較大的值，以加快訓練速度，但不一定愈大愈好。</li>
+	<li>網路的輸入及輸出大小也都要自己指定，輸入維度為 13 是因為 Wine dataset 的特徵有 13 維，輸出維度為 3 是因為 Wine dataset 的標籤有三種。</li>
+	<li>使用 GPU 做計算時，必須把資料搬到 GPU 上，算完後再視需要搬回來。</li>
+	<li>使用 PyTorch 必須明確寫出 optim.zero_grad、loss.backward，以及 optim.step 這三部，使用其他工具則不必然。</li>
+	<li>測試時也可以分 batch 來做（請記得不要 shuffle 即可），此處因為資料量非常少，故未示範。</li>
+</ul>
 
 </blockquote>
 
