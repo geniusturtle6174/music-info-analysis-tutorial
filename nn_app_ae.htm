@@ -1,0 +1,436 @@
+﻿<html>
+<head>
+	<title>線上教材：音樂資訊分析</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<link rel=stylesheet type="text/css" href="myCss.css">
+	<base target="_blank">
+	<script type="text/javascript" src="myJs.js"></script>
+	<script type="text/javascript" src="shCore.js"></script>
+	<script type="text/javascript" src="shBrushPython.js"></script>
+	<link href="shCore.css" rel="stylesheet" type="text/css" />
+	<link href="shThemeDefault.css" rel="stylesheet" type="text/css" />
+	<script type="text/javascript">
+		SyntaxHighlighter.all();
+	</script>
+</head>
+
+<body bgcolor="#ccccff">
+
+<blockquote>
+
+<p>自動編碼器(Autoencoder，AE)是一種自監督式的神經網路，其目標不是預測標籤，而是學習將輸入資料壓縮成一個低維度的表示（稱為 latent vector 或 code），再從這個表示重建回原始輸入。由於輸入和輸出是同一筆資料，AE 不需要人工標注的標籤即可訓練。AE 主要由兩個部分組成：負責壓縮的 encoder，以及負責重建的 decoder；中間的低維度表示所構成的空間，稱為 latent space。AE 最直接的應用是降維與特徵萃取，且相較於 PCA 只能做線性映射，AE 可以透過非線性的激活函數，來學到更複雜的資料分布。此外，AE 也常用於異常偵測，因為對於訓練資料中未出現過的樣本，重建誤差通常會明顯偏高，故可藉此判斷異常。本篇章將介紹 AE 的基礎以及各種變形與其應用等方面。</p>
+
+<p>我們先以 MNIST 手寫數字為例，使用 MLP 建構一個簡單的 AE 對其進行編碼與重建，並將影像的 latent space 設定為 2 維，以便視覺化：</p>
+<pre class="brush: py">
+import matplotlib.pyplot as plt
+import torch
+import torch.nn as nn
+from torch.utils.data import DataLoader
+from torchvision import datasets, transforms
+
+device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+
+train_set = datasets.MNIST(root='./data', train=True,  download=True, transform=transforms.ToTensor())
+test_set = datasets.MNIST(root='./data', train=False, download=True, transform=transforms.ToTensor())
+print('Data shapes:', train_set.data.shape, test_set.data.shape)
+
+train_loader = DataLoader(train_set, batch_size=128, shuffle=True)
+test_loader = DataLoader(test_set, batch_size=128)
+
+class AE(nn.Module):
+	def __init__(self):
+		super().__init__()
+		self.encoder = nn.Sequential(
+			nn.Flatten(),
+			nn.Linear(784, 256),
+			nn.ReLU(),
+			nn.Linear(256, 2)
+		)
+		self.decoder = nn.Sequential(
+			nn.Linear(2, 256),
+			nn.ReLU(),
+			nn.Linear(256, 784),
+			nn.Sigmoid()
+		)
+
+	def forward(self, x):
+		z = self.encoder(x)
+		return self.decoder(z)
+
+model = AE().to(device)
+optim = torch.optim.Adam(model.parameters())
+criterion = nn.BCELoss()
+
+model.train()
+for i in range(10):
+	print(f'Epoch {i+1}/10')
+	for X_batch, _ in train_loader:
+		X_batch = X_batch.to(device)
+		loss = criterion(model(X_batch), X_batch.flatten(1))
+		optim.zero_grad()
+		loss.backward()
+		optim.step()
+
+model.eval()
+all_z, all_y = [], []
+with torch.no_grad():
+	for X, y in test_loader:
+		z = model.encoder(X.to(device))
+		all_z.append(z.cpu())
+		all_y.append(y)
+
+all_z = torch.cat(all_z).numpy()
+all_y = torch.cat(all_y).numpy()
+
+scatter = plt.scatter(all_z[:, 0], all_z[:, 1], c=all_y, cmap='tab10', s=2, alpha=0.5)
+plt.colorbar(scatter, ticks=range(10), label='Digit')
+plt.title('AE Latent Space (2D)')
+plt.xlabel('z[0]')
+plt.ylabel('z[1]')
+
+n = 8
+z_min = all_z.min()
+z_max = all_z.max()
+with torch.no_grad():
+	z = (torch.rand(n ** 2, 2) * (z_max - z_min) + z_min).to(device)
+	generated = model.decoder(z).view(n ** 2, 28, 28).cpu()
+
+grid = generated.view(n, n, 28, 28).permute(0, 2, 1, 3).reshape(n * 28, n * 28)
+plt.figure()
+plt.imshow(grid, cmap='gray')
+plt.axis('off')
+plt.title(f'AE Generated Samples ({n}x{n})')
+
+plt.show()
+</pre>
+
+<p>在上述範例中，將 encoder 及 decoder 分開成兩個子模組，是為了方便取出中間的 latent vector。此外，單純的 AE 學到的是資料在 latent space 當中的位置，如果你在這個空間中隨機取樣來做解碼，可能會得到不知所云的結果。</p>
+
+<p>相較於 AE 是將資料壓縮成固定數值，Variational Autoencoder (VAE) 則是將資料壓縮成機率分布。具體而言，encoder 的輸出不再是一個點，而是一個高斯分布的平均值 μ 與變異數 σ<sup>2</sup>，再從這個分布取樣出 latent vector。這樣的設計讓 latent space 具有連續性與可取樣性，亦即只要從標準常態分布當中取樣，就能透過 decoder 生成新的資料，而不只是重建已有的輸入。為了讓 latent space 真的逼近標準常態分布，VAE 在重建損失之外，還加入了 KL divergence 作為正則化項，用來衡量 encoder 輸出的分布與標準常態分布之間的差距，並在訓練過程中一併對其最小化。以下是 VAE 的範例，我們一樣使用 MNIST 來做示範：</p>
+<pre class="brush: py">
+import torch
+import torch.nn as nn
+from torch.utils.data import DataLoader
+from torchvision import datasets, transforms
+import matplotlib.pyplot as plt
+
+device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+
+train_set = datasets.MNIST(root='./data', train=True, download=True, transform=transforms.ToTensor())
+test_set = datasets.MNIST(root='./data', train=False, download=True, transform=transforms.ToTensor())
+print('Data shapes:', train_set.data.shape, test_set.data.shape)
+
+train_loader = DataLoader(train_set, batch_size=128, shuffle=True)
+test_loader = DataLoader(test_set, batch_size=128)
+
+class VAE(nn.Module):
+	def __init__(self):
+		super().__init__()
+		self.encoder = nn.Sequential(
+			nn.Flatten(),
+			nn.Linear(784, 256),
+			nn.ReLU(),
+		)
+		self.fc_mu = nn.Linear(256, 2)
+		self.fc_log_var = nn.Linear(256, 2)
+		self.decoder = nn.Sequential(
+			nn.Linear(2, 256),
+			nn.ReLU(),
+			nn.Linear(256, 784),
+			nn.Sigmoid()
+		)
+
+	def reparameterize(self, mu, log_var):
+		std = torch.exp(0.5 * log_var)
+		eps = torch.randn_like(std)
+		return mu + eps * std
+
+	def forward(self, x):
+		h = self.encoder(x)
+		mu, log_var = self.fc_mu(h), self.fc_log_var(h)
+		z = self.reparameterize(mu, log_var)
+		return self.decoder(z), mu, log_var
+
+model = VAE().to(device)
+optim = torch.optim.Adam(model.parameters())
+
+def vae_loss(recon_x, x, mu, log_var):
+	bce = nn.functional.binary_cross_entropy(recon_x, x.flatten(1), reduction='sum')
+	kl = -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp())
+	return bce + kl
+
+model.train()
+for i in range(10):
+	print(f'Epoch {i+1}/10')
+	for X_batch, _ in train_loader:
+		X_batch = X_batch.to(device)
+		recon, mu, log_var = model(X_batch)
+		loss = vae_loss(recon, X_batch, mu, log_var)
+		optim.zero_grad()
+		loss.backward()
+		optim.step()
+
+model.eval()
+all_z, all_y = [], []
+with torch.no_grad():
+	for X, y in test_loader:
+		X = X.to(device)
+		h = model.encoder(X)
+		mu = model.fc_mu(h)
+		all_z.append(mu.cpu())
+		all_y.append(y)
+
+all_z = torch.cat(all_z).numpy()
+all_y = torch.cat(all_y).numpy()
+
+plt.figure()
+scatter = plt.scatter(all_z[:, 0], all_z[:, 1], c=all_y, cmap='tab10', s=2, alpha=0.5)
+plt.colorbar(scatter, ticks=range(10), label='Digit')
+plt.title('VAE Latent Space (2D)')
+plt.xlabel('z[0]')
+plt.ylabel('z[1]')
+
+n = 8
+with torch.no_grad():
+	z = torch.randn(n ** 2, 2).to(device)
+	generated = model.decoder(z).view(n ** 2, 28, 28).cpu()
+
+grid = generated.view(n, n, 28, 28).permute(0, 2, 1, 3).reshape(n * 28, n * 28)
+plt.figure()
+plt.imshow(grid, cmap='gray')
+plt.axis('off')
+plt.title(f'VAE Generated Samples ({n}x{n})')
+
+plt.show()
+</pre>
+
+<p>在上述範例中，訓練與測試時的重新取樣的動作，是在 VAE.reparameterize 當中進行；而生成新資料時，則是在外部進行重新取樣，再將取樣點灌入 decoder。</p>
+
+<p>在前兩個範例中，我們幾乎無法控制要生成哪個數字。若你想對生成哪個數字有一定的掌握，則可以使用 Conditional VAE (CVAE)。其核心概念是將類別資訊作為額外的條件(condition)輸入，並同時接在 encoder 和 decoder 的輸入端。如此一來，encoder 在壓縮資料時已經知道類別為何，latent vector 便能更專注於捕捉同一類別內的變異，例如筆跡的粗細或傾斜角度；decoder 則同時接收 latent vector 與類別條件，重建出對應類別的圖片。訓練完成後，只需從標準常態分布中，取樣一個 latent vector，再指定想要的類別接在後面，就能對 decoder 生成之數字有一定程度的掌握。以下是 CVAE 的範例：</p>
+<pre class="brush: py">
+import torch
+import torch.nn as nn
+from torch.utils.data import DataLoader
+from torchvision import datasets, transforms
+import matplotlib.pyplot as plt
+
+device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+
+train_set = datasets.MNIST(root='./data', train=True, download=True, transform=transforms.ToTensor())
+test_set = datasets.MNIST(root='./data', train=False, download=True, transform=transforms.ToTensor())
+print('Data shapes:', train_set.data.shape, test_set.data.shape)
+
+train_loader = DataLoader(train_set, batch_size=128, shuffle=True)
+test_loader = DataLoader(test_set, batch_size=128)
+
+def to_onehot(y, n_classes=10):
+	onehot = torch.zeros(y.size(0), n_classes)
+	onehot.scatter_(1, y.view(-1, 1), 1)
+	return onehot
+
+class CVAE(nn.Module):
+	def __init__(self):
+		super().__init__()
+		self.encoder = nn.Sequential(
+			nn.Flatten(),
+			nn.Linear(784 + 10, 256),
+			nn.ReLU(),
+		)
+		self.fc_mu = nn.Linear(256, 2)
+		self.fc_log_var = nn.Linear(256, 2)
+		self.decoder = nn.Sequential(
+			nn.Linear(2 + 10, 256),
+			nn.ReLU(),
+			nn.Linear(256, 784),
+			nn.Sigmoid()
+		)
+
+	def reparameterize(self, mu, log_var):
+		std = torch.exp(0.5 * log_var)
+		eps = torch.randn_like(std)
+		return mu + eps * std
+
+	def forward(self, x, c):
+		h = self.encoder(torch.cat([x.flatten(1), c], dim=1))
+		mu, log_var = self.fc_mu(h), self.fc_log_var(h)
+		z = self.reparameterize(mu, log_var)
+		return self.decoder(torch.cat([z, c], dim=1)), mu, log_var
+
+model = CVAE().to(device)
+optim = torch.optim.Adam(model.parameters())
+
+def vae_loss(recon_x, x, mu, log_var):
+	bce = nn.functional.binary_cross_entropy(recon_x, x.flatten(1), reduction='sum')
+	kl = -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp())
+	return bce + kl
+
+model.train()
+for i in range(10):
+	print(f'Epoch {i+1}/10')
+	for X_batch, y_batch in train_loader:
+		X_batch = X_batch.to(device)
+		c_batch = to_onehot(y_batch).to(device)
+		recon, mu, log_var = model(X_batch, c_batch)
+		loss = vae_loss(recon, X_batch, mu, log_var)
+		optim.zero_grad()
+		loss.backward()
+		optim.step()
+
+model.eval()
+all_z, all_y = [], []
+with torch.no_grad():
+	for X, y in test_loader:
+		X = X.to(device)
+		c = to_onehot(y).to(device)
+		h = model.encoder(torch.cat([X.flatten(1), c], dim=1))
+		mu = model.fc_mu(h)
+		all_z.append(mu.cpu())
+		all_y.append(y)
+
+all_z = torch.cat(all_z).numpy()
+all_y = torch.cat(all_y).numpy()
+
+plt.figure()
+scatter = plt.scatter(all_z[:, 0], all_z[:, 1], c=all_y, cmap='tab10', s=2, alpha=0.5)
+plt.colorbar(scatter, ticks=range(10), label='Digit')
+plt.title('CVAE Latent Space (2D)')
+plt.xlabel('z[0]')
+plt.ylabel('z[1]')
+
+n = 8
+with torch.no_grad():
+	z = torch.randn(n ** 2, 2).to(device)
+	c = to_onehot(torch.arange(10).repeat(n ** 2 // 10 + 1)[:n ** 2]).to(device)
+	generated = model.decoder(torch.cat([z, c], dim=1)).view(n ** 2, 28, 28).cpu()
+
+grid = generated.view(n, n, 28, 28).permute(0, 2, 1, 3).reshape(n * 28, n * 28)
+plt.figure()
+plt.imshow(grid, cmap='gray')
+plt.axis('off')
+plt.title(f'CVAE Generated Samples ({n}x{n})')
+
+plt.show()
+</pre>
+
+<p>各位可以在上述範例中看到，CVAE 和 VAE 的差別，只在於多加入了類別資訊作為模型輸入。</p>
+
+<p>AE 的應用之一是去除輸入資訊中的雜訊，例如聲音中的噪音，或影像中的雜點等等。我們只要在訓練 AE 時，將輸入加入雜訊，而輸出仍維持乾淨的版本即可。以下是完整範例：</p>
+<pre class="brush: py">
+import torch
+import torch.nn as nn
+from torch.utils.data import DataLoader
+from torchvision import datasets, transforms
+import matplotlib.pyplot as plt
+
+device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+
+train_set = datasets.MNIST(root='./data', train=True, download=True, transform=transforms.ToTensor())
+test_set = datasets.MNIST(root='./data', train=False, download=True, transform=transforms.ToTensor())
+print('Data shapes:', train_set.data.shape, test_set.data.shape)
+
+train_loader = DataLoader(train_set, batch_size=128, shuffle=True)
+test_loader = DataLoader(test_set, batch_size=128)
+
+class DAE(nn.Module):
+	def __init__(self):
+		super().__init__()
+		self.encoder = nn.Sequential(
+			nn.Flatten(),
+			nn.Linear(784, 256),
+			nn.ReLU(),
+			nn.Linear(256, 2)
+		)
+		self.decoder = nn.Sequential(
+			nn.Linear(2, 256),
+			nn.ReLU(),
+			nn.Linear(256, 784),
+			nn.Sigmoid()
+		)
+
+	def forward(self, x):
+		z = self.encoder(x)
+		return self.decoder(z)
+
+def add_noise(x, noise_factor=0.3):
+	return (x + noise_factor * torch.randn_like(x)).clamp(0, 1)
+
+model = DAE().to(device)
+optim = torch.optim.Adam(model.parameters())
+criterion = nn.BCELoss()
+
+model.train()
+for i in range(10):
+	print(f'Epoch {i+1}/10')
+	for X_batch, _ in train_loader:
+		X_batch = X_batch.to(device)
+		X_noisy = add_noise(X_batch)
+		loss = criterion(model(X_noisy), X_batch.flatten(1))
+		optim.zero_grad()
+		loss.backward()
+		optim.step()
+
+model.eval()
+with torch.no_grad():
+	X_sample, _ = next(iter(test_loader))
+	X_sample = X_sample[:8].to(device)
+	X_noisy = add_noise(X_sample)
+	X_recon = model(X_noisy).view(-1, 28, 28).cpu()
+
+rows = [X_sample.cpu().squeeze(1), X_noisy.cpu().squeeze(1), X_recon]
+grid = torch.cat(rows, dim=0)
+grid = grid.view(3, 8, 28, 28).permute(0, 2, 1, 3).reshape(3 * 28, 8 * 28)
+plt.figure()
+plt.imshow(grid, cmap='gray')
+plt.axis('off')
+plt.title('DAE: Original / Noisy / Reconstructed')
+plt.show()
+</pre>
+
+<p>除了使用全連接層以外，我們也可以使用 CNN 或 LSTM 作為 AE 的架構。以 CNN 為架構的模型範例如下，其中的降採樣由 MaxPool2d 進行，上採樣則由 ConvTranspose2d 代入 stride=2 進行：</p>
+<pre class="brush: py">
+class ConvAE(nn.Module):
+	def __init__(self):
+		super().__init__()
+		self.encoder = nn.Sequential(
+			nn.Conv2d(1, 16, kernel_size=3, padding=1),
+			nn.ReLU(),
+			nn.MaxPool2d(2),
+			nn.Conv2d(16, 32, kernel_size=3, padding=1),
+			nn.ReLU(),
+			nn.MaxPool2d(2),
+		)
+		self.decoder = nn.Sequential(
+			nn.ConvTranspose2d(32, 16, kernel_size=2, stride=2),
+			nn.ReLU(),
+			nn.ConvTranspose2d(16, 1, kernel_size=2, stride=2),
+			nn.Sigmoid()
+		)
+
+	def forward(self, x):
+		z = self.encoder(x)
+		return self.decoder(z)
+</pre>
+
+<p>以 LSTM 為架構的模型範例則如下。其中，每張 MNIST 圖片會被視為長度 28 的序列，每個時間步則是一列 28 維的像素；encoder LSTM 只取最後的 hidden state h，再 repeat 成 28 個時間步送進 decoder LSTM：</p>
+<pre class="brush: py">
+class LSTMAE(nn.Module):
+	def __init__(self):
+		super().__init__()
+		self.encoder = nn.LSTM(28, 64, batch_first=True)
+		self.decoder = nn.LSTM(64, 28, batch_first=True)
+		self.fc = nn.Linear(28, 28)
+		self.sigmoid = nn.Sigmoid()
+
+	def forward(self, x):
+		x = x.squeeze(1)
+		_, (h, c) = self.encoder(x)
+		z = h.repeat(x.size(1), 1, 1).permute(1, 0, 2)
+		out, _ = self.decoder(z)
+		return self.sigmoid(self.fc(out)).unsqueeze(1)
+</pre>
+
+<p>本篇介紹的 AE 系列模型，是生成模型領域的重要基礎。若想進一步探索，GAN (Generative Adversarial Network)透過生成器與判別器的對抗訓練來生成資料，與 VAE 的思路截然不同，是另一條值得深入的路線。近年來表現亮眼的 Diffusion Model，則是以逐步加噪再去噪的方式建模資料分布，而其去噪網路骨幹正是基於 AE 結構設計的 U-Net 架構。此外，若將 CVAE 的 conditioning 機制推廣，搭配文字或其他模態的嵌入作為條件，便是現代多模態生成模型的雛形。這些方向都以本篇的概念為起點，你若有興趣，可以進一步探索。</p>
+
+</blockquote>
+
+</body></html>
