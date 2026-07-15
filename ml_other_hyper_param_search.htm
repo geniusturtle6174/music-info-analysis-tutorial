@@ -50,7 +50,7 @@ print(f'Accuracy: {np.mean(pred == y_test)*100:.2f}%')
 	<li>GridSearchCV 在找到最佳超參數後，會自動用整個訓練集（不是只用某一個 fold）重新訓練模型。因此 model.predict() 使用的是已經用最佳參數訓練好的模型。</li>
 </ul>
 
-<p>如果你基於運算量或其他各種原因，不希望做 cross validation，而是希望使用自己切分出的 validatino set 的話，則可以透過 scikit-learn 的 <a href="https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.PredefinedSplit.html">model_selection.PredefinedSplit</a> 來輔助。使用時，我們需要將訓練集跟驗證集堆疊起來；並另外傳入一個變數，以代表堆疊完成的結果中，哪些要當作訓練集（標記為 -1），哪些要當作驗證集：</p>
+<p>如果你基於運算量或其他各種原因，不希望做 cross validation，而是希望使用自己切分出的 validation set 的話，則可以透過 scikit-learn 的 <a href="https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.PredefinedSplit.html">model_selection.PredefinedSplit</a> 來輔助。使用時，我們需要將訓練集跟驗證集堆疊起來；並另外傳入一個變數，以代表堆疊完成的結果中，哪些要當作訓練集（標記為 -1），哪些要當作驗證集：</p>
 <pre class="brush: py">
 import numpy as np
 from sklearn.datasets import make_moons

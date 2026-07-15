@@ -1,0 +1,238 @@
+﻿<html>
+<head>
+	<title>線上教材：音樂資訊分析</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<link rel=stylesheet type="text/css" href="myCss.css">
+	<base target="_blank">
+	<script type="text/javascript" src="myJs.js"></script>
+	<script type="text/javascript" src="shCore.js"></script>
+	<script type="text/javascript" src="shBrushPython.js"></script>
+	<link href="shCore.css" rel="stylesheet" type="text/css" />
+	<link href="shThemeDefault.css" rel="stylesheet" type="text/css" />
+	<script type="text/javascript">
+		SyntaxHighlighter.all();
+	</script>
+</head>
+
+<body bgcolor="#ccccff">
+
+<blockquote>
+
+<p>長短期記憶網路(Long Short-Term Memory，LSTM)是一種專為處理序列資料所設計的遞迴神經網路(Recurrent Neural Network，RNN)，並被廣泛應用於時間序列預測、語音辨識、自然語言處理等需要捕捉時序依賴的任務。標準 RNN 在理論上可以記住任意長度的歷史資訊，但在實際訓練時，梯度會隨著時間步的增加而指數性地縮小或放大，導致難以學習長距離的依賴關係，此現象稱為梯度消失(vanishing gradient)或梯度爆炸(exploding gradient)問題。LSTM 透過引入細胞狀態(cell state)與三個閘門(gate)的設計，讓網路可以選擇性地記憶或遺忘資訊，從而有效緩解上述問題。</p>
+
+<p>在每個時間步 t，LSTM 接收當前輸入 x<sub>t</sub> 與上一步的狀態 h<sub>t−1</sub>、c<sub>t−1</sub>，並計算出 h<sub>t</sub> 以及 c<sub>t</sub>，即：</p>
+
+<p style="text-align:center">(h<sub>t</sub>, c<sub>t</sub>) = LSTM(x<sub>t</sub>, h<sub>t-1</sub>, c<sub>t-1</sub>)</p>
+
+<p>而其內部之詳細運算步驟，可分解如下：</p>
+
+<p style="text-align:center">f<sub>t</sub> = &sigma;(W<sub>f</sub>[h<sub>t-1</sub>, x<sub>t</sub>] + b<sub>f</sub>)</p>
+
+<p style="text-align:center">i<sub>t</sub> = &sigma;(W<sub>i</sub>[h<sub>t-1</sub>, x<sub>t</sub>] + b<sub>i</sub>)</p>
+
+<p style="text-align:center">o<sub>t</sub> = &sigma;(W<sub>o</sub>[h<sub>t-1</sub>, x<sub>t</sub>] + b<sub>o</sub>)</p>
+
+<p style="text-align:center">c&#x0303;<sub>t</sub> = tanh(W<sub>c</sub>[h<sub>t-1</sub>, x<sub>t</sub>] + b<sub>c</sub>)</p>
+
+<p style="text-align:center">c<sub>t</sub> = f<sub>t</sub>⊙c<sub>t-1</sub> + i<sub>t</sub>⊙c&#x0303;<sub>t</sub></p>
+
+<p style="text-align:center">h<sub>t</sub> = o<sub>t</sub>⊙tanh(c<sub>t</sub>)</p>
+
+<p>其中 W<sub>*</sub> 與 b<sub>*</sub> 為對應的權重與 bias，方括號表示矩陣並排，&sigma; 為 sigmoid function，⊙ 為 element-wise product；c<sub>t-1</sub> 代表上一步的記憶，乘上 f<sub>t</sub> 代表上一步的記憶要保留多少；c&#x0303;<sub>t</sub> 代表這一步新產生的候選記憶，乘上 i<sub>t</sub> 代表它要貢獻多少到這一步的新記憶當中。h<sub>0</sub> 與 c<sub>0</sub> 實務上通常使用 zero vector。</p>
+
+<p>上述的詳細運算步驟，若要用 PyTorch class 的方式表示，則寫法如下：</p>
+<pre class="brush: py">
+class LSTMCell(nn.Module):
+	def __init__(self, input_size, hidden_size):
+		super().__init__()
+		self.W_f = nn.Linear(input_size + hidden_size, hidden_size)
+		self.W_i = nn.Linear(input_size + hidden_size, hidden_size)
+		self.W_o = nn.Linear(input_size + hidden_size, hidden_size)
+		self.W_c = nn.Linear(input_size + hidden_size, hidden_size)
+
+	def forward(self, x, h_prev, c_prev):
+		xh = torch.cat([h_prev, x], dim=-1)
+		f = torch.sigmoid(self.W_f(xh))
+		i = torch.sigmoid(self.W_i(xh))
+		o = torch.sigmoid(self.W_o(xh))
+		c_tilde = torch.tanh(self.W_c(xh))
+		c = f * c_prev + i * c_tilde
+		h = o * torch.tanh(c)
+		return h, c
+</pre>
+
+<p>當然，實務上我們不必自己用自己撰寫的 LSTM cell 來搭建網路，而是使用 PyTorch 的 nn.LSTM。一個以 sine wave 做示範的簡單範例如下：</p>
+<pre class="brush: py">
+import matplotlib.pyplot as plt
+import numpy as np
+import torch
+import torch.nn as nn
+from torch.utils.data import DataLoader, TensorDataset
+
+device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+
+t_train = np.linspace(0, 100, 10000)
+wave_train = np.sin(t_train).astype(np.float32)
+
+seq_len = 50
+X_train = np.array([wave_train[i:i + seq_len] for i in range(len(wave_train) - seq_len)])
+y_train = wave_train[seq_len:]
+
+X_train = torch.tensor(X_train).unsqueeze(-1) # (N, seq_len, 1)
+y_train = torch.tensor(y_train).unsqueeze(-1) # (N, 1)
+
+print('Data shapes:', X_train.shape, y_train.shape)
+
+train_set = TensorDataset(X_train, y_train)
+train_loader = DataLoader(train_set, batch_size=128, shuffle=True)
+
+
+class LSTMModel(nn.Module):
+	def __init__(self):
+		super().__init__()
+		self.lstm = nn.LSTM(input_size=1, hidden_size=64, batch_first=True)
+		self.linear = nn.Linear(64, 1)
+
+	def forward(self, x):
+		out, _ = self.lstm(x)
+		return self.linear(out[:, -1, :])
+
+
+model = LSTMModel().to(device)
+optim = torch.optim.Adam(model.parameters())
+criterion = nn.MSELoss()
+
+model.train()
+for i in range(20):
+	print(f'Epoch {i+1}/20')
+	for X_batch, y_batch in train_loader:
+		loss = criterion(model(X_batch.to(device)), y_batch.to(device))
+		optim.zero_grad()
+		loss.backward()
+		optim.step()
+
+t_end = 100 + 2 * np.pi
+t_step = t_train[1] - t_train[0]
+t_test = np.arange(100 + t_step, t_end + t_step, t_step, dtype=np.float32)
+
+window = wave_train[-seq_len:].tolist()
+preds = []
+
+model.eval()
+with torch.no_grad():
+	for t in t_test:
+		x_in = torch.tensor(window[-seq_len:], dtype=torch.float32).unsqueeze(0).unsqueeze(-1).to(device)
+		pred = model(x_in).item()
+		preds.append(pred)
+		window.append(pred)
+
+y_true = np.sin(t_test)
+
+plt.plot(t_test, y_true, label='Ground Truth')
+plt.plot(t_test, preds, label='Prediction', linestyle='--')
+plt.xlabel('t')
+plt.ylabel('sin(t)')
+plt.title('LSTM Rolling Prediction')
+plt.legend()
+plt.show()
+</pre>
+
+<p>在上述範例中：</p>
+<ul>
+	<li>模型輸入是一段 sine wave，輸出是該 wave 的下一個點。</li>
+	<li>訓練用的 sine wave 的 t 的取值範圍是 [0, 100]，相鄰兩個取樣點間隔 0.01，後續再切成每 50 個點一組，並組裝成 shape 為 (N, seq_len, 1) 的資料，給模型讀取。</li>
+	<li>設定 batch_first=True 的目的是讓輸入資料的 shape 為 (N, seq_len, 1)；若未設定，則為 (seq_len, N, 1)。</li>
+	<li>無法使用 nn.Sequential 來包裝的原因，是因為我們只將 LSTM 的輸出，取其中一部分給全連接層處理。</li>
+	<li>此處的模型輸出，是取 LSTM 的 h 的最後一步，並交給 linear layer 做處理。你也可以做些改變，例如將所有 h 沿時間軸取平均，或者分類時多疊幾層 linear layer。</li>
+	<li>測試資料的 t 的取值範圍，是 t 約為 99.5 開始的 50 個點。示範的測試方式是，每次將 sine wave 灌入模型得到的新預測值附加至 wave 尾端，並拔掉 wave 頭端後，重新餵給模型做輸入，直到 t 走完為止。</li>
+	<li>你可以試著改變 epoch 數目或 hidden size 等超參數，看看效果會如何改變。</li>
+</ul>
+
+<p>雖然 LSTM 實際上的應用，主要是跟時間序列有關的問題，但我們也可以將影像的其中一個軸視為時間軸，來套用 LSTM。以下是用 LSTM 來進行 MNIST 數字分類的範例：</p>
+<pre class="brush: py">
+import torch
+import torch.nn as nn
+from torch.utils.data import DataLoader
+from torchvision import datasets, transforms
+
+device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+
+train_set = datasets.MNIST(root='./data', train=True,  download=True, transform=transforms.ToTensor())
+test_set = datasets.MNIST(root='./data', train=False, download=True, transform=transforms.ToTensor())
+print('Data shapes:', train_set.data.shape, test_set.data.shape)
+
+train_loader = DataLoader(train_set, batch_size=128, shuffle=True)
+test_loader = DataLoader(test_set, batch_size=128)
+
+
+class LSTMModel(nn.Module):
+	def __init__(self):
+		super().__init__()
+		self.lstm = nn.LSTM(input_size=28, hidden_size=64, batch_first=True)
+		self.linear = nn.Linear(64, 10)
+
+	def forward(self, x):
+		x = x.squeeze(1)  # (N, 1, 28, 28) -> (N, 28, 28)
+		out, _ = self.lstm(x)
+		return self.linear(out[:, -1, :])
+
+
+model = LSTMModel().to(device)
+optim = torch.optim.Adam(model.parameters())
+criterion = nn.CrossEntropyLoss()
+
+model.train()
+for i in range(10):
+	print(f'Epoch {i+1}/10')
+	for X_batch, y_batch in train_loader:
+		loss = criterion(model(X_batch.to(device)), y_batch.to(device))
+		optim.zero_grad()
+		loss.backward()
+		optim.step()
+
+model.eval()
+correct = sum(
+	(model(X.to(device)).argmax(dim=1) == y.to(device)).sum().item()
+	for X, y in test_loader
+)
+print('Accuracy: {:.2f}%'.format(100 * correct / len(test_set)))
+</pre>
+
+<p>在上述範例中，原始影像的 shape 是 (N, C=1, H=28, W=28)，我們用 squeeze(1) 來拿掉 channel 軸，並將 height 軸視為時間軸，餵給 LSTM。</p>
+
+<p>既然 LSTM 的後面可以疊其他東西，那前面也可以。一個常見的作法是，把圖片等資料先用 CNN 處理過後，再餵給 LSTM 處理。若以基於上一個範例做修改來說，你只要把 class 替換為以下的版本即可：</p>
+<pre class="brush: py">
+class CNNLSTMModel(nn.Module):
+	def __init__(self):
+		super().__init__()
+		self.cnn = nn.Sequential(
+			nn.Conv2d(1, 16, kernel_size=3, padding=1),
+			nn.ReLU(),
+			nn.MaxPool2d(2),
+			nn.Conv2d(16, 32, kernel_size=3, padding=1),
+			nn.ReLU(),
+			nn.MaxPool2d(2)
+		)
+		self.lstm = nn.LSTM(input_size=32*7, hidden_size=64, batch_first=True)
+		self.linear = nn.Linear(64, 10)
+
+	def forward(self, x):
+		x = self.cnn(x) # (N, ch=1, h=28, w=28) to (N, ch=32, h=7, w=7)
+		x = x.permute(0, 3, 1, 2) # (N, ch=32, h=7, w=7) to (N, w=7, ch=32, h=7)
+		x = x.flatten(2) # (N, w=7, ch=32, h=7) to (N, 7, 32*7)
+		out, _ = self.lstm(x)
+		return self.linear(out[:, -1, :])
+</pre>
+
+<p>在上述的 class 中，你需要把 CNN 處理完的結果中，適合當時間軸的維度移到前面來，才能餵給 LSTM。此外，LSTM 的輸入大小必須事先計算，因此你需要相當確定原始的輸入大小。</p>
+
+<p>關於前述內容中尚未示範的變體，包含但不限於以下：</p>
+<ul>
+	<li>多層 LSTM：可以透過 nn.LSTM 的 num_layers 參數，來指定要疊幾層 LSTM。堆疊多層時，下一層的 x 會是上一層的 h。</li>
+	<li>雙向 LSTM：若將 nn.LSTM 的 bidirectional 設為 True，則每層會有兩組 LSTM，分別沿時間軸的正向以及負向來看資料，輸出的 feature size 亦會變成兩倍。雙向 LSTM 堆疊多層時，第二層起的 x，是前一層的正向及負向產生的 h 並排而來。</li>
+	<li>前面提到 h<sub>0</sub> 與 c<sub>0</sub> 實務上通常使用 zero vector，但若有特殊需求，也可以自己準備 h<sub>0</sub> 與 c<sub>0</sub>。</li>
+</ul>
+
+</blockquote>
+
+</body></html>

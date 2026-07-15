@@ -17,7 +17,7 @@
 
 <blockquote>
 
-<p>一般來說，我們會將整個資料集切成訓練、驗證與測試集，而交叉驗證則是把整個資料集切分成訓練與測試集，再將訓練集分成 k 個小份，每次拿一份作為驗證使用，另外 k - 1 份做為訓練使用，如此輪流 k 次的整個過程。交叉驗證的好處是可以更有效的利用資料，讓訓練模型的過程，有機會以不同的資料來選擇超參數等。</p>
+<p>一般來說，我們會將整個資料集切成訓練、驗證與測試集，而交叉驗證(cross validation)則是把整個資料集切分成訓練與測試集，再將訓練集分成 k 個小份，每次拿一份作為驗證使用，另外 k - 1 份做為訓練使用，如此輪流 k 次的整個過程。交叉驗證的好處是可以更有效的利用資料，讓訓練模型的過程，有機會以不同的資料來選擇超參數等。</p>
 
 <p>下列是一個交叉驗證的範例。此範例使用了 wine dataset 的 80% 作為訓練集，並將這個訓練集分成三份進行交叉驗證。你可以試著改變模型超參數，看看平均的 accuracy 是否會變化：</p>
 <pre class="brush: py">
@@ -96,7 +96,7 @@ accuracies = cv_results['test_score'] * 100
 print('Average acc:', np.mean(accuracies))
 </pre>
 
-<p>在上述範例中，若要嘗試不同超參數的效果，你可能需要手動修改並執行程式，或者自行撰寫迴圈來暴力搜尋，當然也可以直接使用 scikit-learn 的 <a href="https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html">model_selection.GridSearchCV</a> 函式庫來進行，如下：</p>
+<p>在前面幾個範例中，我們都是固定使用一組超參數，來執行 cross validation 的效果。然而，cross validation 的用處之一，就是以平均的模型效果來決定超參數。若要達成此目的，你可以反覆手動修改超參數並執行程式、自行撰寫迴圈來暴力搜尋，或者使用 scikit-learn 的 <a href="https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html">model_selection.GridSearchCV</a> 函式庫來進行，如下：</p>
 <pre class="brush: py">
 import numpy as np
 from sklearn.datasets import load_wine

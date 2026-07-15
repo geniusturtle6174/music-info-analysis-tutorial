@@ -56,7 +56,7 @@ print('Accuracy: {:.2f}%'.format(100*np.mean(pred == y_test)))
 <ul>
 	<li>我們只調整了隱藏層的數目，而其他如 learning rate（相當於每次更新權重時「大膽」的程度，通常太大會讓網路不容易收斂到好的結果，太小會導致網路收斂很慢）及 batch size（每次更新權重時，要看多少資料）等超參數則維持預設。</li>
 	<li>使用的隱藏層數目是一組有機會讓測試集準確率在 90% 上下（實際結果會隨著訓練與測試集的亂數切分而有差異）的超參數，各位可以試著跟其他的超參數一併調整看看。</li>
-	<li>最後的那幾行，是將 scikit-learn 學習到的模型參數抽取出來，實際用多層感知器的公式來計算的結果。計算完畢後跟 0 取「np.maximum」，是因為 MLPClassifier 的預設 activation function 是 ReLU。</li>
+	<li>最後的那幾行，是將 scikit-learn 學習到的模型參數抽取出來，實際用多層感知器的公式來計算的結果。計算完畢後跟 0 取「np.maximum」，是因為 MLPClassifier 的預設 activation function 是 ReLU。而最後一層不加 activation function，是因為分類問題的輸出層恰好通常不使用 activation function。</li>
 	<li>由於類神經網路是一個對數值變化比較敏感的模型，而 Wine dataset 剛好在數值範圍的方面有較大的變化，因此你也可以試試看先做輸入正規化以後，再用模型進行預測。</li>
 </ul>
 
@@ -118,6 +118,7 @@ print('Accuracy: {:.2f}%'.format(100 * (pred == y_test).mean()))
 	<li>網路的輸入及輸出大小也都要自己指定，輸入維度為 13 是因為 Wine dataset 的特徵有 13 維，輸出維度為 3 是因為 Wine dataset 的標籤有三種。</li>
 	<li>使用 GPU 做計算時，必須把資料搬到 GPU 上，算完後再視需要搬回來。</li>
 	<li>使用 PyTorch 必須明確寫出 optim.zero_grad、loss.backward，以及 optim.step 這三部，使用其他工具則不必然。</li>
+	<li>「model.eval()」的目的，是切換模型行為，例如讓 dropout 停止隨機丟棄，以及讓 batch normalization 不重新計算統計。如果你需要連梯度計算也關閉，應該要再加上「with torch.no_grad()」的區塊。Notes：關於什麼是 dropout 和 batch normalization，請自行從網路上取得資訊。</li>
 	<li>測試時也可以分 batch 來做（請記得不要 shuffle 即可），此處因為資料量非常少，故未示範。</li>
 </ul>
 

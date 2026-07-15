@@ -152,26 +152,32 @@ def train(start_x, lr_type='fixed', base_lr=0.15, epochs=30):
 	x = start_x
 	path = [x]
 	lr = base_lr
-	
+
 	for epoch in range(1, epochs + 1):
 		# Step Decay
 		if lr_type == 'scheduling':
 			if epoch % 10 == 0:
 				lr = lr * 0.5
-		
+
 		grad = df(x)
 		x = x - lr * grad
 		path.append(x)
-	return np.array(path)
+	path = np.array(path)
+	return path, f(path)
+
 
 start_pos = 2.1
-path_fixed = train(start_pos, lr_type='fixed', base_lr=0.15)
-path_sched = train(start_pos, lr_type='scheduling', base_lr=0.15)
+x_fixed, y_fixed = train(start_pos, lr_type='fixed', base_lr=0.15)
+x_sched, y_sched = train(start_pos, lr_type='scheduling', base_lr=0.15)
 
 x_range = np.linspace(-2.5, 2.5, 100)
 plt.plot(x_range, f(x_range), 'k--', alpha=0.3)
-plt.plot(path_fixed, f(path_fixed), 'ro-', label='Fixed LR (0.15)', alpha=0.3)
-plt.plot(path_sched, f(path_sched), 'go-', label='Step Decay LR', alpha=0.3)
+plt.plot(x_fixed, y_fixed, 'ro-', label='Fixed LR (0.15)', alpha=0.3)
+plt.plot(x_sched, y_sched, 'go-', label='Step Decay LR', alpha=0.3)
+
+for i in range(11):
+	plt.text(x_fixed[i], y_fixed[i], str(i))
+	plt.text(x_sched[i], y_sched[i], str(i))
 
 plt.title("Fixed Learning Rate vs. Learning Rate Scheduling")
 plt.xlabel("x")

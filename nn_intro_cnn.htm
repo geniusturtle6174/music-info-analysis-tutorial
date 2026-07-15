@@ -24,7 +24,7 @@
 <p>而在 CNN 中，一個 convolution layer 會由多個 kernels 所組成，因此輸出會是多個矩陣疊在一起，疊加的維度稱為 channel。若仍以影像為例，假設輸入是一張 100 * 100 * 3 的 RGB 影像（3 個 channels），並且使用 5 個 4 * 4 * 3 的 kernels（kernel 的 channel 數必須跟輸入影像一樣）時，輸出會是一個 97 * 97 * 5 的特徵圖；輸出的每個 channel 都是由對應的一個 kernel 跟輸入影像做完整的 convolution 運算得到的。</p>
 <center><img src="pics/ml/conv_layer.png" width="600"></center>
 
-<p>上面圖片當中的下方的數字，用於影像時是依次代表訓練階段一次放幾張進去(batch size)、影像高度、影像寬度，以及該影像的 channel 數量；而用於 kernel 時則是 kernel 高度、kernel 寬度、輸入影像的 channel 數量，以及輸出影像的 channel 數量。需要注意的是，各家的深度學習工具為了效能等方面的考量，預設不一定是使用前述的維度順序；在目前較常見的工具中，主要是以 TensorFlow 會使用前述的順序（稱為 NHWC 或 channels-last），而其他工具例如 PyTorch，預設的影像維度順序是 batch size、該影像的 channel 數量、影像高度，以及影像寬度（稱為 NCHW 或 channels-first）；預設的 kernel 維度順序則是輸出影像的 channel 數量、輸入影像的 channel 數量、kernel 高度，以及 kernel 寬度。</p>
+<p>上面圖片當中的下方的數字，用於影像時是依次代表訓練階段一次放幾張進去(batch size)、影像高度、影像寬度，以及該影像的 channel 數量；而用於 kernel 時則是 kernel 高度、kernel 寬度、輸入影像的 channel 數量，以及輸出影像的 channel 數量。需要注意的是，各家的深度學習工具為了效能等方面的考量，預設不一定是使用前述的維度順序；在目前較常見的工具中，主要是以 TensorFlow 會使用前述的順序（稱為 NHWC 或 channels-last），而其他工具例如 PyTorch，預設的影像維度順序是 batch size、該影像的 channel 數量、影像高度，以及影像寬度（稱為 NCHW 或 channels-first）；預設的 kernel 維度順序則是輸出影像的 channel 數量、輸入影像的 channel 數量、kernel 高度，以及 kernel 寬度。<b>本頁中的範例程式碼是使用 PyTorch 來製作，因此程式碼的維度順序，會與圖片中以 TensorFlow 為準的順序不同，請留意。</b></p>
 
 <p>為了減少運算量和增強模型對微小位移的不變性等緣故，通常還會在卷積層之間加入池化(pooling)的運算，也就是在一小塊區域裡，只保留一個代表性的數值。比較常見的方法是取平均值或最大值來作為代表，分別稱為 average pooling 和 max pooling（具體的函式名稱，在各家工具當中可能有所不同）。以 max pooling 為例，若只考慮一個 channel，影像大小 4 * 4，以及 kernel（或稱 pooling window）大小 2 * 2 時，操作方式的示意如下：</p>
 <center><img src="pics/ml/pool_op.png" width="300"></center>
@@ -103,7 +103,12 @@ model = nn.Sequential(
 ).to(device)
 </pre>
 
-<p>在上述範例中，我們主要是以 kernel size 為 1 * 1 的卷積層，來代替原本的 nn.Linear，並在最後用 nn.AdaptiveAvgPool2d(1) 將寬和高都壓成 1，以及用 nn.Flatten() 來移除這兩個維度。</p>
+<p>在上述範例中，</p>
+<ul>
+	<li>主要是以 kernel size 為 1 * 1 的卷積層，來代替原本的 nn.Linear。</li>
+	<li>在最後使用的 nn.AdaptiveAvgPool2d(1)，其效果是將寬和高都壓成 1，此操作一般稱為 Global Average Pooling，你當然也可以試試看 Max Pooling 的效果。</li>
+	<li>仍須使用 nn.Flatten() 來攤平 batch 以外的維度，以符合後續操作所需的 (batch, feature) 的 shape 要求。</li>
+</ul>
 
 </blockquote>
 
