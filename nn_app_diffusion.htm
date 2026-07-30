@@ -5,13 +5,8 @@
 	<link rel=stylesheet type="text/css" href="myCss.css">
 	<base target="_blank">
 	<script type="text/javascript" src="myJs.js"></script>
-	<script type="text/javascript" src="shCore.js"></script>
-	<script type="text/javascript" src="shBrushPython.js"></script>
-	<link href="shCore.css" rel="stylesheet" type="text/css" />
-	<link href="shThemeDefault.css" rel="stylesheet" type="text/css" />
-	<script type="text/javascript">
-		SyntaxHighlighter.all();
-	</script>
+	<link href="prism.css" rel="stylesheet">
+	<script src="prism.js"></script>
 </head>
 
 <body bgcolor="#ccccff">
@@ -47,8 +42,7 @@
 <p>其中 t 在每次訓練迭代中從 {1, ..., T} 均勻取樣，x<sub>t</sub> 則由上述的 closed form 公式計算而來。&epsilon;<sub>&theta;</sub> 的網路架構需要同時接收帶噪影像 x<sub>t</sub> 與時間步 t 作為輸入，其中 t 的注入方式通常是透過時間步嵌入(timestep embedding)，其做法類似 Transformer 的位置編碼，以正弦與餘弦函數將純量 t 轉換為向量表示，再注入至網路的各個區塊中。</p>
 
 <p>以下是根據上述過程，以 Fashion-MNIST 為例的完整 DDPM 訓練與生成範例：</p>
-<pre class="brush: py">
-import matplotlib.pyplot as plt
+<pre class="line-numbers match-braces"><code class="language-python">import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import torch.nn as nn
@@ -180,7 +174,7 @@ plt.imshow(grid, cmap='gray')
 plt.xticks(tick_positions, labels)
 plt.yticks([])
 plt.show()
-</pre>
+</code></pre>
 
 <p>在上述範例中：</p>
 <ul>
@@ -190,8 +184,7 @@ plt.show()
 </ul>
 
 <p>Diffusion model 也跟 AE 和 GAN 一樣，可以加上 condition。由於改動部分不多，因此此處只示範 model class 的更動，如下：</p>
-<pre class="brush: py">
-class UNet(nn.Module):
+<pre class="line-numbers match-braces" data-line="5,20,22"><code class="language-python">class UNet(nn.Module):
 	def __init__(self, t_dim=128, num_classes=10):
 		super().__init__()
 		self.t_dim = t_dim
@@ -219,13 +212,12 @@ class UNet(nn.Module):
 		h = self.dec1(torch.cat([self.up(h), h1], dim=1), t_emb)
 		h = self.dec2(h, t_emb)
 		return self.out(h)
-</pre>
+</code></pre>
 
 <p>在上述範例中，加入 condition 的方式跟 timestep embedding 一樣；而維度也設定為相符，則主要是為了實作上的方便，你也可以試試看使用不同的維度，但會需要另外撰寫一些轉換用的模組。</p>
 
 <p>另外一個值得一提的變體是生成新圖案的方式。我們先前的做法，大致上是逐步的預測噪聲並去除，但也可以改為在預測噪聲後，先估計出 x<sub>0</sub>，再利用 x<sub>0</sub> 的估計值與預測的噪聲，直接內插出噪聲程度更低的某個 x<sub>t'</sub>（t' &lt; t），來讓生成過程可以不用乖乖的一步一步一步跑。這個作法只需要修改預測的部分，如下：</p>
-<pre class="brush: py">
-step_seq = np.linspace(T, 1, 50).astype(int)
+<pre class="line-numbers match-braces" data-line="1,2,8,12-14,17"><code class="language-python">step_seq = np.linspace(T, 1, 50).astype(int)
 step_pairs = list(zip(step_seq[:-1], step_seq[1:]))
 
 model.eval()
@@ -242,7 +234,7 @@ with torch.no_grad():
 		if step in show_steps:
 			frames[step] = xt.cpu()
 	frames[0] = xt.cpu()
-</pre>
+</code></pre>
 
 <p>Diffusion model 還有其他不少的著名使用案例與延伸變體，如：</p>
 <ul>

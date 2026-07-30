@@ -5,13 +5,8 @@
 	<link rel=stylesheet type="text/css" href="myCss.css">
 	<base target="_blank">
 	<script type="text/javascript" src="myJs.js"></script>
-	<script type="text/javascript" src="shCore.js"></script>
-	<script type="text/javascript" src="shBrushPython.js"></script>
-	<link href="shCore.css" rel="stylesheet" type="text/css" />
-	<link href="shThemeDefault.css" rel="stylesheet" type="text/css" />
-	<script type="text/javascript">
-		SyntaxHighlighter.all();
-	</script>
+	<link href="prism.css" rel="stylesheet">
+	<script src="prism.js"></script>
 </head>
 
 <body bgcolor="#ccccff">
@@ -21,8 +16,7 @@
 <p>多模態學習(Multimodal Learning)是一種整合來自多種不同類型資料的學習方式，其核心概念在於讓模型同時接收並融合來自不同模態(modality)的資訊，例如圖像與文字、聲音與影像、感測器數值與語音等，從而做出比僅使用單一模態更完整的判斷。在現實世界中，人類對環境的感知本來就是多模態的，而多模態學習正是試圖讓神經網路以類似的方式運作。</p>
 
 <p>組合多種模態的方式之一，是將它們都用來分類。下列是一個使用 MNIST 資料集的範例，其中影像的部分是遮去部分內容後的資料集影像，文字部分則為了範例簡單，是用 one-hot 向量加上噪音干擾；在範例中你將看到，單獨使用一種模態的時候，因為資訊被遮住或干擾，因此得到的準確度可能較低，但是使用兩種模態時，因為資訊有可能互補，故而準確度有機會提升：</p>
-<pre class="brush: py">
-import torch
+<pre class="line-numbers match-braces" data-line=""><code class="language-python">import torch
 import torch.nn as nn
 import torch.optim as optim
 from torchvision import datasets, transforms
@@ -182,13 +176,12 @@ for epoch in range(EPOCHS):
 		optimizer.step()
 fus_model.eval()
 print(f"Fusion Test Accuracy: {evaluate(fus_model, 'img+txt'):.2f}%")
-</pre>
+</code></pre>
 
 <p>在上述範例中，我們是將影像和文字資料分別編碼後，再一起餵給 classification head，然後才計算 loss，這種方式通常稱為 early fusion；而根據準確度及執行效率等各種需求，也有人會將多種模態各別做分類並計算 loss 以後，再用平均等方式組合，這種方式通常稱為 late fusion；你也可以根據自己的好奇心或需求，嘗試不同的融合方式。</p>
 
 <p>多模態學習的另一種經典場景是對比式學習(contrastive learning)。這種做法的目的是讓同類樣本在空間中的距離互相靠近，而不同類的樣本則互相拉遠。我們一樣使用 MNIST 示範如下：</p>
-<pre class="brush: py">
-import matplotlib.pyplot as plt
+<pre class="line-numbers match-braces" data-line=""><code class="language-python">import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import torch.nn as nn
@@ -328,7 +321,7 @@ for c in range(10):
 	)
 plt.legend()
 plt.show()
-</pre>
+</code></pre>
 
 <p>在上述範例中：</p>
 <ul>
@@ -339,8 +332,7 @@ plt.show()
 </ul>
 
 <p>如果在你的應用場景中，多種模態並不總是齊全，會一下缺東西下缺西的話，則經典的處理方式之一，是在訓練時用隨機遮蔽的方式模擬模態缺失；而缺的那一部分，則通常就全部填 0 再餵入模型。一個簡單的範例如下：</p>
-<pre class="brush: py">
-import torch
+<pre class="line-numbers match-braces" data-line=""><code class="language-python">import torch
 import torch.nn as nn
 import torch.optim as optim
 from torchvision import datasets, transforms
@@ -473,7 +465,7 @@ model.eval()
 print(f"Both modalities: {evaluate(model, 'both'):.2f}%")
 print(f"Image only     : {evaluate(model, 'img_only'):.2f}%")
 print(f"Text only      : {evaluate(model, 'txt_only'):.2f}%")
-</pre>
+</code></pre>
 
 <p>在上述範例中，為了與第一個範例做比較，所以隨機遮蔽資料又被加回來了。你可以看到雙模態資料皆齊全時的效果比較好，而某一模態缺失時，則效果倒退回相當於只有使用單模態做辨識的結果。雖然就效果來說，此範例跟第一個範例差不多，但使用雙模態的好處在於，我們不需要訓練三顆不同的模型。</p>
 

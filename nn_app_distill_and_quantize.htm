@@ -5,13 +5,8 @@
 	<link rel=stylesheet type="text/css" href="myCss.css">
 	<base target="_blank">
 	<script type="text/javascript" src="myJs.js"></script>
-	<script type="text/javascript" src="shCore.js"></script>
-	<script type="text/javascript" src="shBrushPython.js"></script>
-	<link href="shCore.css" rel="stylesheet" type="text/css" />
-	<link href="shThemeDefault.css" rel="stylesheet" type="text/css" />
-	<script type="text/javascript">
-		SyntaxHighlighter.all();
-	</script>
+	<link href="prism.css" rel="stylesheet">
+	<script src="prism.js"></script>
 </head>
 
 <body bgcolor="#ccccff">
@@ -21,8 +16,7 @@
 <p>隨著深度學習模型在行動裝置、嵌入式系統等邊緣裝置上的部署需求日益增加，如何在有限的運算資源與記憶體限制下，讓模型維持可接受的效能，成為重要的實務課題。知識蒸餾(Knowledge Distillation)與量化(Quantization)是兩種常見且可互補的模型壓縮技術：知識蒸餾透過訓練一個較大的 teacher 模型，並讓一個較小的 student 模型模仿其輸出分布，使 student 能以更少的參數逼近 teacher 的效能；量化則是在模型訓練過程中或訓練完成後，將原本以 32 位元浮點數表示的權重與運算，轉換為較少位元整數的表示方式，藉此縮小模型體積並加速推論。雖然兩者的切入點不同，但都是以犧牲些微準確率為代價，換取計算上的效率。本篇章將分別介紹知識蒸餾與量化的基本原理，並以 MNIST 分類任務為例，實際觀察壓縮前後在模型大小、推論速度與準確率上的變化。</p>
 
 <p>以下是用 MNIST 資料集進行的模型蒸餾範例：</p>
-<pre class="brush: py">
-import torch
+<pre class="line-numbers match-braces" data-line=""><code class="language-python">import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import DataLoader, Subset
@@ -156,7 +150,7 @@ n_stu_dis_params = sum(p.numel() for p in student_distill.parameters())
 print(f'Teacher accuracy: {teacher_acc:.2f}%, #params: {n_teacher_params}')
 print(f'Student (baseline) accuracy: {baseline_acc:.2f}%, #params: {n_stu_base_params}')
 print(f'Student (distillation) accuracy: {distill_acc:.2f}%, #params: {n_stu_dis_params}')
-</pre>
+</code></pre>
 
 <p>在上述範例中：</p>
 <ul>
@@ -171,8 +165,7 @@ print(f'Student (distillation) accuracy: {distill_acc:.2f}%, #params: {n_stu_dis
 </ul>
 
 <p>若要進行模型量化，則可以透過 torch.ao.quantization.quantize_dynamic，在模型訓練完成後，把參數從 32 位元浮點數轉換為 8 位元整數，範例如下：</p>
-<pre class="brush: py">
-import os
+<pre class="line-numbers match-braces" data-line=""><code class="language-python">import os
 import time
 import warnings
 
@@ -278,7 +271,7 @@ int8_time = measure_inference_time(model_int8, test_loader, infer_device)
 
 print(f'FP32 accuracy: {fp32_acc:.2f}%, size: {fp32_size:.1f} KB, time: {fp32_time:.3f} s')
 print(f'INT8 accuracy: {int8_acc:.2f}%, size: {int8_size:.1f} KB, time: {int8_time:.3f} s')
-</pre>
+</code></pre>
 
 <p>在上述範例中：</p>
 <ul>
@@ -289,8 +282,7 @@ print(f'INT8 accuracy: {int8_acc:.2f}%, size: {int8_size:.1f} KB, time: {int8_ti
 </ul>
 
 <p>需要注意的是，quantize_dynamic 並無法處理 nn.Conv2d 等類型的網路層，範例如下：</p>
-<pre class="brush: py">
-import os
+<pre class="line-numbers match-braces" data-line=""><code class="language-python">import os
 import warnings
 
 import torch
@@ -343,13 +335,12 @@ print('--- features ---')
 print(teacher_int8.features)
 print('--- classifier ---')
 print(teacher_int8.classifier)
-</pre>
+</code></pre>
 
 <p>在上述範例中，你可以看到量化後的模型，比原始模型的四分之一還要大了一些，並且 nn.Linear 已經變成了 DynamicQuantizedLinear，但是 nn.Conv2d 依然未改變，這些都說明了 nn.Conv2d 無法被 quantize_dynamic 處理。</p>
 
 <p>而量化實際上的計算方式，其實也就是先縮放並平移至 8 位元整數範圍內，計算完畢後再還原，如下：</p>
-<pre class="brush: py">
-import numpy as np
+<pre class="line-numbers match-braces" data-line=""><code class="language-python">import numpy as np
 import torch
 import torch.nn as nn
 from torch.ao.quantization import quantize_dynamic
@@ -407,7 +398,7 @@ print('PyTorch quantize_dynamic output:')
 print(out_pytorch)
 print('Manual output (integer-only math):')
 print(out_manual)
-</pre>
+</code></pre>
 
 <p>在上述範例中：</p>
 <ul>
