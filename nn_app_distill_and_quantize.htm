@@ -1,0 +1,429 @@
+﻿<html>
+<head>
+	<title>線上教材：音樂資訊分析</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<link rel=stylesheet type="text/css" href="myCss.css">
+	<base target="_blank">
+	<script type="text/javascript" src="myJs.js"></script>
+	<script type="text/javascript" src="shCore.js"></script>
+	<script type="text/javascript" src="shBrushPython.js"></script>
+	<link href="shCore.css" rel="stylesheet" type="text/css" />
+	<link href="shThemeDefault.css" rel="stylesheet" type="text/css" />
+	<script type="text/javascript">
+		SyntaxHighlighter.all();
+	</script>
+</head>
+
+<body bgcolor="#ccccff">
+
+<blockquote>
+
+<p>隨著深度學習模型在行動裝置、嵌入式系統等邊緣裝置上的部署需求日益增加，如何在有限的運算資源與記憶體限制下，讓模型維持可接受的效能，成為重要的實務課題。知識蒸餾(Knowledge Distillation)與量化(Quantization)是兩種常見且可互補的模型壓縮技術：知識蒸餾透過訓練一個較大的 teacher 模型，並讓一個較小的 student 模型模仿其輸出分布，使 student 能以更少的參數逼近 teacher 的效能；量化則是在模型訓練過程中或訓練完成後，將原本以 32 位元浮點數表示的權重與運算，轉換為較少位元整數的表示方式，藉此縮小模型體積並加速推論。雖然兩者的切入點不同，但都是以犧牲些微準確率為代價，換取計算上的效率。本篇章將分別介紹知識蒸餾與量化的基本原理，並以 MNIST 分類任務為例，實際觀察壓縮前後在模型大小、推論速度與準確率上的變化。</p>
+
+<p>以下是用 MNIST 資料集進行的模型蒸餾範例：</p>
+<pre class="brush: py">
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from torch.utils.data import DataLoader, Subset
+from torchvision import datasets, transforms
+
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+BATCH_SIZE = 128
+EPOCHS_TEACHER = 5
+EPOCHS_STUDENT = 5
+LR = 1e-3
+TEMPERATURE = 2
+ALPHA = 0.9
+N_TRAIN = 2000
+
+transform = transforms.ToTensor()
+train_set = datasets.MNIST(root='./data', train=True, download=True, transform=transform)
+test_set = datasets.MNIST(root='./data', train=False, download=True, transform=transform)
+
+subset_indices = torch.randperm(len(train_set))[:N_TRAIN]
+train_subset = Subset(train_set, subset_indices)
+train_loader = DataLoader(train_subset, batch_size=BATCH_SIZE, shuffle=True)
+test_loader = DataLoader(test_set, batch_size=BATCH_SIZE, shuffle=False)
+
+
+class TeacherCNN(nn.Module):
+	def __init__(self):
+		super().__init__()
+		self.features = nn.Sequential(
+			nn.Conv2d(1, 32, kernel_size=3, padding=1),
+			nn.ReLU(),
+			nn.MaxPool2d(2),
+			nn.Conv2d(32, 64, kernel_size=3, padding=1),
+			nn.ReLU(),
+			nn.MaxPool2d(2),
+		)
+		self.classifier = nn.Sequential(
+			nn.Flatten(),
+			nn.Linear(64 * 7 * 7, 128),
+			nn.ReLU(),
+			nn.Linear(128, 10),
+		)
+
+	def forward(self, x):
+		x = self.features(x)
+		x = self.classifier(x)
+		return x
+
+
+class StudentMLP(nn.Module):
+	def __init__(self):
+		super().__init__()
+		self.net = nn.Sequential(
+			nn.Flatten(),
+			nn.Linear(28 * 28, 128),
+			nn.ReLU(),
+			nn.Linear(128, 10),
+		)
+
+	def forward(self, x):
+		return self.net(x)
+
+
+def evaluate(model, loader):
+	model.eval()
+	correct = 0
+	total = 0
+	with torch.no_grad():
+		for x, y in loader:
+			x, y = x.to(device), y.to(device)
+			pred = model(x).argmax(dim=1)
+			correct += (pred == y).sum().item()
+			total += y.size(0)
+	return 100 * correct / total
+
+
+def train_standard(model, loader, epochs):
+	optimizer = torch.optim.Adam(model.parameters(), lr=LR)
+	for epoch in range(epochs):
+		print(f'Standard epoch {epoch+1}/{epochs}')
+		model.train()
+		for x, y in loader:
+			x, y = x.to(device), y.to(device)
+			optimizer.zero_grad()
+			loss = F.cross_entropy(model(x), y)
+			loss.backward()
+			optimizer.step()
+
+
+def train_student_distill(student, teacher, loader, epochs):
+	optimizer = torch.optim.Adam(student.parameters(), lr=LR)
+	teacher.eval()
+	for epoch in range(epochs):
+		print(f'Distill epoch {epoch+1}/{epochs}')
+		student.train()
+		for x, y in loader:
+			x, y = x.to(device), y.to(device)
+			with torch.no_grad():
+				teacher_logits = teacher(x)
+			student_logits = student(x)
+
+			hard_loss = F.cross_entropy(student_logits, y)
+			soft_loss = F.kl_div(
+				F.log_softmax(student_logits / TEMPERATURE, dim=1),
+				F.softmax(teacher_logits / TEMPERATURE, dim=1),
+				reduction='batchmean',
+			)
+
+			loss = ALPHA * hard_loss + (1 - ALPHA) * soft_loss
+			optimizer.zero_grad()
+			loss.backward()
+			optimizer.step()
+
+
+teacher = TeacherCNN().to(device)
+train_standard(teacher, train_loader, EPOCHS_TEACHER)
+teacher_acc = evaluate(teacher, test_loader)
+
+student_baseline = StudentMLP().to(device)
+train_standard(student_baseline, train_loader, EPOCHS_STUDENT)
+baseline_acc = evaluate(student_baseline, test_loader)
+
+student_distill = StudentMLP().to(device)
+train_student_distill(student_distill, teacher, train_loader, EPOCHS_STUDENT)
+distill_acc = evaluate(student_distill, test_loader)
+
+n_teacher_params = sum(p.numel() for p in teacher.parameters())
+n_stu_base_params = sum(p.numel() for p in student_baseline.parameters())
+n_stu_dis_params = sum(p.numel() for p in student_distill.parameters())
+
+print(f'Teacher accuracy: {teacher_acc:.2f}%, #params: {n_teacher_params}')
+print(f'Student (baseline) accuracy: {baseline_acc:.2f}%, #params: {n_stu_base_params}')
+print(f'Student (distillation) accuracy: {distill_acc:.2f}%, #params: {n_stu_dis_params}')
+</pre>
+
+<p>在上述範例中：</p>
+<ul>
+	<li>由於 MNIST 資料集的資料量，相對於單純的內容來說已經足夠龐大，而蒸餾的效益通常在資料量有限，或者任務難度較高時比較明顯，因此我們只使用其中兩千筆資料來訓練模型。</li>
+	<li>範例中的超參數，是一組比較容易讓蒸餾的模型好過直接訓練的模型的超參數，但實務上不保證蒸餾的效果一定會比直接訓練的好。</li>
+	<li>損失函數分為兩塊，一塊是讓學生模型直接學習真實標籤，另一塊是讓學生模型模仿教師模型輸出的機率分布。而關於後者，
+		<ul>
+			<li>除以 TEMPERATURE 的目的是讓輸出變平滑，保留類別之間的相似度，也同時可以傳遞真實標籤以外的資訊給學生模型。例如某個 4 可能跟 9 長得有點像，這個就是真實標籤不會有的資訊。</li>
+			<li>原始公式在計算完 KL Divergence 之後，會再除以 TEMPERATURE 的平方來補償梯度；此處沒有相除，單純是為了讓蒸餾模型有機會贏過直接學習的模型。實務上，你應該視整體效果等方面的取捨來調整，不必為了要讓誰贏而移除某一部分的計算。</li>
+		</ul>
+	</li>
+</ul>
+
+<p>若要進行模型量化，則可以透過 torch.ao.quantization.quantize_dynamic，在模型訓練完成後，把參數從 32 位元浮點數轉換為 8 位元整數，範例如下：</p>
+<pre class="brush: py">
+import os
+import time
+import warnings
+
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from torch.ao.quantization import quantize_dynamic
+from torch.utils.data import DataLoader
+from torchvision import datasets, transforms
+
+warnings.filterwarnings('ignore', category=DeprecationWarning, message='.*torch.ao.quantization.*')
+
+train_device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+infer_device = torch.device('cpu')
+
+BATCH_SIZE = 128
+EPOCHS = 5
+LR = 1e-3
+
+transform = transforms.ToTensor()
+train_set = datasets.MNIST(root='./data', train=True, download=True, transform=transform)
+test_set = datasets.MNIST(root='./data', train=False, download=True, transform=transform)
+train_loader = DataLoader(train_set, batch_size=BATCH_SIZE, shuffle=True)
+test_loader = DataLoader(test_set, batch_size=BATCH_SIZE, shuffle=False)
+
+
+class ClassifierMLP(nn.Module):
+	def __init__(self):
+		super().__init__()
+		self.net = nn.Sequential(
+			nn.Flatten(),
+			nn.Linear(28 * 28, 128),
+			nn.ReLU(),
+			nn.Linear(128, 10),
+		)
+
+	def forward(self, x):
+		return self.net(x)
+
+
+def train(model, loader, epochs, device):
+	optimizer = torch.optim.Adam(model.parameters(), lr=LR)
+	for epoch in range(epochs):
+		print(f'Epoch {epoch + 1}/{epochs}')
+		model.train()
+		for x, y in loader:
+			x, y = x.to(device), y.to(device)
+			optimizer.zero_grad()
+			loss = F.cross_entropy(model(x), y)
+			loss.backward()
+			optimizer.step()
+
+
+def evaluate(model, loader, device):
+	model.eval()
+	correct = 0
+	total = 0
+	with torch.no_grad():
+		for x, y in loader:
+			x, y = x.to(device), y.to(device)
+			pred = model(x).argmax(dim=1)
+			correct += (pred == y).sum().item()
+			total += y.size(0)
+	return 100 * correct / total
+
+
+def measure_inference_time(model, loader, device):
+	model.eval()
+	start = time.time()
+	with torch.no_grad():
+		for x, _ in loader:
+			x = x.to(device)
+			model(x)
+	return time.time() - start
+
+
+def get_model_size(model, path='temp_model.p'):
+	torch.save(model.state_dict(), path)
+	size_kb = os.path.getsize(path) / 1024
+	os.remove(path)
+	return size_kb
+
+
+model_fp32 = ClassifierMLP().to(train_device)
+train(model_fp32, train_loader, EPOCHS, train_device)
+
+model_fp32 = model_fp32.to(infer_device)
+
+model_int8 = quantize_dynamic(model_fp32, {nn.Linear}, dtype=torch.qint8)
+
+fp32_acc = evaluate(model_fp32, test_loader, infer_device)
+int8_acc = evaluate(model_int8, test_loader, infer_device)
+
+# Backend Not supported
+# model_int8_gpu = model_int8.to(train_device)
+# int8_acc_gpu = evaluate(model_int8_gpu, test_loader, train_device)
+
+fp32_size = get_model_size(model_fp32)
+int8_size = get_model_size(model_int8)
+
+fp32_time = measure_inference_time(model_fp32, test_loader, infer_device)
+int8_time = measure_inference_time(model_int8, test_loader, infer_device)
+
+print(f'FP32 accuracy: {fp32_acc:.2f}%, size: {fp32_size:.1f} KB, time: {fp32_time:.3f} s')
+print(f'INT8 accuracy: {int8_acc:.2f}%, size: {int8_size:.1f} KB, time: {int8_time:.3f} s')
+</pre>
+
+<p>在上述範例中：</p>
+<ul>
+	<li>PyTorch 官方正在把量化的功能獨立成 torchao 套件，並以警告方式告知使用者；而範例中為了避免警告訊息反覆出現，因此進行過濾。</li>
+	<li>由於模型量化並不像蒸餾是減少參數量，因此量測模型大小的方式，是以存檔後讀取檔案大小的結果為準。</li>
+	<li>量化後的模型只能在 CPU 上運行，如果量化後的模型還在 GPU 上，或者你把它搬到 GPU 上的話，則會出現錯誤。</li>
+	<li>由於模型不大，因此若在一般的筆電或桌機上執行此範例，量化後不一定會有速度優勢。</li>
+</ul>
+
+<p>需要注意的是，quantize_dynamic 並無法處理 nn.Conv2d 等類型的網路層，範例如下：</p>
+<pre class="brush: py">
+import os
+import warnings
+
+import torch
+import torch.nn as nn
+from torch.ao.quantization import quantize_dynamic
+
+warnings.filterwarnings('ignore', category=DeprecationWarning, message='.*torch.ao.quantization.*')
+
+
+class TeacherCNN(nn.Module):
+	def __init__(self):
+		super().__init__()
+		self.features = nn.Sequential(
+			nn.Conv2d(1, 32, kernel_size=3, padding=1),
+			nn.ReLU(),
+			nn.MaxPool2d(2),
+			nn.Conv2d(32, 64, kernel_size=3, padding=1),
+			nn.ReLU(),
+			nn.MaxPool2d(2),
+		)
+		self.classifier = nn.Sequential(
+			nn.Flatten(),
+			nn.Linear(64 * 7 * 7, 128),
+			nn.ReLU(),
+			nn.Linear(128, 10),
+		)
+
+	def forward(self, x):
+		x = self.features(x)
+		x = self.classifier(x)
+		return x
+
+
+def get_model_size(model, path='temp_model.p'):
+	torch.save(model.state_dict(), path)
+	size_kb = os.path.getsize(path) / 1024
+	os.remove(path)
+	return size_kb
+
+
+teacher = TeacherCNN()
+teacher_int8 = quantize_dynamic(teacher, {nn.Linear, nn.Conv2d}, dtype=torch.qint8)
+teacher_fp32_size = get_model_size(teacher)
+teacher_int8_size = get_model_size(teacher_int8)
+
+print(f'Teacher FP32 size: {teacher_fp32_size:.1f} KB')
+print(f'Teacher INT8 (attempted) size: {teacher_int8_size:.1f} KB')
+
+print('--- features ---')
+print(teacher_int8.features)
+print('--- classifier ---')
+print(teacher_int8.classifier)
+</pre>
+
+<p>在上述範例中，你可以看到量化後的模型，比原始模型的四分之一還要大了一些，並且 nn.Linear 已經變成了 DynamicQuantizedLinear，但是 nn.Conv2d 依然未改變，這些都說明了 nn.Conv2d 無法被 quantize_dynamic 處理。</p>
+
+<p>而量化實際上的計算方式，其實也就是先縮放並平移至 8 位元整數範圍內，計算完畢後再還原，如下：</p>
+<pre class="brush: py">
+import numpy as np
+import torch
+import torch.nn as nn
+from torch.ao.quantization import quantize_dynamic
+
+torch.manual_seed(0)
+
+
+class SingleLinear(nn.Module):
+	def __init__(self):
+		super().__init__()
+		self.layer = nn.Linear(4, 3)
+
+	def forward(self, x):
+		return self.layer(x)
+
+
+model = SingleLinear()
+x = torch.randn(5, 4)
+
+# PyTorch built-in method
+model_int8 = quantize_dynamic(model, {nn.Linear}, dtype=torch.qint8)
+q_weight = model_int8.layer.weight()
+out_pytorch = model_int8(x).detach().numpy()
+
+W = model.layer.weight.detach().numpy()  # shape (3, 4)
+b = model.layer.bias.detach().numpy()
+X = x.numpy()  # shape (5, 4)
+
+# 1. Quantize weight: done once, symmetric, zero_point is 0
+w_scale = np.abs(W).max() / 127
+W_int8 = np.round(W / w_scale).clip(-127, 127).astype(np.int8)
+
+# 2. Quantize activation: done every forward, asymmetric
+x_min, x_max = X.min(), X.max()
+x_scale = (x_max - x_min) / 255
+x_zero_point = np.round(-x_min / x_scale).clip(0, 255)
+X_uint8 = np.round(X / x_scale + x_zero_point).clip(0, 255).astype(np.uint8)
+
+# 3. Integer-only math: multiply int8/uint8, sum in int32, then scale back to float
+X_int32 = X_uint8.astype(np.int32)
+W_int32 = W_int8.astype(np.int32)
+raw_acc = X_int32 @ W_int32.T
+correction = x_zero_point * W_int32.sum(axis=1)
+out_manual = x_scale * w_scale * (raw_acc - correction) + b
+
+print('=== Weight Comparison ===')
+print('PyTorch quantized weight:')
+print(q_weight.int_repr().numpy())
+print('Manual quantized weight:')
+print(W_int8)
+
+print()
+print('=== Output Comparison ===')
+print('PyTorch quantize_dynamic output:')
+print(out_pytorch)
+print('Manual output (integer-only math):')
+print(out_manual)
+</pre>
+
+<p>在上述範例中：</p>
+<ul>
+	<li>進行量化時，我們需要決定在量化後，是用哪一個整數來代表原本範圍的 0；如果你不是用整數的 0 來代表原本的 0，就稱為非對稱量化，並且需要處理偏移。</li>
+	<li>註解第二點的 activation，是指稱要被量化的數值本身，跟 activation function 無關。</li>
+	<li>承上，因為輸入值是在執行階段才進行量化，因此稱為動態量化；而有另外一類方法，是先用一小批資料，算出用於輸入值的量化參數，並在模型上線時，直接套用這些參數來對輸入值做量化，稱為靜態量化。</li>
+	<li>運算方式做了一些簡化，因此量化後的權重和運算結果，跟 PyTorch 內建版本的會有些不同。</li>
+</ul>
+
+<p>關於蒸餾和量化的其他細節與延伸方向，簡單說明如下：</p>
+<ul>
+	<li>Quantization-Aware Training (QAT)：在訓練過程中插入偽量化(fake quantization)節點，讓模型在訓練過程中，就能經歷量化與反量化的誤差，從而有機會取得更好的準確度。</li>
+	<li>蒸餾與量化結合：蒸餾與量化這兩條路線並不是獨立的，我們也可以把蒸餾後的模型進行量化，來試著達到更快的運算速度。</li>
+	<li>如果訓練並量化好的模型，需要給 TensorRT 等其他推論引擎使用，則可以轉成 ONNX (Open Neural Network Exchange)格式。但需要注意的是，由於底層對於量化後的運算實作不一致等緣故，通常可能會先用 PyTorch 轉換出 32 位元浮點數的 ONNX 格式模型，再用 ONNX Runtime 自己的量化工具重新量化一次。</li>
+</ul>
+
+</blockquote>
+
+</body></html>

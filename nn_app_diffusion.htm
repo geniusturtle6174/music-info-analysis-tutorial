@@ -1,0 +1,257 @@
+﻿<html>
+<head>
+	<title>線上教材：音樂資訊分析</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<link rel=stylesheet type="text/css" href="myCss.css">
+	<base target="_blank">
+	<script type="text/javascript" src="myJs.js"></script>
+	<script type="text/javascript" src="shCore.js"></script>
+	<script type="text/javascript" src="shBrushPython.js"></script>
+	<link href="shCore.css" rel="stylesheet" type="text/css" />
+	<link href="shThemeDefault.css" rel="stylesheet" type="text/css" />
+	<script type="text/javascript">
+		SyntaxHighlighter.all();
+	</script>
+</head>
+
+<body bgcolor="#ccccff">
+
+<blockquote>
+
+<p>擴散模型(Diffusion Model)是一類以逐步加噪與去噪過程為核心的生成模型，其中最具代表性的版本為 Ho 等人於 2020 年提出的去噪擴散機率模型(Denoising Diffusion Probabilistic Model，DDPM)。相較於 VAE 透過重建損失引導 latent space 的學習，以及 GAN 透過對抗訓練來驅動生成器改善輸出，Diffusion Model 的目標則是讓模型能看著一張被加了數次噪聲的影像，猜出當初被加入了怎樣的噪聲，進而能夠從純高斯噪聲出發，逐步還原出真實的資料分布。這種設計使訓練過程相對穩定，且生成樣本的多樣性通常優於 GAN。本篇章將以 Fashion-MNIST 為例，介紹 DDPM 的基本原理與實作流程。</p>
+
+<p>DDPM 的運作分為兩個方向相反的過程。前向過程(forward process)是固定的，對原始資料 x<sub>0</sub> 在每個時間步 t 逐步疊加高斯噪聲，得到一系列逐漸模糊的樣本 x<sub>1</sub>, x<sub>2</sub>, ..., x<sub>T</sub>；當 T 夠大時，x<sub>T</sub> 的分布將趨近於標準常態分布。每一步的條件分布定義為：</p>
+
+<p style="text-align:center">q(x<sub>t</sub> | x<sub>t−1</sub>) = N(x<sub>t</sub>; (1−&beta;<sub>t</sub>)<sup>1/2</sup> x<sub>t−1</sub>, &beta;<sub>t</sub>I)</p>
+
+<p>其中 N 為常態分佈；&beta;<sub>t</sub> 為事先設計好的噪聲排程(noise schedule)，是一組從小到大的固定常數；I 是單位矩陣(identity matrix)，表示各像素的噪聲是獨立的，rows 和 columns 的數目皆為影像像素數量的平方。前向過程有一個重要的特性：可以不經過逐步計算，直接從 x<sub>0</sub> 一次跳到任意時間步 t 的結果。令 &alpha;<sub>t</sub> = 1 − &beta;<sub>t</sub>，&alpha;&#x0304;<sub>t</sub> = &prod;<sub>s=1</sub><sup>t</sup> &alpha;<sub>s</sub>，則：</p>
+
+<p style="text-align:center">q(x<sub>t</sub> | x<sub>0</sub>) = N(x<sub>t</sub>; &alpha;&#x0304;<sub>t</sub><sup>1/2</sup> x<sub>0</sub>, (1−&alpha;&#x0304;<sub>t</sub>)I)</p>
+
+<p>亦即給定 x<sub>0</sub> 與時間步 t，可以直接對噪聲 &epsilon; ~ N(0, I) 取樣並計算出 x<sub>t</sub>：</p>
+
+<p style="text-align:center">x<sub>t</sub> = &alpha;&#x0304;<sub>t</sub><sup>1/2</sup> x<sub>0</sub> + (1−&alpha;&#x0304;<sub>t</sub>)<sup>1/2</sup> &epsilon;</p>
+
+<p>此性質使得訓練時能夠高效率地對任意 t 取樣，而不必逐步執行前向過程。反向過程(reverse process)則是由神經網路驅動的，其目標是學習從 x<sub>t</sub> 估計出 x<sub>t−1</sub> 的條件分布。DDPM 將此分布參數化為：</p>
+
+<p style="text-align:center">p<sub>&theta;</sub>(x<sub>t−1</sub> | x<sub>t</sub>) = N(x<sub>t−1</sub>; &mu;<sub>&theta;</sub>(x<sub>t</sub>, t), &sigma;<sub>t</sub><sup>2</sup>I)</p>
+
+<p>其中，p<sub>&theta;</sub> 代表模型學出的機率分布，&mu;<sub>&theta;</sub> 代表該分布的平均值，&sigma;<sub>t</sub><sup>2</sup> 則是該分布的變異數；下標的 &theta; 代表分布參數是由模型所學出，&sigma; 在原始論文中直接使用 β<sub>t</sub> 或其他固定值，後續亦有人改用模型來學。而實作上，網路並非直接預測均值 &mu;<sub>&theta;</sub>，而是預測加入 x<sub>t</sub> 中的噪聲 &epsilon;<sub>&theta;</sub>(x<sub>t</sub>, t)，並透過以下關係式將兩者互換：</p>
+
+<p style="text-align:center">&mu;<sub>&theta;</sub>(x<sub>t</sub>, t) = (1 / &alpha;<sub>t</sub><sup>1/2</sup>) (x<sub>t</sub> − (&beta;<sub>t</sub> / (1−&alpha;&#x0304;<sub>t</sub>)<sup>1/2</sup>) &epsilon;<sub>&theta;</sub>(x<sub>t</sub>, t))</p>
+
+<p>因此訓練目標簡化為預測噪聲的均方誤差：</p>
+
+<p style="text-align:center">L = E<sub>t, x<sub>0</sub>, &epsilon;</sub> [‖&epsilon; − &epsilon;<sub>&theta;</sub>(x<sub>t</sub>, t)‖<sup>2</sup>]</p>
+
+<p>其中 t 在每次訓練迭代中從 {1, ..., T} 均勻取樣，x<sub>t</sub> 則由上述的 closed form 公式計算而來。&epsilon;<sub>&theta;</sub> 的網路架構需要同時接收帶噪影像 x<sub>t</sub> 與時間步 t 作為輸入，其中 t 的注入方式通常是透過時間步嵌入(timestep embedding)，其做法類似 Transformer 的位置編碼，以正弦與餘弦函數將純量 t 轉換為向量表示，再注入至網路的各個區塊中。</p>
+
+<p>以下是根據上述過程，以 Fashion-MNIST 為例的完整 DDPM 訓練與生成範例：</p>
+<pre class="brush: py">
+import matplotlib.pyplot as plt
+import numpy as np
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from torch.utils.data import DataLoader
+from torchvision import datasets, transforms
+
+device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+
+T = 300
+beta = torch.linspace(0.0001, 0.02, T).to(device)
+alpha = 1.0 - beta
+alpha_bar = torch.cumprod(alpha, dim=0)
+
+
+def get_timestep_embedding(t, t_dim):
+	half = t_dim // 2
+	freq = torch.exp(-torch.arange(half, device=t.device) * (torch.log(torch.tensor(10000.0)) / (half - 1)))
+	args = t[:, np.newaxis].float() * freq[np.newaxis, :]
+	return torch.cat([torch.sin(args), torch.cos(args)], dim=-1)
+
+
+def q_sample(x0, t):
+	ab = alpha_bar[t][:, np.newaxis, np.newaxis, np.newaxis]
+	eps = torch.randn_like(x0)
+	return ab ** 0.5 * x0 + (1 - ab) ** 0.5 * eps, eps
+
+
+class ResBlock(nn.Module):
+	def __init__(self, in_channels, out_channels, t_dim):
+		super().__init__()
+		self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1)
+		self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1)
+		self.norm1 = nn.GroupNorm(4, out_channels)
+		self.norm2 = nn.GroupNorm(4, out_channels)
+		self.t_proj = nn.Linear(t_dim, out_channels)
+		self.relu = nn.ReLU()
+		if in_channels != out_channels:
+			self.shortcut = nn.Conv2d(in_channels, out_channels, kernel_size=1)
+		else:
+			self.shortcut = nn.Identity()
+
+	def forward(self, x, t_emb):
+		h = self.relu(self.norm1(self.conv1(x)))
+		h = h + self.t_proj(t_emb)[:, :, np.newaxis, np.newaxis]
+		h = self.relu(self.norm2(self.conv2(h)))
+		return h + self.shortcut(x)
+
+
+class UNet(nn.Module):
+	def __init__(self, t_dim=128):
+		super().__init__()
+		self.t_dim = t_dim
+		self.t_mlp = nn.Sequential(
+			nn.Linear(t_dim, t_dim * 2),
+			nn.ReLU(),
+			nn.Linear(t_dim * 2, t_dim)
+		)
+		self.enc1 = ResBlock(1, 32, t_dim)
+		self.enc2 = ResBlock(32, 64, t_dim)
+		self.down = nn.MaxPool2d(2)
+		self.mid = ResBlock(64, 64, t_dim)
+		self.up = nn.Upsample(scale_factor=2, mode='nearest')
+		self.dec1 = ResBlock(64 + 32, 32, t_dim)
+		self.dec2 = ResBlock(32, 32, t_dim)
+		self.out = nn.Conv2d(32, 1, kernel_size=1)
+
+	def forward(self, x, t):
+		t_emb = get_timestep_embedding(t, self.t_dim)
+		t_emb = self.t_mlp(t_emb)
+		h1 = self.enc1(x, t_emb)
+		h2 = self.enc2(self.down(h1), t_emb)
+		h = self.mid(h2, t_emb)
+		h = self.dec1(torch.cat([self.up(h), h1], dim=1), t_emb)
+		h = self.dec2(h, t_emb)
+		return self.out(h)
+
+
+train_set = datasets.FashionMNIST(root='./data', train=True, download=True, transform=transforms.ToTensor())
+train_loader = DataLoader(train_set, batch_size=128, shuffle=True)
+
+model = UNet().to(device)
+optim = torch.optim.Adam(model.parameters(), lr=1e-3)
+
+model.train()
+for i in range(10):
+	print(f'Epoch {i+1}/10')
+	for x0, _ in train_loader:
+		x0 = x0.to(device)
+		t = torch.randint(0, T, (x0.shape[0],), device=device)
+		xt, eps = q_sample(x0, t)
+		loss = F.mse_loss(model(xt, t), eps)
+		optim.zero_grad()
+		loss.backward()
+		optim.step()
+
+n_show = 8
+show_steps = np.linspace(T, 1, 7).astype(int)
+
+model.eval()
+with torch.no_grad():
+	xt = torch.randn(n_show, 1, 28, 28).to(device)
+	frames = {}
+	for step in range(T, 0, -1):
+		t_batch = torch.full((n_show,), step - 1, device=device, dtype=torch.long)
+		eps_pred = model(xt, t_batch)
+		a = alpha[step - 1]
+		ab = alpha_bar[step - 1]
+		mu = (1 / a ** 0.5) * (xt - (beta[step - 1] / (1 - ab) ** 0.5) * eps_pred)
+		if step > 1:
+			xt = mu + beta[step - 1] ** 0.5 * torch.randn_like(xt)
+		else:
+			xt = mu
+		if step in show_steps:
+			frames[step] = xt.cpu()
+
+col_steps = list(show_steps) + [0]
+cols = [frames[s] if s != 0 else xt.cpu() for s in col_steps]
+grid_rows = []
+for row in range(n_show):
+	row_imgs = [c[row, 0].numpy() for c in cols]
+	grid_rows.append(np.concatenate(row_imgs, axis=1))
+grid = np.concatenate(grid_rows, axis=0)
+
+tick_positions = [28 * i + 14 for i in range(len(col_steps))]
+labels = [f't={s}' for s in col_steps]
+
+plt.imshow(grid, cmap='gray')
+plt.xticks(tick_positions, labels)
+plt.yticks([])
+plt.show()
+</pre>
+
+<p>在上述範例中：</p>
+<ul>
+	<li>q_sample 當中實作的，是前面介紹的這個式子：x<sub>t</sub> = &alpha;&#x0304;<sub>t</sub><sup>1/2</sup> x<sub>0</sub> + (1−&alpha;&#x0304;<sub>t</sub>)<sup>1/2</sup> &epsilon;</li>
+	<li>Timestep embedding 的維度可以自行調整，但我們會希望 sin 和 cos 可以配對，並且為了方便計算，所以通常會使用 2 的次方數。</li>
+	<li>生成新影像的時候，是反覆讓模型預測當前時間步的噪聲，並將其從 x<sub>t</sub> 中扣除；但我們會加上一個小的隨機數，來讓我們即使是從同樣的雜點開始，也能取得不一樣的生成結果。</li>
+</ul>
+
+<p>Diffusion model 也跟 AE 和 GAN 一樣，可以加上 condition。由於改動部分不多，因此此處只示範 model class 的更動，如下：</p>
+<pre class="brush: py">
+class UNet(nn.Module):
+	def __init__(self, t_dim=128, num_classes=10):
+		super().__init__()
+		self.t_dim = t_dim
+		self.label_emb = nn.Embedding(num_classes, t_dim)
+		self.t_mlp = nn.Sequential(
+			nn.Linear(t_dim, t_dim * 2),
+			nn.ReLU(),
+			nn.Linear(t_dim * 2, t_dim)
+		)
+		self.enc1 = ResBlock(1, 32, t_dim)
+		self.enc2 = ResBlock(32, 64, t_dim)
+		self.down = nn.MaxPool2d(2)
+		self.mid = ResBlock(64, 64, t_dim)
+		self.up = nn.Upsample(scale_factor=2, mode='nearest')
+		self.dec1 = ResBlock(64 + 32, 32, t_dim)
+		self.dec2 = ResBlock(32, 32, t_dim)
+		self.out = nn.Conv2d(32, 1, kernel_size=1)
+
+	def forward(self, x, t, label):
+		t_emb = get_timestep_embedding(t, self.t_dim)
+		t_emb = self.t_mlp(t_emb) + self.label_emb(label)
+		h1 = self.enc1(x, t_emb)
+		h2 = self.enc2(self.down(h1), t_emb)
+		h = self.mid(h2, t_emb)
+		h = self.dec1(torch.cat([self.up(h), h1], dim=1), t_emb)
+		h = self.dec2(h, t_emb)
+		return self.out(h)
+</pre>
+
+<p>在上述範例中，加入 condition 的方式跟 timestep embedding 一樣；而維度也設定為相符，則主要是為了實作上的方便，你也可以試試看使用不同的維度，但會需要另外撰寫一些轉換用的模組。</p>
+
+<p>另外一個值得一提的變體是生成新圖案的方式。我們先前的做法，大致上是逐步的預測噪聲並去除，但也可以改為在預測噪聲後，先估計出 x<sub>0</sub>，再利用 x<sub>0</sub> 的估計值與預測的噪聲，直接內插出噪聲程度更低的某個 x<sub>t'</sub>（t' &lt; t），來讓生成過程可以不用乖乖的一步一步一步跑。這個作法只需要修改預測的部分，如下：</p>
+<pre class="brush: py">
+step_seq = np.linspace(T, 1, 50).astype(int)
+step_pairs = list(zip(step_seq[:-1], step_seq[1:]))
+
+model.eval()
+with torch.no_grad():
+	xt = torch.randn(n_show, 1, 28, 28).to(device)
+	frames = {}
+	for step, step_prev in step_pairs:
+		t_batch = torch.full((n_show,), step - 1, device=device, dtype=torch.long)
+		eps_pred = model(xt, t_batch)
+		ab = alpha_bar[step - 1]
+		ab_prev = alpha_bar[step_prev - 1]
+		x0_pred = (xt - (1 - ab) ** 0.5 * eps_pred) / ab ** 0.5
+		xt = ab_prev ** 0.5 * x0_pred + (1 - ab_prev) ** 0.5 * eps_pred
+		if step in show_steps:
+			frames[step] = xt.cpu()
+	frames[0] = xt.cpu()
+</pre>
+
+<p>Diffusion model 還有其他不少的著名使用案例與延伸變體，如：</p>
+<ul>
+	<li>Score-based Generative Models / SDE：由 Song 等人於 2020 至 2021 年間提出，以隨機微分方程式(Stochastic Differential Equation，SDE)的語言統一描述 diffusion 過程，DDPM 可視為其離散化的特例。此框架亦提供對應的 ODE 求解器，可進一步加速推論。</li>
+    <li>DALL·E 2：由 OpenAI 於 2022 年提出，以文字描述為條件來生成對應影像，核心架構結合了 CLIP 的跨模態表示與 diffusion model 的生成能力；其中 CLIP 負責將文字與影像對應至同一個 embedding 空間，diffusion model 則以此 embedding 為條件進行影像生成。後續的 DALL·E 3 則進一步改善了文字與影像的對應精確度，但其架構細節並未被公開。</li>
+    <li>Latent Diffusion Model (LDM)：由 Rombach 等人於 2022 年提出，將 diffusion 過程從原始像素空間移至 VAE 的 latent space 中執行，大幅降低計算成本，使得高解析度影像的生成變得可行。</li>
+    <li>Stable Diffusion：由 Stability AI 於 2022 年發布，以 LDM 為基礎，並結合 CLIP 的文字編碼，來實現文字引導的條件生成。此變體因開放原始碼而被廣泛採用，成為目前最具影響力的開源影像生成模型之一。</li>
+</ul>
+
+</blockquote>
+
+</body></html>

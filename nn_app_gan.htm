@@ -279,7 +279,7 @@ plt.show()
 
 <p>前面提到，我們希望 generator 和 discriminator 在勢均力敵的情況下，互相競爭並持續進步；而為了讓兩個網路維持勢均力敵，不會有一方變強的太快，是需要不少訓練技巧配合的。其中，前面的幾個範例已經用到的有：</p>
 <ul>
-	<li>讓 generator 的訓練目標，從將「1 - discriminator 把假影像判為假影像的機率」最大化，改為將「discriminator 把假影像判為真影像的機率」最大化。這在 Binary Cross Entropy loss 的公式中，分別相當於 (1 - y) * log(1 - y &#770;) 和 y * log(y&#770;)，因此它們在數學上等價，但因為前者在訓練早期 discriminator 先變強的時候，梯度會比較小，因此讓 generator 不易訓練。</li>
+	<li>讓 generator 的訓練目標，從將「1 - discriminator 把假影像判為假影像的機率」最大化，改為將「discriminator 把假影像判為真影像的機率」最大化。這在 Binary Cross Entropy loss 的公式中，分別相當於 (1 - y) * log(1 - y&#770;) 和 y * log(y&#770;)，因此它們在數學上等價，但因為前者在訓練早期 discriminator 先變強的時候，梯度會比較小，因此讓 generator 不易訓練。</li>
 	<li>Discriminator 使用 LeakyReLU 而非 ReLU，避免負值區梯度為 0。Discriminator 使用 LeakyReLU 的原因是，梯度不為 0 就容易在訓練過程中持續地給予 generator 回饋；而 generator 沒有一起使用的原因是用 ReLU 造成幾個神經元死亡，對生成任務的影響有限，反倒是能讓負值通過的 LeakyReLU 不一定有幫助。</li>
 	<li>BatchNorm 的位置在 generator 除最後一層外都加，discriminator 除第一層外都加。兩者的原因都是避免讓單一影像的特性被同一 batch 內的其他資料影響，generator 可以保留每一張生成影像自己的特性，discriminator 則可以更好的看到每一張輸入影像自己的特性。</li>
 </ul>
