@@ -4,13 +4,8 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<link rel=stylesheet type="text/css" href="myCss.css">
 	<base target="_blank">
-	<script type="text/javascript" src="shCore.js"></script>
-	<script type="text/javascript" src="shBrushPython.js"></script>
-	<link href="shCore.css" rel="stylesheet" type="text/css" />
-	<link href="shThemeDefault.css" rel="stylesheet" type="text/css" />
-	<script type="text/javascript">
-		SyntaxHighlighter.all();
-	</script>
+	<link href="prism.css" rel="stylesheet">
+	<script src="prism.js"></script>
 </head>
 
 <body bgcolor="#ccccff">
@@ -24,8 +19,7 @@
 <p>
 MIR-QBSH 提供了 48 首 MIDI 檔案作為資料庫，且每個 MIDI 檔中在任一時刻當只有主旋律的部分有音符。我們需要先將這些 MIDI 檔案讀取進來，並轉換成適合（以本篇來說）比對的音高序列格式。下列的 read_database 函式會幫你進行讀取資料庫的工作，其輸入是 MIR-QBSH 資料集的 MIDI 檔案子資料夾路徑，輸出是一個 list of np array 和一個 list of string，其中前者的每個 np array 代表一首歌曲的音高序列，而後者的每個 string 代表歌曲的中英文名稱。完整的函式內容及使用範例如下：
 </p>
-<pre class="brush: py">
-import os
+<pre class="line-numbers match-braces"><code class="language-python">import os
 
 import numpy as np
 import pretty_midi
@@ -48,7 +42,7 @@ def read_database(path, fs=31.25):
 
 
 db_pitches, db_song_names = read_database('MIR-QBSH/midiFile')
-</pre>
+</code></pre>
 
 <p>在上述的程式碼中：</p>
 <ul>

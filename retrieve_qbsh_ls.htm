@@ -4,13 +4,8 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<link rel=stylesheet type="text/css" href="myCss.css">
 	<base target="_blank">
-	<script type="text/javascript" src="shCore.js"></script>
-	<script type="text/javascript" src="shBrushPython.js"></script>
-	<link href="shCore.css" rel="stylesheet" type="text/css" />
-	<link href="shThemeDefault.css" rel="stylesheet" type="text/css" />
-	<script type="text/javascript">
-		SyntaxHighlighter.all();
-	</script>
+	<link href="prism.css" rel="stylesheet">
+	<script src="prism.js"></script>
 </head>
 
 <body bgcolor="#ccccff">
@@ -24,8 +19,7 @@
 <p>
 我們先來看一個簡單的伸縮範例。以下範例會將輸入的音高向量進行伸縮，並且跟資料庫當中的音高向量並排展示，你可以目視觀察看看，是哪個倍率的伸縮版本，跟資料庫當中的音高向量最為相似：
 </p>
-<pre class="brush: py">
-import numpy as np
+<pre class="line-numbers match-braces"><code class="language-python">import numpy as np
 import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
 
@@ -68,7 +62,7 @@ plt.plot(scaledVecs[3], label='Scaled Input Pitch')
 plt.legend()
 
 plt.show()
-</pre>
+</code></pre>
 
 <p>在上述的程式碼中：</p>
 <ul>
@@ -84,8 +78,7 @@ plt.show()
 <p>
 因此，對於一個輸入查詢的某一個伸縮版本以及資料庫中的某一首歌曲之間，我們可以將兩邊重疊的部分，視作兩個向量來計算距離；而一個輸入查詢跟資料庫中的某一首歌曲之間，則可以用該輸入查詢的所有伸縮版本跟資料庫中的某一首歌曲之間的距離的最小值，來做為其距離。此處需要注意的是，如果你在進行移調時計算的是平均，則必須使用 2-norm，而若移調時使用的是中位數，則必須使用 1-norm，那麼在數學上才會是最短距離；但因為平均跟 1-norm 相對於中位數跟 2-norm 的組合來說，消耗的計算資源比較少一些，所以有些時候（特別是在需要計較速度的情況下），會用平均來移調以及用 1-norm 來計算距離。底下的範例，會對一個輸入查詢跟資料庫中的某一首歌曲之間計算距離，並顯示每個伸縮比以及其造成的距離：
 </p>
-<pre class="brush: py">
-import numpy as np
+<pre class="line-numbers match-braces"><code class="language-python">import numpy as np
 import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
 
@@ -118,7 +111,7 @@ dbPitch = 1.0 * np.array([60, 60, 60, 60, 60, 60, 60, 60, 60, 60, 60, 60, 60, 60
 scaledVecs = vec_lin_scaling(inputPitch, 0.5, 1.5, 5)
 min_dist = get_dist_for_one_db_song(scaledVecs, np.linspace(0.5, 1.5, 5), dbPitch)
 print('Min dist:', min_dist)
-</pre>
+</code></pre>
 
 <p>在上述的程式碼中：</p>
 <ul>
@@ -132,8 +125,7 @@ print('Min dist:', min_dist)
 <p>
 因此，對於一個輸入查詢，我們只要依照前述的方法，把它跟資料庫中的所有歌曲都比對過一遍，並依照它與資料庫中每首歌的最小距離進行遞增排序，就可以做為系統該回傳給使用者的結果候選清單：
 </p>
-<pre class="brush: py">
-import os
+<pre class="line-numbers match-braces"><code class="language-python">import os
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -193,7 +185,7 @@ scaled_vecs = vec_lin_scaling(input_pitch, 0.5, 1.5, 5)
 sorted_idx = compare_to_whole_db(scaled_vecs, db_pitches)
 for idx in sorted_idx[:10]:
 	print(db_song_names[idx])
-</pre>
+</code></pre>
 
 <p>你可以把上述固定寫死的 input_pitch，換成自己從音檔抽取出來的音高向量，就可以是一個簡單的哼唱選歌系統。如果有需要評估系統的辨識效果，也可以把簡介中提到的 top-n accuracy 或 MRR 實作出來，加到你的程式碼當中。</p>
 

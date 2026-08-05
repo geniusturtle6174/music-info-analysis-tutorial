@@ -4,13 +4,8 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<link rel=stylesheet type="text/css" href="myCss.css">
 	<base target="_blank">
-	<script type="text/javascript" src="shCore.js"></script>
-	<script type="text/javascript" src="shBrushPython.js"></script>
-	<link href="shCore.css" rel="stylesheet" type="text/css" />
-	<link href="shThemeDefault.css" rel="stylesheet" type="text/css" />
-	<script type="text/javascript">
-		SyntaxHighlighter.all();
-	</script>
+	<link href="prism.css" rel="stylesheet">
+	<script src="prism.js"></script>
 </head>
 
 <body bgcolor="#ccccff">
@@ -42,8 +37,7 @@
 </ul>
 
 <p>以下是一個在不平衡資料的狀況中，嘗試比較不處理、隨機過採樣、隨機降採樣的辨識效果的範例：</p>
-<pre class="brush: py">
-import matplotlib.pyplot as plt
+<pre class="line-numbers match-braces"><code class="language-python">import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.datasets import make_classification
 from sklearn.linear_model import LogisticRegression
@@ -89,7 +83,7 @@ for ax, (name, (Xr, yr)) in zip(axes, samplers.items()):
 	ax.set_title(name)
 
 plt.show()
-</pre>
+</code></pre>
 
 <!-- <p>在上述範例中：</p>
 <ul>

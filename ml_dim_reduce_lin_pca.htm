@@ -4,13 +4,8 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<link rel=stylesheet type="text/css" href="myCss.css">
 	<base target="_blank">
-	<script type="text/javascript" src="shCore.js"></script>
-	<script type="text/javascript" src="shBrushPython.js"></script>
-	<link href="shCore.css" rel="stylesheet" type="text/css" />
-	<link href="shThemeDefault.css" rel="stylesheet" type="text/css" />
-	<script type="text/javascript">
-		SyntaxHighlighter.all();
-	</script>
+	<link href="prism.css" rel="stylesheet">
+	<script src="prism.js"></script>
 </head>
 
 <body bgcolor="#ccccff">
@@ -22,8 +17,7 @@ PCA 的全名是 principal components analysis，中文一般稱為「主成分�
 </p>
 
 <p>以下範例將分別使用 sklearn 和 np.linalg.eig 計算 PCA 的結果，以同時說明完全現成函式的使用，以及你可以如何自己計算：</p>
-<pre class="brush: py">
-import matplotlib.pyplot as plt
+<pre class="line-numbers match-braces"><code class="language-python">import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.datasets import load_wine
 from sklearn.decomposition import PCA
@@ -78,7 +72,7 @@ for i in range(num_class):
 plt.title('TE (np.linalg.eig)')
 
 plt.show()
-</pre>
+</code></pre>
 
 <p>在上述範例中：</p>
 <ul>
@@ -88,8 +82,7 @@ plt.show()
 </ul>
 
 <p>對於影像類型的資料，我們可以用繪製的方式，來觀察看看 PCA 投影到的方向。以下範例是以 50 x 37 = 1850 維的人臉影像資料，找出前 150 個投影的方向，並繪製前 12 張原始圖片，以及前 12 個投影方向（此範例需要經由網路連線下載資料，若你的網路不順暢，或者伺服器有問題的話，可能會無法執行此範例）：</p>
-<pre class="brush: py">
-import matplotlib.pyplot as plt
+<pre class="line-numbers match-braces"><code class="language-python">import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.datasets import fetch_lfw_people
 from sklearn.decomposition import PCA
@@ -115,7 +108,7 @@ for i in range(12):
 	plt.imshow(eigenfaces[i])
 
 plt.show()
-</pre>
+</code></pre>
 
 <p>在上述範例中，model.components_ 是 150 個位於 1850 維空間中的向量（並且皆互相垂直），因此我們可以把任意一個向量 reshape 成 50 x 37，以當作影像來顯示。</p>
 

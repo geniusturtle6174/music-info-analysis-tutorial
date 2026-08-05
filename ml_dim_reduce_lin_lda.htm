@@ -4,13 +4,8 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<link rel=stylesheet type="text/css" href="myCss.css">
 	<base target="_blank">
-	<script type="text/javascript" src="shCore.js"></script>
-	<script type="text/javascript" src="shBrushPython.js"></script>
-	<link href="shCore.css" rel="stylesheet" type="text/css" />
-	<link href="shThemeDefault.css" rel="stylesheet" type="text/css" />
-	<script type="text/javascript">
-		SyntaxHighlighter.all();
-	</script>
+	<link href="prism.css" rel="stylesheet">
+	<script src="prism.js"></script>
 </head>
 
 <body bgcolor="#ccccff">
@@ -22,8 +17,7 @@ LDA 的全名是 linear discriminant analysis，中文一般稱為「線性判�
 </p>
 
 <p>以下範例將分別使用 sklearn 和 numpy 計算 LDA 的結果，以同時說明完全現成函式的使用，以及你可以如何自己計算：</p>
-<pre class="brush: py">
-import matplotlib.pyplot as plt
+<pre class="line-numbers match-braces"><code class="language-python">import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.datasets import load_wine
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
@@ -88,7 +82,7 @@ for i in range(num_class):
 plt.title('TE (np.linalg.eig)')
 
 plt.show()
-</pre>
+</code></pre>
 
 <p>在上述範例中：</p>
 <ul>

@@ -5,13 +5,8 @@
 	<link rel=stylesheet type="text/css" href="myCss.css">
 	<base target="_blank">
 	<script type="text/javascript" src="myJs.js"></script>
-	<script type="text/javascript" src="shCore.js"></script>
-	<script type="text/javascript" src="shBrushPython.js"></script>
-	<link href="shCore.css" rel="stylesheet" type="text/css" />
-	<link href="shThemeDefault.css" rel="stylesheet" type="text/css" />
-	<script type="text/javascript">
-		SyntaxHighlighter.all();
-	</script>
+	<link href="prism.css" rel="stylesheet">
+	<script src="prism.js"></script>
 </head>
 
 <body bgcolor="#ccccff">
@@ -32,8 +27,7 @@
 <p>由上圖可見，在 pooling 運算中，pooling window 每次移動的長度，預設會等於 window 的大小，即 stride = window size（這點與 convolution kernel 的預設行為不同，請留意）。而當輸入大小不是 window size 的整數倍，而其他參數仍使用預設時，則多數工具的行為是將剩下的部分捨去，例如 7 * 7 大小的輸入，遇到 3 * 3 大小的 pooling window，則輸出大小會是 floor(7 / 3) * floor(7 / 3) = 2 * 2。若需要知道考慮 stride 不等於 window size、輸入有 padding，或甚至 dilation 等情況後的輸出大小，可以參考 PyTorch 等工具的<a href="https://docs.pytorch.org/docs/stable/generated/torch.nn.MaxPool2d.html">官方文件</a>。</p>
 
 <p>以下是用 PyTorch 的 CNN 相關函式庫，進行數字辨識的範例：</p>
-<pre class="brush: py">
-import torch
+<pre class="line-numbers match-braces"><code class="language-python">import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
@@ -77,7 +71,7 @@ correct = sum(
 	for X, y in test_loader
 )
 print('Accuracy: {:.2f}%'.format(100 * correct / len(test_set)))
-</pre>
+</code></pre>
 
 <p>在上述範例中，</p>
 <ul>
@@ -87,8 +81,7 @@ print('Accuracy: {:.2f}%'.format(100 * correct / len(test_set)))
 </ul>
 
 <p>使用 CNN 的另一個經典架構，是 Fully Convolutional Network（全卷積網路），它的優點是可處理任意寬高大小的輸入。若要嘗試，只需要把前一個範例的模型定義，更換為以下內容：</p>
-<pre class="brush: py">
-model = nn.Sequential(
+<pre class="line-numbers match-braces"><code class="language-python">model = nn.Sequential(
 	nn.Conv2d(1, 16, kernel_size=3, padding=1),
 	nn.ReLU(),
 	nn.MaxPool2d(2),
@@ -101,7 +94,7 @@ model = nn.Sequential(
 	nn.AdaptiveAvgPool2d(1),
 	nn.Flatten()
 ).to(device)
-</pre>
+</code></pre>
 
 <p>在上述範例中，</p>
 <ul>

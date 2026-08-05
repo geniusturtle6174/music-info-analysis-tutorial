@@ -4,13 +4,8 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<link rel=stylesheet type="text/css" href="myCss.css">
 	<base target="_blank">
-	<script type="text/javascript" src="shCore.js"></script>
-	<script type="text/javascript" src="shBrushPython.js"></script>
-	<link href="shCore.css" rel="stylesheet" type="text/css" />
-	<link href="shThemeDefault.css" rel="stylesheet" type="text/css" />
-	<script type="text/javascript">
-		SyntaxHighlighter.all();
-	</script>
+	<link href="prism.css" rel="stylesheet">
+	<script src="prism.js"></script>
 </head>
 
 <body bgcolor="#ccccff">
@@ -20,8 +15,7 @@
 <p>一般來說，我們會將整個資料集切成訓練、驗證與測試集，而交叉驗證(cross validation)則是把整個資料集切分成訓練與測試集，再將訓練集分成 k 個小份，每次拿一份作為驗證使用，另外 k - 1 份做為訓練使用，如此輪流 k 次的整個過程。交叉驗證的好處是可以更有效的利用資料，讓訓練模型的過程，有機會以不同的資料來選擇超參數等。</p>
 
 <p>下列是一個交叉驗證的範例。此範例使用了 wine dataset 的 80% 作為訓練集，並將這個訓練集分成三份進行交叉驗證。你可以試著改變模型超參數，看看平均的 accuracy 是否會變化：</p>
-<pre class="brush: py">
-import numpy as np
+<pre class="line-numbers match-braces"><code class="language-python">import numpy as np
 from sklearn.datasets import load_wine
 from sklearn.neighbors import KNeighborsClassifier
 
@@ -46,11 +40,10 @@ for i in range(N_FOLD):
 	acc = 100 * np.mean(pred == y_train[idx_fold_va])
 	accuracies.append(acc)
 print('Average acc:', np.mean(accuracies))
-</pre>
+</code></pre>
 
 <p>Scikit-learn 的 <a href="https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.cross_validate.html">model_selection.cross_validate</a> 也可以幫你進行交叉驗證與超參數搜尋，若將前一個範例改為用 sklearn.model_selection.cross_validate 來進行，則會變為如下：</p>
-<pre class="brush: py">
-import numpy as np
+<pre class="line-numbers match-braces"><code class="language-python">import numpy as np
 from sklearn.datasets import load_wine
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import cross_validate
@@ -70,11 +63,10 @@ cv_results = cross_validate(model, x_train, y_train, cv=N_FOLD, scoring='accurac
 
 accuracies = cv_results['test_score'] * 100
 print('Average acc:', np.mean(accuracies))
-</pre>
+</code></pre>
 
 <p>在切分資料的時候，有件事情是必須留意的，也就是每個 fold 的各類資料的比率，要盡量跟整個資料集的原始分布相同，稱為 class-wise stratified K-Fold。你當然可以自己確保如何切分，也可以透過 <a href="https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.StratifiedKFold.html">sklearn.model_selection.StratifiedKFold</a> 來幫你處理，如下：</p>
-<pre class="brush: py">
-import numpy as np
+<pre class="line-numbers match-braces"><code class="language-python">import numpy as np
 from sklearn.datasets import load_wine
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import cross_validate, StratifiedKFold
@@ -94,11 +86,10 @@ cv_results = cross_validate(model, x_train, y_train, cv=StratifiedKFold(n_splits
 
 accuracies = cv_results['test_score'] * 100
 print('Average acc:', np.mean(accuracies))
-</pre>
+</code></pre>
 
 <p>在前面幾個範例中，我們都是固定使用一組超參數，來執行 cross validation 的效果。然而，cross validation 的用處之一，就是以平均的模型效果來決定超參數。若要達成此目的，你可以反覆手動修改超參數並執行程式、自行撰寫迴圈來暴力搜尋，或者使用 scikit-learn 的 <a href="https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html">model_selection.GridSearchCV</a> 函式庫來進行，如下：</p>
-<pre class="brush: py">
-import numpy as np
+<pre class="line-numbers match-braces"><code class="language-python">import numpy as np
 from sklearn.datasets import load_wine
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import GridSearchCV, StratifiedKFold
@@ -131,13 +122,12 @@ grid_search.fit(x_train, y_train)
 
 print('Best parameters:', grid_search.best_params_)
 print('Best average acc:', grid_search.best_score_ * 100)
-</pre>
+</code></pre>
 
 <p>總之，透過交叉驗證，找出能取得最好的準確度（或者其他你需要的評估結果）的超參數後，就可以用這組超參數和所有的訓練資料重新訓練一個模型，並在測試集上看看效果。</p>
 
 <p>事實上，在交叉驗證當中，能改變的不只有超參數，甚至連選用的模型本身也可以更動。此外，除了使用找出的最佳超參數和所有的訓練資料重新訓練一個模型以外，你也可以將過程中訓練的模型全部直接保留，並將其全部用來對測試集做預測，再將結果取平均或中位數等統計；這樣在每個 fold 的超參數有明顯差異時，有機會取得比較穩定的預測結果。一個簡單的範例如下：</p>
-<pre class="brush: py">
-import numpy as np
+<pre class="line-numbers match-braces"><code class="language-python">import numpy as np
 from sklearn.datasets import load_wine
 from sklearn.neighbors import KNeighborsClassifier
 
@@ -178,7 +168,7 @@ for m in models:
 pred_all = np.array(pred_all) # Shape: (N_FOLD, data_Num)
 pred_all = np.median(pred_all, axis=0) # Shape: (data_Num, )
 print('Test acc:', 100 * np.mean(pred_all == y_test))
-</pre>
+</code></pre>
 
 <p>若將上述範例套用到競賽或研究的實務上，你可能會想要將交叉驗證完畢的模型先儲存起來，再用另外一個檔案載入驗證效果比較好的模型並對測試集做預測，以避免將效果不佳的模型拿去做預測而浪費時間。若有需要儲存與載入模型，可以參考 Python 內建的 pickle 函式庫。</p>
 

@@ -4,13 +4,8 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<link rel=stylesheet type="text/css" href="myCss.css">
 	<base target="_blank">
-	<script type="text/javascript" src="shCore.js"></script>
-	<script type="text/javascript" src="shBrushPython.js"></script>
-	<link href="shCore.css" rel="stylesheet" type="text/css" />
-	<link href="shThemeDefault.css" rel="stylesheet" type="text/css" />
-	<script type="text/javascript">
-		SyntaxHighlighter.all();
-	</script>
+	<link href="prism.css" rel="stylesheet">
+	<script src="prism.js"></script>
 </head>
 
 <body bgcolor="#ccccff">
@@ -26,8 +21,7 @@
 </ol>
 
 <p>我們使用 scikit-learn 的 <a href="https://scikit-learn.org/stable/modules/generated/sklearn.cluster.KMeans.html">cluster.KMeans</a> 來幫我們執行 k-means 演算法，使用的資料集是 <a href="https://archive.ics.uci.edu/ml/datasets/wine">Wine Data Set</a>，但為了視覺化方便，範例將只使用前兩維特徵。</p>
-<pre class="brush: py">
-import matplotlib.pyplot as plt
+<pre class="line-numbers match-braces"><code class="language-python">import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.datasets import load_wine
 from sklearn.cluster import KMeans
@@ -50,11 +44,10 @@ for clab in set(cluster_labels):
 	plt.plot(model.cluster_centers_[clab, 0], model.cluster_centers_[clab, 1], 'r.', markersize=10)
 
 plt.show()
-</pre>
+</code></pre>
 
 <p>如果你想看到群聚中心移動的過程，可以一步一步地跑：</p>
-<pre class="brush: py">
-import matplotlib.pyplot as plt
+<pre class="line-numbers match-braces"><code class="language-python">import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.datasets import load_wine
 from sklearn.cluster import KMeans
@@ -89,11 +82,10 @@ for step in range(5):
     plt.title(f'Iter {step+1}')
 
 plt.show()
-</pre>
+</code></pre>
 
 <p>K-means 演算法在特定情況下的效果可能不太理想，其中一種情況是資料中不同維度的尺度相差太大：</p>
-<pre class="brush: py">
-import matplotlib.pyplot as plt
+<pre class="line-numbers match-braces"><code class="language-python">import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.datasets import load_wine
 from sklearn.cluster import KMeans
@@ -118,13 +110,12 @@ for clab in set(cluster_labels):
 	plt.plot(model.cluster_centers_[clab, 0], model.cluster_centers_[clab, 1], 'r.', markersize=10)
 
 plt.show()
-</pre>
+</code></pre>
 
 <p>修正上述問題的方法是將輸入資料正規化，有興趣的話可以先參考相關篇章，或者自行閱讀 scikit-learn 的 preprocessing.StandardScaler，或網路上的其他相關資料。</p>
 
 <p>K-means 演算法會產生不理想效果的另一種情況，是每一群資料看起來不像是實心球狀，例如同心圓：</p>
-<pre class="brush: py">
-import matplotlib.pyplot as plt
+<pre class="line-numbers match-braces"><code class="language-python">import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.cluster import KMeans
 from sklearn.datasets import make_circles
@@ -146,11 +137,10 @@ for clab in set(cluster_labels):
 	plt.plot(model.cluster_centers_[clab, 0], model.cluster_centers_[clab, 1], 'r.', markersize=10)
 
 plt.show()
-</pre>
+</code></pre>
 
 <p>在前面的幾個範例中，我們都是事先設定把資料分成多少群，並且將分群結果和每一群的中心點畫出來。若需要做更細節的控制，例如如何選擇初始點，以及演算法步驟要重複幾次等，請參考<a href="https://scikit-learn.org/stable/modules/generated/sklearn.cluster.KMeans.html">官方文件</a>。而如何選擇群體數目，是一個非常重要的問題。其中一種決定方式是，藉由每個點到各自中心的距離總和來評估，雖然這個總和會隨著群體數目變多而減少（數學上是可以證明的，但<span style="text-decoration: line-through;">這裡空間太小了我寫不下</span>不是本教材的關注點所以略過），但我們通常可以選擇變化突然趨緩的地方，作為群體數目即可。下面範例會畫出群體數目分別為 1 到 10 時的距離總和：</p>
-<pre class="brush: py">
-import matplotlib.pyplot as plt
+<pre class="line-numbers match-braces"><code class="language-python">import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.datasets import load_wine
 from sklearn.cluster import KMeans
@@ -171,13 +161,12 @@ plt.xlabel('# Clusters')
 plt.ylabel('Dist')
 
 plt.show()
-</pre>
+</code></pre>
 
 <p>另外一種分群演算法，是 DBSCAN (Density-Based Spatial Clustering of Applications with Noise)，它是一種以密度為核心概念的資料分群方法，如果一個點的周圍在某個半徑內有足夠多的鄰居，便視為同一群的一部分；相反地，若點落在低密度區域，則可能被視為雜訊。它的好處是不需要事先指定群數，並且能夠處理非球狀的群集，同時對離群點具有天然的辨識能力；但相對地，分群結果對距離尺度等參數較為敏感，且在不同密度混雜的資料上容易失效。</p>
 
 <p>我們以「一個點在半徑 0.2 內有五個以上的鄰居」為範例，來重新將前面會被 k-means 分壞掉的資料來分群：</p>
-<pre class="brush: py">
-import matplotlib.pyplot as plt
+<pre class="line-numbers match-braces"><code class="language-python">import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.cluster import DBSCAN
 from sklearn.datasets import make_circles
@@ -197,7 +186,7 @@ for clab in set(cluster_labels):
 	plt.plot(data[idx, 0], data[idx, 1], '.')
 
 plt.show()
-</pre>
+</code></pre>
 
 <p>資料分群還有許多演算法，例如以階層式的方式來進行分群等等，在此處就暫不介紹。</p>
 

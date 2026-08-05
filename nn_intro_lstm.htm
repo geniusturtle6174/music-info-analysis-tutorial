@@ -5,13 +5,8 @@
 	<link rel=stylesheet type="text/css" href="myCss.css">
 	<base target="_blank">
 	<script type="text/javascript" src="myJs.js"></script>
-	<script type="text/javascript" src="shCore.js"></script>
-	<script type="text/javascript" src="shBrushPython.js"></script>
-	<link href="shCore.css" rel="stylesheet" type="text/css" />
-	<link href="shThemeDefault.css" rel="stylesheet" type="text/css" />
-	<script type="text/javascript">
-		SyntaxHighlighter.all();
-	</script>
+	<link href="prism.css" rel="stylesheet">
+	<script src="prism.js"></script>
 </head>
 
 <body bgcolor="#ccccff">
@@ -41,8 +36,7 @@
 <p>其中 W<sub>*</sub> 與 b<sub>*</sub> 為對應的權重與 bias，方括號表示矩陣並排，&sigma; 為 sigmoid function，⊙ 為 element-wise product；c<sub>t-1</sub> 代表上一步的記憶，乘上 f<sub>t</sub> 代表上一步的記憶要保留多少；c&#x0303;<sub>t</sub> 代表這一步新產生的候選記憶，乘上 i<sub>t</sub> 代表它要貢獻多少到這一步的新記憶當中。h<sub>0</sub> 與 c<sub>0</sub> 實務上通常使用 zero vector。</p>
 
 <p>上述的詳細運算步驟，若要用 PyTorch class 的方式表示，則寫法如下：</p>
-<pre class="brush: py">
-class LSTMCell(nn.Module):
+<pre class="line-numbers match-braces"><code class="language-python">class LSTMCell(nn.Module):
 	def __init__(self, input_size, hidden_size):
 		super().__init__()
 		self.W_f = nn.Linear(input_size + hidden_size, hidden_size)
@@ -59,11 +53,10 @@ class LSTMCell(nn.Module):
 		c = f * c_prev + i * c_tilde
 		h = o * torch.tanh(c)
 		return h, c
-</pre>
+</code></pre>
 
 <p>當然，實務上我們不必自己用自己撰寫的 LSTM cell 來搭建網路，而是使用 PyTorch 的 nn.LSTM。一個以 sine wave 做示範的簡單範例如下：</p>
-<pre class="brush: py">
-import matplotlib.pyplot as plt
+<pre class="line-numbers match-braces"><code class="language-python">import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import torch.nn as nn
@@ -135,7 +128,7 @@ plt.ylabel('sin(t)')
 plt.title('LSTM Rolling Prediction')
 plt.legend()
 plt.show()
-</pre>
+</code></pre>
 
 <p>在上述範例中：</p>
 <ul>
@@ -149,8 +142,7 @@ plt.show()
 </ul>
 
 <p>雖然 LSTM 實際上的應用，主要是跟時間序列有關的問題，但我們也可以將影像的其中一個軸視為時間軸，來套用 LSTM。以下是用 LSTM 來進行 MNIST 數字分類的範例：</p>
-<pre class="brush: py">
-import torch
+<pre class="line-numbers match-braces"><code class="language-python">import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
@@ -196,13 +188,12 @@ correct = sum(
 	for X, y in test_loader
 )
 print('Accuracy: {:.2f}%'.format(100 * correct / len(test_set)))
-</pre>
+</code></pre>
 
 <p>在上述範例中，原始影像的 shape 是 (N, C=1, H=28, W=28)，我們用 squeeze(1) 來拿掉 channel 軸，並將 height 軸視為時間軸，餵給 LSTM。</p>
 
 <p>既然 LSTM 的後面可以疊其他東西，那前面也可以。一個常見的作法是，把圖片等資料先用 CNN 處理過後，再餵給 LSTM 處理。若以基於上一個範例做修改來說，你只要把 class 替換為以下的版本即可：</p>
-<pre class="brush: py">
-class CNNLSTMModel(nn.Module):
+<pre class="line-numbers match-braces"><code class="language-python">class CNNLSTMModel(nn.Module):
 	def __init__(self):
 		super().__init__()
 		self.cnn = nn.Sequential(
@@ -222,7 +213,7 @@ class CNNLSTMModel(nn.Module):
 		x = x.flatten(2) # (N, w=7, ch=32, h=7) to (N, 7, 32*7)
 		out, _ = self.lstm(x)
 		return self.linear(out[:, -1, :])
-</pre>
+</code></pre>
 
 <p>在上述的 class 中，你需要把 CNN 處理完的結果中，適合當時間軸的維度移到前面來，才能餵給 LSTM。此外，LSTM 的輸入大小必須事先計算，因此你需要相當確定原始的輸入大小。</p>
 

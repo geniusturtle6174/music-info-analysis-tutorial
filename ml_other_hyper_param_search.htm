@@ -4,13 +4,8 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<link rel=stylesheet type="text/css" href="myCss.css">
 	<base target="_blank">
-	<script type="text/javascript" src="shCore.js"></script>
-	<script type="text/javascript" src="shBrushPython.js"></script>
-	<link href="shCore.css" rel="stylesheet" type="text/css" />
-	<link href="shThemeDefault.css" rel="stylesheet" type="text/css" />
-	<script type="text/javascript">
-		SyntaxHighlighter.all();
-	</script>
+	<link href="prism.css" rel="stylesheet">
+	<script src="prism.js"></script>
 </head>
 
 <body bgcolor="#ccccff">
@@ -20,8 +15,7 @@
 <p>超參數(hyperparameter)的意思是，不是經由模型訓練過程中學習到，而是需要在訓練前手動設定的參數，如 KNN 的鄰居數量、樹模型的最大深度、SVM 的 kernel 種類，以及神經網路的 batch size 等等。由於超參數雖然不能自動學習，但又仍會對模型的性能有影響，因此如何調整它們，是相當重要的問題。當然，如果你對於待調整的超參數，可以用過去經驗來預估大概範圍，且超參數數量不多的話，可以用手動調整；但若遇到沒有過去經驗可以參考，或者超參數數量較多等等的狀況的話，就比較難以用手動調整，並紀錄實驗結果。本篇將介紹除了手動調整以外的一些方法，以及相關注意事項。</p>
 
 <p>最簡單直覺的方法，是網格式的將每種組合做暴力搜尋；而這種方式除了自己撰寫多層的迴圈以外，也可以透過 scikit-learn 的 <a href="https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html">model_selection.GridSearchCV</a> 來進行：</p>
-<pre class="brush: py">
-import numpy as np
+<pre class="line-numbers match-braces"><code class="language-python">import numpy as np
 from sklearn.datasets import make_moons
 from sklearn.model_selection import GridSearchCV
 from xgboost import XGBClassifier
@@ -40,7 +34,7 @@ model.fit(x_train, y_train)
 pred = model.predict(x_test)
 print(f'Best parameters: {model.best_params_}')
 print(f'Accuracy: {np.mean(pred == y_test)*100:.2f}%')
-</pre>
+</code></pre>
 
 <p>在上述範例中：</p>
 <ul>
@@ -51,8 +45,7 @@ print(f'Accuracy: {np.mean(pred == y_test)*100:.2f}%')
 </ul>
 
 <p>如果你基於運算量或其他各種原因，不希望做 cross validation，而是希望使用自己切分出的 validation set 的話，則可以透過 scikit-learn 的 <a href="https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.PredefinedSplit.html">model_selection.PredefinedSplit</a> 來輔助。使用時，我們需要將訓練集跟驗證集堆疊起來；並另外傳入一個變數，以代表堆疊完成的結果中，哪些要當作訓練集（標記為 -1），哪些要當作驗證集：</p>
-<pre class="brush: py">
-import numpy as np
+<pre class="line-numbers match-braces"><code class="language-python">import numpy as np
 from sklearn.datasets import make_moons
 from sklearn.model_selection import GridSearchCV, PredefinedSplit
 from xgboost import XGBClassifier
@@ -83,11 +76,10 @@ pred = model.predict(x_test)
 print(f'Best parameters: {model.best_params_}')
 print(f'Validation score: {model.best_score_*100:.2f}%')
 print(f'Test accuracy: {np.mean(pred == y_test)*100:.2f}%')
-</pre>
+</code></pre>
 
 <p>然而，一個可想而知的情況是，當要調整的超參數量一多，或者搜尋範圍一大的時候，暴力搜尋就難以適用。這時候可以考慮的選項之一是隨機搜尋，此方法對於不太重要的超參數比較不敏感，因此在同樣的計算資源限制下，仍有機會找到效果不錯的超參數。我們可以透過 scikit-learn 的 <a href="">model_selection.RandomizedSearchCV</a> 來進行，範例如下（預設是跑 10 次，調整方法請參閱官方文件）：</p>
-<pre class="brush: py">
-import numpy as np
+<pre class="line-numbers match-braces"><code class="language-python">import numpy as np
 from sklearn.datasets import make_moons
 from sklearn.model_selection import RandomizedSearchCV
 from xgboost import XGBClassifier
@@ -106,11 +98,10 @@ model.fit(x_train, y_train)
 pred = model.predict(x_test)
 print(f'Best parameters: {model.best_params_}')
 print(f'Accuracy: {np.mean(pred == y_test)*100:.2f}%')
-</pre>
+</code></pre>
 
 <p>或者，你也可以考慮先做粗略搜尋，再做精細搜尋，例如先找 a = [0.1, 1, 10, 100, 1000]，假設找到 10 最好，再接著找 a = [6, 8, 10, 12, 14]；甚至是如果你的資料量也很大的時候，也可以先用少量資料進行快速評估，淘汰表現差的超參數範圍以後，再用更多的資料評估剩下的範圍。對於後者，我們可以透過 scikit-learn 的 <a href="https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.HalvingGridSearchCV.html">model_selection.HalvingGridSearchCV</a> 或 <a href="https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.HalvingRandomSearchCV.html">model_selection.HalvingRandomSearchCV</a> 來進行，以下示範後者：</p>
-<pre class="brush: py">
-import numpy as np
+<pre class="line-numbers match-braces"><code class="language-python">import numpy as np
 from sklearn.datasets import make_moons
 from sklearn.experimental import enable_halving_search_cv
 from sklearn.model_selection import HalvingRandomSearchCV
@@ -130,13 +121,12 @@ model.fit(x_train, y_train)
 pred = model.predict(x_test)
 print(f'Best parameters: {model.best_params_}')
 print(f'Accuracy: {np.mean(pred == y_test)*100:.2f}%')
-</pre>
+</code></pre>
 
 <p>在上述範例中，由於截至其最後被更新（2026 年四月初）為止，model_selection.HalvingRandomSearchCV 此一功能是以實驗性質的方式存在，因此必須先使用「from sklearn.experimental import enable_halving_search_cv」，才能進行 model_selection.HalvingRandomSearchCV 的載入。</p>
 
 <p>如果你的狀況處理起來更困難，例如訓練一次模型就要耗去不少時間的話，則可以考慮用一些較進階的工具，來幫你比較「聰明」的找到效果不錯的超參數。這些工具的大致原理，通常是先建立一個代理模型來預測超參數的性能，並重複地選擇預期效果最佳的超參數組合，以及用實際嘗試地結果更新代理模型。以下將示範 <a href="https://optuna.org/">Optuna</a> 這一個工具：</p>
-<pre class="brush: py">
-import numpy as np
+<pre class="line-numbers match-braces"><code class="language-python">import numpy as np
 import optuna
 from sklearn.datasets import make_moons
 from xgboost import XGBClassifier
@@ -172,7 +162,7 @@ model = XGBClassifier(**study.best_params)
 model.fit(x_train, y_train)
 pred = model.predict(x_test)
 print(f'Final test accuracy: {np.mean(pred == y_test)*100:.2f}%')
-</pre>
+</code></pre>
 
 <p>在上述範例中：</p>
 <ul>

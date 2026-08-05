@@ -4,13 +4,8 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<link rel=stylesheet type="text/css" href="myCss.css">
 	<base target="_blank">
-	<script type="text/javascript" src="shCore.js"></script>
-	<script type="text/javascript" src="shBrushPython.js"></script>
-	<link href="shCore.css" rel="stylesheet" type="text/css" />
-	<link href="shThemeDefault.css" rel="stylesheet" type="text/css" />
-	<script type="text/javascript">
-		SyntaxHighlighter.all();
-	</script>
+	<link href="prism.css" rel="stylesheet">
+	<script src="prism.js"></script>
 </head>
 
 <body bgcolor="#ccccff">
@@ -22,8 +17,7 @@ showWarning('以下內容假設你看過「高斯貝氏分類」及「資料分�
 </script>
 
 <p>你可能記得，在高斯貝氏分類當中，我們有個範例是二維平面上的第一和第三象限的點是一個類別，第二和第四象限的點是另外一個類別，每個類別各自分成了兩群，導致套用高斯貝氏分類的效果很差。而如果我們可以把每個類別，用多個高斯分布來表示呢？這個就是 sklearn.mixture 的 <a href="https://scikit-learn.org/stable/modules/generated/sklearn.mixture.GaussianMixture.html">GaussianMixture</a>（高斯混合模型，GMM）可以辦到的事情，如下：</p>
-<pre class="brush: py">
-import numpy as np
+<pre class="line-numbers match-braces"><code class="language-python">import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.mixture import GaussianMixture
@@ -42,7 +36,7 @@ logps = np.column_stack([gmms[c].score_samples(X_test) for c in n_classes])
 pred = n_classes[np.argmax(logps, axis=1)]
 
 print(f'Accuracy (GMM): {100*np.mean(pred==y_test):.2f}%')
-</pre>
+</code></pre>
 
 <p>在上述範例中：</p>
 <ul>

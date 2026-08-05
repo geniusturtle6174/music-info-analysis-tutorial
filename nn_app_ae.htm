@@ -5,13 +5,8 @@
 	<link rel=stylesheet type="text/css" href="myCss.css">
 	<base target="_blank">
 	<script type="text/javascript" src="myJs.js"></script>
-	<script type="text/javascript" src="shCore.js"></script>
-	<script type="text/javascript" src="shBrushPython.js"></script>
-	<link href="shCore.css" rel="stylesheet" type="text/css" />
-	<link href="shThemeDefault.css" rel="stylesheet" type="text/css" />
-	<script type="text/javascript">
-		SyntaxHighlighter.all();
-	</script>
+	<link href="prism.css" rel="stylesheet">
+	<script src="prism.js"></script>
 </head>
 
 <body bgcolor="#ccccff">
@@ -21,8 +16,7 @@
 <p>自動編碼器(Autoencoder，AE)是一種自監督式的神經網路，其目標不是預測標籤，而是學習將輸入資料壓縮成一個低維度的表示（稱為 latent vector 或 code），再從這個表示重建回原始輸入。由於輸入和輸出是同一筆資料，AE 不需要人工標注的標籤即可訓練。AE 主要由兩個部分組成：負責壓縮的 encoder，以及負責重建的 decoder；中間的低維度表示所構成的空間，稱為 latent space。AE 最直接的應用是降維與特徵萃取，且相較於 PCA 只能做線性映射，AE 可以透過非線性的激活函數，來學到更複雜的資料分布。此外，AE 也常用於異常偵測，因為對於訓練資料中未出現過的樣本，重建誤差通常會明顯偏高，故可藉此判斷異常。本篇章將介紹 AE 的基礎以及各種變形與其應用等方面。</p>
 
 <p>我們先以 MNIST 手寫數字為例，使用 MLP 建構一個簡單的 AE 對其進行編碼與重建，並將影像的 latent space 設定為 2 維，以便視覺化：</p>
-<pre class="brush: py">
-import matplotlib.pyplot as plt
+<pre class="line-numbers match-braces"><code class="language-python">import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
@@ -109,13 +103,12 @@ plt.axis('off')
 plt.title(f'AE Generated Samples ({n}x{n})')
 
 plt.show()
-</pre>
+</code></pre>
 
 <p>在上述範例中，將 encoder 及 decoder 分開成兩個子模組，是為了方便取出中間的 latent vector。此外，單純的 AE 學到的是資料在 latent space 當中的位置，如果你在這個空間中隨機取樣來做解碼，可能會得到不知所云的結果。</p>
 
 <p>相較於 AE 是將資料壓縮成固定數值，Variational Autoencoder (VAE) 則是將資料壓縮成機率分布。具體而言，encoder 的輸出不再是一個點，而是一個高斯分布的平均值 μ 與變異數 σ<sup>2</sup>，再從這個分布取樣出 latent vector。這樣的設計讓 latent space 具有連續性與可取樣性，亦即只要從標準常態分布當中取樣，就能透過 decoder 生成新的資料，而不只是重建已有的輸入。為了讓 latent space 真的逼近標準常態分布，VAE 在重建損失之外，還加入了 KL divergence 作為正則化項，用來衡量 encoder 輸出的分布與標準常態分布之間的差距，並在訓練過程中一併對其最小化。以下是 VAE 的範例，我們一樣使用 MNIST 來做示範：</p>
-<pre class="brush: py">
-import torch
+<pre class="line-numbers match-braces"><code class="language-python">import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
@@ -220,13 +213,12 @@ plt.axis('off')
 plt.title(f'AE Generated Samples ({n}x{n})')
 
 plt.show()
-</pre>
+</code></pre>
 
 <p>在上述範例中，訓練與測試時的重新取樣的動作，是在 VAE.reparameterize 當中進行；而生成新資料時，則是在外部進行重新取樣，再將取樣點灌入 decoder。</p>
 
 <p>在前兩個範例中，我們幾乎無法控制要生成哪個數字。若你想對生成哪個數字有一定的掌握，則可以使用 Conditional VAE (CVAE)。其核心概念是將類別資訊作為額外的條件(condition)輸入，並同時接在 encoder 和 decoder 的輸入端。如此一來，encoder 在壓縮資料時已經知道類別為何，latent vector 便能更專注於捕捉同一類別內的變異，例如筆跡的粗細或傾斜角度；decoder 則同時接收 latent vector 與類別條件，重建出對應類別的圖片。訓練完成後，只需從標準常態分布中，取樣一個 latent vector，再指定想要的類別接在後面，就能對 decoder 生成之數字有一定程度的掌握。以下是 CVAE 的範例：</p>
-<pre class="brush: py">
-import torch
+<pre class="line-numbers match-braces"><code class="language-python">import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
@@ -343,13 +335,12 @@ plt.xlabel('Class')
 plt.show()
 
 plt.show()
-</pre>
+</code></pre>
 
 <p>各位可以在上述範例中看到，CVAE 和 VAE 的差別，只在於多加入了類別資訊作為模型輸入。</p>
 
 <p>AE 的應用之一是去除輸入資訊中的雜訊，例如聲音中的噪音，或影像中的雜點等等。我們只要在訓練 AE 時，將輸入加入雜訊，而輸出仍維持乾淨的版本即可。以下是完整範例：</p>
-<pre class="brush: py">
-import torch
+<pre class="line-numbers match-braces"><code class="language-python">import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
@@ -420,11 +411,10 @@ plt.imshow(grid, cmap='gray')
 plt.axis('off')
 plt.title('DAE: Original / Noisy / Reconstructed')
 plt.show()
-</pre>
+</code></pre>
 
 <p>除了使用全連接層以外，我們也可以使用 CNN 或 LSTM 作為 AE 的架構。以 CNN 為架構的模型範例如下，其中的降採樣由 MaxPool2d 進行，上採樣則由 ConvTranspose2d 代入 stride=2 進行：</p>
-<pre class="brush: py">
-class ConvAE(nn.Module):
+<pre class="line-numbers match-braces"><code class="language-python">class ConvAE(nn.Module):
 	def __init__(self):
 		super().__init__()
 		self.encoder = nn.Sequential(
@@ -445,11 +435,10 @@ class ConvAE(nn.Module):
 	def forward(self, x):
 		z = self.encoder(x)
 		return self.decoder(z)
-</pre>
+</code></pre>
 
 <p>以 LSTM 為架構的模型範例則如下。其中，每張 MNIST 圖片會被視為長度 28 的序列，每個時間步則是一列 28 維的像素；encoder LSTM 只取最後的 hidden state h，再 repeat 成 28 個時間步送進 decoder LSTM：</p>
-<pre class="brush: py">
-class LSTMAE(nn.Module):
+<pre class="line-numbers match-braces"><code class="language-python">class LSTMAE(nn.Module):
 	def __init__(self):
 		super().__init__()
 		self.encoder = nn.LSTM(28, 64, batch_first=True)
@@ -463,7 +452,7 @@ class LSTMAE(nn.Module):
 		z = h.repeat(x.size(1), 1, 1).permute(1, 0, 2)
 		out, _ = self.decoder(z)
 		return self.sigmoid(self.fc(out)).unsqueeze(1)
-</pre>
+</code></pre>
 
 <p>本篇介紹的 AE 系列模型，是生成模型領域的重要基礎。若想進一步探索，GAN (Generative Adversarial Network)透過生成器與判別器的對抗訓練來生成資料，與 VAE 的思路截然不同，是另一條值得深入的路線。近年來表現亮眼的 Diffusion Model，則是以逐步加噪再去噪的方式建模資料分布，而其去噪網路骨幹正是基於 AE 結構設計的 U-Net 架構。此外，若將 CVAE 的 conditioning 機制推廣，搭配文字或其他模態的嵌入作為條件，便是現代多模態生成模型的雛形。這些方向都以本篇的概念為起點，你若有興趣，可以進一步探索。</p>
 

@@ -5,13 +5,8 @@
 	<link rel=stylesheet type="text/css" href="myCss.css">
 	<base target="_blank">
 	<script type="text/javascript" src="myJs.js"></script>
-	<script type="text/javascript" src="shCore.js"></script>
-	<script type="text/javascript" src="shBrushPython.js"></script>
-	<link href="shCore.css" rel="stylesheet" type="text/css" />
-	<link href="shThemeDefault.css" rel="stylesheet" type="text/css" />
-	<script type="text/javascript">
-		SyntaxHighlighter.all();
-	</script>
+	<link href="prism.css" rel="stylesheet">
+	<script src="prism.js"></script>
 </head>
 
 <body bgcolor="#ccccff">
@@ -53,8 +48,7 @@
 <p>其中 pos 為時間軸的索引，d 為特徵的總維度，i 為 0 到 d/2 之間的整數。依此填完的 PE 矩陣，其 shape 會與 X 相同，因此我們只要把 X 替換為 X + PE，再餵入 Transformer 即可。</p>
 
 <p>上述的詳細運算步驟，若要用 PyTorch class 的方式表示，則寫法如下：</p>
-<pre class="brush: py">
-import torch
+<pre class="line-numbers match-braces"><code class="language-python">import torch
 import torch.nn as nn
 
 
@@ -130,7 +124,7 @@ if __name__ == '__main__':
 	out = block(x)
 	print('Input shape:', x.shape)
 	print('Output shape:', out.shape)
-</pre>
+</code></pre>
 
 <p>Transformer 的 decoder block 與 encoder block 結構相似，但多了一個交叉注意力(Cross-Attention)層，其使用的 Q 來自 decoder 自身，K 與 V 則來自 encoder 的輸出。一個完整的 decoder block，依序包含三個子層：</p>
 
@@ -145,8 +139,7 @@ if __name__ == '__main__':
 <p style="text-align:center">CrossAttn(Z<sub>1</sub>, X<sub>enc</sub>) = Attention(Z<sub>1</sub>W<sub>Q</sub>, X<sub>enc</sub>W<sub>K</sub>, X<sub>enc</sub>W<sub>V</sub>)</p>
 
 <p>上述步驟的 PyTorch class 的寫法如下：</p>
-<pre class="brush: py">
-class MultiHeadCrossAttention(nn.Module):
+<pre class="line-numbers match-braces"><code class="language-python">class MultiHeadCrossAttention(nn.Module):
 	def __init__(self, d_model, num_heads):
 		super().__init__()
 		self.num_heads = num_heads
@@ -188,15 +181,14 @@ class TransformerDecoderBlock(nn.Module):
 		x = self.norm2(x + self.dropout(self.cross_attn(x, x_enc)))
 		x = self.norm3(x + self.dropout(self.ff(x)))
 		return x
-</pre>
+</code></pre>
 
 <p>上述的 encoder 和 decoder 都各自可以堆疊多層，此時 decoder 的每一層都是從 encoder 最後一層的輸出取 K 和 V，而不是對應層的輸出；也就是說 encoder 跑完所有層之後，只會把最終輸出傳給 decoder 的每一層使用。</p>
 
 <p>這個完整的 encoder-decoder 架構，通常會用於生成類的問題，例如將文字從一種語言翻譯成另一種語言。需要注意的是，由於在生成任務的推論過程中，是無法看到未來資訊的；而若要在訓練階段模擬此種行為，則會需要在 decoder 端，利用遮罩(mask)來避免之；對於 encoder 端，若你在特定應用中，不希望讓每個位置取用到距離它太遠的資訊，則也會使用 mask 來處理。關於 mask 的細節和使用方式，暫且不列入本篇章的介紹範圍內。</p>
 
 <p>與 LSTM 相仿，PyTorch 也有內建的 class，實務上不需要自己寫。而如果只是要用 Transformer 來進行分類任務，則通常只會取用 encoder 的部分，如下：</p>
-<pre class="brush: py">
-import torch
+<pre class="line-numbers match-braces"><code class="language-python">import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
@@ -265,7 +257,7 @@ correct = sum(
 	for X, y in test_loader
 )
 print('Accuracy: {:.2f}%'.format(100 * correct / len(test_set)))
-</pre>
+</code></pre>
 
 <p>在上述範例中，我們仿照 LSTM 篇章的做法，只取最後一個時間步的輸出來進行後續的分類，你當然還是可以嘗試其他做法。</p>
 

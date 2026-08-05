@@ -5,13 +5,8 @@
 	<link rel=stylesheet type="text/css" href="myCss.css">
 	<base target="_blank">
 	<script type="text/javascript" src="myJs.js"></script>
-	<script type="text/javascript" src="shCore.js"></script>
-	<script type="text/javascript" src="shBrushPython.js"></script>
-	<link href="shCore.css" rel="stylesheet" type="text/css" />
-	<link href="shThemeDefault.css" rel="stylesheet" type="text/css" />
-	<script type="text/javascript">
-		SyntaxHighlighter.all();
-	</script>
+	<link href="prism.css" rel="stylesheet">
+	<script src="prism.js"></script>
 </head>
 
 <body bgcolor="#ccccff">
@@ -27,8 +22,7 @@ showWarning('以下內容不假設你看過原理篇，但是有看過會更好'
 <p>對於 activation function、損失函數以及最佳化方法，可以依照你要處理的問題特性，或者實際效果來選擇。常用的 activation function 有 sigmoid、ReLU、tanh，損失函數則有常用於回歸問題的 mean squared error (MSE)，以及常用於分類問題的 cross entropy 等可以選擇。最佳化方法則通常有 SGD (stochastic gradient descent)、Momentum、AdaGrad、RMSProp，以及 Adam 等方式，若無特殊需求，且在可以選擇的情況下，通常你可以先試試看 Adam。</p>
 
 <p>若要使用 MLP 解決問題，有很多工具可以幫忙，常見或曾經常見的有 <a href="https://pytorch.org/">PyTorch</a>、<a href="https://www.tensorflow.org/?hl=zh-tw">TensorFlow</a>，以及 <a href="https://chainer.org/">Chainer</a> 等等，不過這些工具為了能讓你做更自由的調整，所以在真正的類神經網路本身和資料的事前處理，都有許多工作要自己做，因此以下先使用 scikit-learn 的 <a href="https://scikit-learn.org/stable/modules/generated/sklearn.neural_network.MLPClassifier.html">neural_network.MLPClassifier</a> 來示範 MLP 的使用，範例的資料集是 <a href="https://archive.ics.uci.edu/dataset/109/wine">Wine Data Set</a>：</p>
-<pre class="brush: py">
-import numpy as np
+<pre class="line-numbers match-braces"><code class="language-python">import numpy as np
 from sklearn.datasets import load_wine
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier
@@ -50,7 +44,7 @@ hidden = np.maximum(hidden @ model.coefs_[1] + model.intercepts_[1], 0)
 pred = np.argmax(hidden @ model.coefs_[2] + model.intercepts_[2], axis=1)
 
 print('Accuracy: {:.2f}%'.format(100*np.mean(pred == y_test)))
-</pre>
+</code></pre>
 
 <p>在上述範例中，</p>
 <ul>
@@ -63,8 +57,7 @@ print('Accuracy: {:.2f}%'.format(100*np.mean(pred == y_test)))
 <p>如果你對超參數或特徵等方面的選擇不太有想法，或者想要在二維平面上，看看不同超參數在不同資料上的視覺化效果，可以前往 <a href="https://playground.tensorflow.org/">TensorFlow Playground</a> 網站嘗試。</p>
 
 <p>如前所述，若使用 PyTorch 等工具來訓練類神經網路，則為了能讓你做更自由的調整，有許多超參數都需要一一明確指定，以下是把前一個範的預測工作，改用 PyTorch 來進行：</p>
-<pre class="brush: py">
-import torch
+<pre class="line-numbers match-braces"><code class="language-python">import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset
 from sklearn.datasets import load_wine
@@ -108,7 +101,7 @@ for _ in range(200):
 model.eval()
 pred = model(X_test.to(device)).argmax(dim=1).detach().cpu().numpy()
 print('Accuracy: {:.2f}%'.format(100 * (pred == y_test).mean()))
-</pre>
+</code></pre>
 
 <p>在上述範例中，</p>
 <ul>

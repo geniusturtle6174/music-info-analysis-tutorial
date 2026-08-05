@@ -4,13 +4,8 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<link rel=stylesheet type="text/css" href="myCss.css">
 	<base target="_blank">
-	<script type="text/javascript" src="shCore.js"></script>
-	<script type="text/javascript" src="shBrushPython.js"></script>
-	<link href="shCore.css" rel="stylesheet" type="text/css" />
-	<link href="shThemeDefault.css" rel="stylesheet" type="text/css" />
-	<script type="text/javascript">
-		SyntaxHighlighter.all();
-	</script>
+	<link href="prism.css" rel="stylesheet">
+	<script src="prism.js"></script>
 </head>
 
 <body bgcolor="#ccccff">
@@ -35,7 +30,7 @@ plt.plot(y, '.-')
 plt.xlabel('Sample Index')
 plt.ylabel('Raw Value')
 plt.show()
-</pre>
+</code></pre>
 
 <p>如果要進行比較自動化的音高追蹤，也有許多方法，本篇先介紹一個簡單的方法，是利用自相關函數(autocorrelation function, ACF)來進行音高的自動化計算。此方法的概念是先將自己複製一份，然後不斷滑動，並將兩份之間重疊的範圍做向量內積。一開始完全重疊的時候，算出來的值會最大；而慢慢滑出去以後，內積值會漸漸變小，但是滑動距離過了半個週期，開始接近一個週期時，值又會慢慢變大，然後在一個週期的地方產生一個高峰，依此類推。由於前述步驟是針對一個 frame 來計算，因此將取樣頻率除以第一個高峰的位置，就是該 frame 的推測音高。</p>
 
@@ -61,13 +56,12 @@ plt.plot(y, '.-')
 plt.subplot(2, 1, 2)
 plt.plot(acf, '.-')
 plt.show()
-</pre>
+</code></pre>
 
 <p>在上述範例中，第一高峰的位置是用目測來找尋，如果你想要自動計算的話，則不能直接取整段曲線的最大值，因為整段曲線的最大值一定會出現在開頭，而頭幾個點的位置代表過高而不合理的頻率，所以通常會將頭幾個點去掉後，再來找剩餘部分的最大值。</p>
 
 <p>我們接著要來使用真人錄製的清唱聲音，來示範全自動化的 ACF 音高追蹤。以下使用的是 MIR-1K 資料集中的 geniusturtle_1_01.wav 音檔，並框出某一個特定的 frame 來進行音高追蹤：</p>
-<pre class="brush: py">
-import matplotlib.pyplot as plt
+<pre class="line-numbers match-braces"><code class="language-python">import matplotlib.pyplot as plt
 import numpy as np
 import scipy.io.wavfile
 
@@ -96,7 +90,7 @@ plt.plot(max_idx, acf[max_idx], 'ro')
 plt.text(max_idx+3, acf[max_idx], 'Freq: {:.4f} Hz'.format(freq))
 
 plt.show()
-</pre>
+</code></pre>
 
 <p>在上述範例中：</p>
 <ul>
@@ -107,8 +101,7 @@ plt.show()
 </ul>
 
 <p>對於追蹤所有音框的音高，你可以很簡單的加上一層迴圈。我們也順便將 MIR-1K 資料集中的音高標註，跟自動追蹤的結果做對照，只是由於資料集中的標註單位是「半音」，因此需要進行適當的轉換：</p>
-<pre class="brush: py">
-import matplotlib.pyplot as plt
+<pre class="line-numbers match-braces"><code class="language-python">import matplotlib.pyplot as plt
 import numpy as np
 import scipy.io.wavfile
 from mir_eval.melody import evaluate
@@ -159,7 +152,7 @@ scores = evaluate(frame_time, freq_gt, frame_time, np.array(frequencies))
 print(scores)
 
 plt.show()
-</pre>
+</code></pre>
 
 <p>在上述範例中：</p>
 <ul>

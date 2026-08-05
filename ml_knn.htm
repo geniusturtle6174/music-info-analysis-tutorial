@@ -4,13 +4,8 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<link rel=stylesheet type="text/css" href="myCss.css">
 	<base target="_blank">
-	<script type="text/javascript" src="shCore.js"></script>
-	<script type="text/javascript" src="shBrushPython.js"></script>
-	<link href="shCore.css" rel="stylesheet" type="text/css" />
-	<link href="shThemeDefault.css" rel="stylesheet" type="text/css" />
-	<script type="text/javascript">
-		SyntaxHighlighter.all();
-	</script>
+	<link href="prism.css" rel="stylesheet">
+	<script src="prism.js"></script>
 </head>
 
 <body bgcolor="#ccccff">
@@ -20,8 +15,7 @@
 <p>最近鄰居分類(k-nearest neighbors, k-NN)的概念相當簡單：一個資料點在空間中跟哪個類別的點最接近，就說它是屬於那一個類別。這個方法不需要訓練過程，或者說訓練就是把所有資料記起來；而在預測的階段，則是將待測點與其他資料點計算距離，找出最接近的 k 的點，並依據這 k 的點所屬的類別或值進行投票，來做為待測點的預測結果。</p>
 
 <p>我們使用 scikit-learn 的 <a href="https://scikit-learn.org/stable/modules/generated/sklearn.neighbors.KNeighborsClassifier.html">neighbors.KNeighborsClassifier</a> 來幫我們執行 k-NN 演算法，使用的資料集是 <a href="https://archive.ics.uci.edu/ml/datasets/wine">Wine Data Set</a>，該資料集在 scikit-learn 有內建一版，你可以直接透過 import 相關函式來使用，不必自己下載：</p>
-<pre class="brush: py">
-import numpy as np
+<pre class="line-numbers match-braces"><code class="language-python">import numpy as np
 from sklearn.datasets import load_wine
 from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
@@ -45,7 +39,7 @@ for p_te in X_test:
 
 pred = np.array(pred)
 print('Accuracy (for loop): {:.2f}%'.format(100*np.mean(pred==y_test)))
-</pre>
+</code></pre>
 
 <p>在上述範例中，由於 train_test_split 是隨機進行，因此每次執行時，準確度可能會有所變化。此外，範例的下半部同時也示範了自行實作最近鄰居分類的參考方式，其中的 n_neighbors 與前半部同樣為 1，距離則是使用 2-norm。</p>
 
@@ -57,8 +51,7 @@ print('Accuracy (for loop): {:.2f}%'.format(100*np.mean(pred==y_test)))
 </ul>
 
 <p>K-NN 在 k = 1 時，每個點的勢力範圍，會是一個 Voronoi Diagram，其中每一條邊界線，就是相鄰樣本的中垂線，範例如下：</p>
-<pre class="brush: py">
-import matplotlib.pyplot as plt
+<pre class="line-numbers match-braces"><code class="language-python">import matplotlib.pyplot as plt
 import numpy as np
 from scipy.spatial import Voronoi, voronoi_plot_2d
 
@@ -67,11 +60,10 @@ vor = Voronoi(points)
 voronoi_plot_2d(vor)
 plt.axis('equal')
 plt.show()
-</pre>
+</code></pre>
 
 <p>K-NN 演算法在看待不同維度時是一視同仁的，亦即對各個特徵維度給予相同權重，並不會自動區分哪些維度具有判別力。因此若你的資料中，包含有很多雜訊維度的話，則很有可能讓 k-NN 演算法的準確度變差，稱為「高維詛咒」。以下範例是在固定只有兩個有效維度的狀況下，依次加入愈來愈多雜訊維度的範例：</p>
-<pre class="brush: py">
-import matplotlib.pyplot as plt
+<pre class="line-numbers match-braces"><code class="language-python">import matplotlib.pyplot as plt
 import numpy as np
 
 from sklearn.datasets import make_classification
@@ -110,7 +102,7 @@ plt.xlabel("# Features")
 plt.ylabel("Accuracy")
 plt.legend()
 plt.show()
-</pre>
+</code></pre>
 
 <p>在上述範例中，make_classification 函式是用來產生範例資料的，範例中的設定是產生兩類分類問題的資料，有用的維度有兩個，其餘都是雜訊。此外，我們同時使用了另一個叫做 Logistic Regression 的分類器，於本篇中，各位只需要知道並不是每種分類方式都會受到雜訊維度的影響即可。</p>
 

@@ -5,13 +5,8 @@
 	<link rel=stylesheet type="text/css" href="myCss.css">
 	<base target="_blank">
 	<script type="text/javascript" src="myJs.js"></script>
-	<script type="text/javascript" src="shCore.js"></script>
-	<script type="text/javascript" src="shBrushPython.js"></script>
-	<link href="shCore.css" rel="stylesheet" type="text/css" />
-	<link href="shThemeDefault.css" rel="stylesheet" type="text/css" />
-	<script type="text/javascript">
-		SyntaxHighlighter.all();
-	</script>
+	<link href="prism.css" rel="stylesheet">
+	<script src="prism.js"></script>
 </head>
 
 <body bgcolor="#ccccff">
@@ -23,8 +18,7 @@
 <p>與先前介紹的 Auto Encoder 相比，GAN 的 generator 扮演的角色類似於 AE 的 decoder，同樣負責從低維度表示重建出資料；然而 AE 的訓練目標是最小化重建誤差，GAN 則以對抗損失取而代之，不依賴逐像素的比較，因此往往能生成更清晰、更具視覺真實感的結果。本篇章將介紹 GAN 的基礎概念以及相關應用。</p>
 
 <p>與 Auto Encoder 相似，generator 和 discriminator 的網路架構可以是 MLP、CNN，或其他任何架構。最早的 GAN 實作採用 MLP，概念簡單但生成品質有限；因此，Radford 等人於 2015 年提出了 DCGAN (Deep Convolutional GAN) ，將 generator 和 discriminator 兩者均改為卷積網路，有效提升了訓練穩定性與生成品質，並成為後續許多 GAN 變形的架構基礎。以下是用 DCGAN 並基於 Fashion-MNIST 資料集生成新圖案的範例：</p>
-<pre class="brush: py">
-import matplotlib.pyplot as plt
+<pre class="line-numbers match-braces"><code class="language-python">import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
@@ -126,7 +120,7 @@ grid = generated.view(8, 8, 28, 28).permute(0, 2, 1, 3).reshape(8 * 28, 8 * 28)
 plt.imshow(grid, cmap='gray')
 plt.axis('off')
 plt.show()
-</pre>
+</code></pre>
 
 <p>在上述範例中：</p>
 <ul>
@@ -157,8 +151,7 @@ plt.show()
 -->
 
 <p>與 Auto Encoder 相仿，我們當然也可以在 GAN 當中加上 condition 的輸入。以下是用 Conditional DCGAN 並基於 Fashion-MNIST 資料集生成新圖案的範例：</p>
-<pre class="brush: py">
-import matplotlib.pyplot as plt
+<pre class="line-numbers match-braces"><code class="language-python">import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
@@ -273,7 +266,7 @@ grid = generated.view(n, n, 28, 28).permute(0, 2, 1, 3).reshape(n * 28, n * 28)
 plt.imshow(grid, cmap='gray')
 plt.axis('off')
 plt.show()
-</pre>
+</code></pre>
 
 <p>在上述範例中，我們讓 G 和 D 都接收 condition 的輸入，以讓 D 不只判斷輸入影像是否真實，還要判斷其是否與給定的 condition 一致；你也可以只讓 G 接收 condition，不過如此一來，G 只要生成任何看起來真實的影像就能騙過 D，不需要真的遵守 condition，有可能因此讓訓練比較不穩定。</p>
 
@@ -292,8 +285,7 @@ plt.show()
 </ul>
 
 <p>GAN 的另外一種變體是 Wasserstein GAN，簡稱 WGAN，主要是在網路架構和訓練技巧上面有些不同。以下範例，是由先前 DCGAN 的範例修改而來：</p>
-<pre class="brush: py">
-import matplotlib.pyplot as plt
+<pre class="line-numbers match-braces"><code class="language-python">import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
@@ -409,7 +401,7 @@ grid = generated.view(8, 8, 28, 28).permute(0, 2, 1, 3).reshape(8 * 28, 8 * 28)
 plt.imshow(grid, cmap='gray')
 plt.axis('off')
 plt.show()
-</pre>
+</code></pre>
 
 <p>在上述範例中：</p>
 <ul>

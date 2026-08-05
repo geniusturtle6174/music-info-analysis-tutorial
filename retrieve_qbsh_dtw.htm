@@ -4,13 +4,8 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<link rel=stylesheet type="text/css" href="myCss.css">
 	<base target="_blank">
-	<script type="text/javascript" src="shCore.js"></script>
-	<script type="text/javascript" src="shBrushPython.js"></script>
-	<link href="shCore.css" rel="stylesheet" type="text/css" />
-	<link href="shThemeDefault.css" rel="stylesheet" type="text/css" />
-	<script type="text/javascript">
-		SyntaxHighlighter.all();
-	</script>
+	<link href="prism.css" rel="stylesheet">
+	<script src="prism.js"></script>
 </head>
 
 <body bgcolor="#ccccff">
@@ -24,8 +19,7 @@
 <p>
 以下是一個 DTW 的範例，此範例會將查詢輸入與資料庫中的某個音高向量之間進行 DTW 對位，並展示直接對位和 DTW 對位的結果，以及 DTW 運算中的過程：
 </p>
-<pre class="brush: py">
-import numpy as np
+<pre class="line-numbers match-braces"><code class="language-python">import numpy as np
 import matplotlib.pyplot as plt
 
 
@@ -107,7 +101,7 @@ plt.colorbar()
 plt.title('DTW Path')
 
 plt.show()
-</pre>
+</code></pre>
 
 <p>在上述的程式碼中：</p>
 <ul>
@@ -121,8 +115,7 @@ plt.show()
 <p>
 DTW 在移調上的做法跟 LS 比較不一樣。LS 因為是在移調之前，就很明確的知道查詢輸入跟資料庫中的某片段是相同位置一對一的對應，所以可以直接計算出一個平移方式；而在 DTW 當中，因為在比對之前不知道查詢輸入跟資料庫中的某片段是如何對應，因此通常會在音高平均為 0 附近的某個（例如加減兩個半音）範圍內進行搜尋，來找出能造成最小距離的平移方式。下面的範例，會對查詢輸入以二元搜尋的原則進行三次搜尋，且每次都縮小搜尋範圍，來求取其跟資料庫中某片段的最小 DTW 距離：
 </p>
-<pre class="brush: py">
-import numpy as np
+<pre class="line-numbers match-braces"><code class="language-python">import numpy as np
 
 
 def dtw(input_pitch, db_pitch):
@@ -186,7 +179,7 @@ db_pitch = 1.0 * np.array([60, 60, 60, 60, 60, 60, 60, 60, 60, 60, 60, 60, 60, 6
 
 dist_one_song = dtw_for_one_song(input_pitch, db_pitch)
 print(dist_one_song)
-</pre>
+</code></pre>
 
 <p>在上述的程式碼中：</p>
 <ul>
@@ -198,8 +191,7 @@ print(dist_one_song)
 <p>
 對於一個輸入查詢，要做出系統該回傳給使用者的結果候選清單的方法，則跟 LS 相同，把輸入查詢跟資料庫中的所有歌曲都比對過一遍，並依照它與資料庫中每首歌的最小距離進行遞增排序即可：
 </p>
-<pre class="brush: py">
-import os
+<pre class="line-numbers match-braces"><code class="language-python">import os
 
 import numpy as np
 import pretty_midi
@@ -288,7 +280,7 @@ db_pitches, db_song_names = read_database('MIR-QBSH/midiFile')
 sorted_idx = compare_to_whole_db(input_pitch, db_pitches)
 for idx in sorted_idx[:10]:
 	print(db_song_names[idx])
-</pre>
+</code></pre>
 
 <p>在上述的程式碼中，因為 DTW 的執行時間顯著的比較久，因此跟之前的範例相比，做了一些或大或小的改變：</p>
 <ul>

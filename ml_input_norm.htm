@@ -4,13 +4,8 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<link rel=stylesheet type="text/css" href="myCss.css">
 	<base target="_blank">
-	<script type="text/javascript" src="shCore.js"></script>
-	<script type="text/javascript" src="shBrushPython.js"></script>
-	<link href="shCore.css" rel="stylesheet" type="text/css" />
-	<link href="shThemeDefault.css" rel="stylesheet" type="text/css" />
-	<script type="text/javascript">
-		SyntaxHighlighter.all();
-	</script>
+	<link href="prism.css" rel="stylesheet">
+	<script src="prism.js"></script>
 </head>
 
 <body bgcolor="#ccccff">
@@ -18,8 +13,7 @@
 <blockquote>
 
 <p>在機器學習中，不同的特徵常具有不同的範圍，例如身高和體重就是如此。而對於某些在意絕對距離的分類器（例如 k-nn）來說，是否將不同特徵的範圍調整至相近，可能會對辨識效果有明顯的影響。下列是使用 scikit-learn 的 preprocessing.StandardScaler，將每一維的特徵正規化至平均為 0 且標準差為 1 的範例：</p>
-<pre class="brush: py">
-import numpy as np
+<pre class="line-numbers match-braces"><code class="language-python">import numpy as np
 from sklearn.datasets import load_wine
 from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
@@ -49,7 +43,7 @@ print('Training data mean (by sklearn):', ss.mean_)
 print('Training data mean (by numpy):', np.mean(X_train, axis=0))
 print('Training data var (by sklearn):', ss.var_)
 print('Training data var (by numpy):', np.std(X_train, axis=0) ** 2)
-</pre>
+</code></pre>
 
 <p>在上述範例中：</p>
 <ul>

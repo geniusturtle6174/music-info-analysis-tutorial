@@ -4,13 +4,8 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<link rel=stylesheet type="text/css" href="myCss.css">
 	<base target="_blank">
-	<script type="text/javascript" src="shCore.js"></script>
-	<script type="text/javascript" src="shBrushPython.js"></script>
-	<link href="shCore.css" rel="stylesheet" type="text/css" />
-	<link href="shThemeDefault.css" rel="stylesheet" type="text/css" />
-	<script type="text/javascript">
-		SyntaxHighlighter.all();
-	</script>
+	<link href="prism.css" rel="stylesheet">
+	<script src="prism.js"></script>
 </head>
 
 <body bgcolor="#ccccff">
@@ -20,8 +15,7 @@
 <p>頻率域(frequency domain)的音高追蹤，是指先把音訊轉成頻譜，然後在頻譜上進行音高追蹤。頻率域的音高追蹤也有幾種不同的做法，本篇將只說明 HPS (Harmonic Product Spectrum)這種方法。HPS 的概念是利用泛音會出現在基頻（找出基頻就是音高追蹤的目標）的整數倍頻率上的原理，把原本的頻譜跟自己的二倍降採樣、三倍降採樣、四倍降採樣、…的版本相乘起來，就可以把每個泛音都疊到基頻上，讓基頻的位置特別突出，就可以用相乘結果的最大值的出現位置來換算出頻率。</p>
 
 <p>我們使用<a href="pics/intro/violin-C4.wav">小提琴演奏出的 261 Hz (C4)訊號</a>，並框出某一個特定的 frame 來轉成頻譜，以及畫出它的二分之一、三分之一、四分之一、…的壓縮版本，以及相乘的結果：</p>
-<pre class="brush: py">
-import matplotlib.pyplot as plt
+<pre class="line-numbers match-braces"><code class="language-python">import matplotlib.pyplot as plt
 import numpy as np
 import scipy.io.wavfile
 
@@ -54,7 +48,7 @@ plt.xlim(0, spectrum.size)
 print('Max idx position:', np.argmax(sum_result))
 
 plt.show()
-</pre>
+</code></pre>
 
 <p>在上述範例中：</p>
 <ul>

@@ -4,13 +4,8 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<link rel=stylesheet type="text/css" href="myCss.css">
 	<base target="_blank">
-	<script type="text/javascript" src="shCore.js"></script>
-	<script type="text/javascript" src="shBrushPython.js"></script>
-	<link href="shCore.css" rel="stylesheet" type="text/css" />
-	<link href="shThemeDefault.css" rel="stylesheet" type="text/css" />
-	<script type="text/javascript">
-		SyntaxHighlighter.all();
-	</script>
+	<link href="prism.css" rel="stylesheet">
+	<script src="prism.js"></script>
 </head>
 
 <body bgcolor="#ccccff">
@@ -103,7 +98,7 @@ np.save('pv_te.npy', pv_te)
 np.save('fid_tr.npy', fid_tr)
 np.save('fid_va.npy', fid_va)
 np.save('fid_te.npy', fid_te)
-</pre>
+</code></pre>
 
 <p>在上述範例中：</p>
 <ul>
@@ -250,7 +245,7 @@ for epoch in range(NUM_EPOCH):
 util.print_and_write_file(fout, 'Best VA loss: {:.6f}'.format(best_va_loss))
 fout.close()
 print('Model saved in {}'.format(SAVE_MODEL_DIR))
-</pre>
+</code></pre>
 
 <p>其中 import 的 model.py，內容如下：</p>
 <pre class="brush: python">
@@ -275,7 +270,7 @@ class MODEL(nn.Module):
 
 	def forward(self, x):
 		return self.model(x)
-</pre>
+</code></pre>
 
 <p>util.py 的內容則為如下：</p>
 <pre class="brush: python">
@@ -318,7 +313,7 @@ def print_and_write_file(fout, cnt, fout_end='\n'):
 	if fout is not None:
 		fout.write(cnt  + fout_end)
 		fout.flush()
-</pre>
+</code></pre>
 
 <p>在上述程式碼中：</p>
 <ul>
@@ -378,7 +373,7 @@ ref = np.array([midi_to_hz(pitch) if pitch != 0 else 0 for pitch in pv_te])
 pred = midi_to_hz(util.idx_to_pv(pred_idx_all))
 scores = evaluate(np.arange(ref.size), ref, np.arange(ref.size), pred)
 print(scores)
-</pre>
+</code></pre>
 
 <p>在上述程式碼中：</p>
 <ul>

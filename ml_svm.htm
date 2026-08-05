@@ -4,13 +4,8 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<link rel=stylesheet type="text/css" href="myCss.css">
 	<base target="_blank">
-	<script type="text/javascript" src="shCore.js"></script>
-	<script type="text/javascript" src="shBrushPython.js"></script>
-	<link href="shCore.css" rel="stylesheet" type="text/css" />
-	<link href="shThemeDefault.css" rel="stylesheet" type="text/css" />
-	<script type="text/javascript">
-		SyntaxHighlighter.all();
-	</script>
+	<link href="prism.css" rel="stylesheet">
+	<script src="prism.js"></script>
 </head>
 
 <body bgcolor="#ccccff">
@@ -118,8 +113,7 @@ ctx.stroke();
 <p>若有需要，你也可以設計自己的 kernel funtion，只要其所構成的 kernel matrix 是 symmetric positive semi-definite 即可，否則在求取最佳化的計算上可能會不穩定，甚至於無法計算。</p>
 
 <p>我們可以使用 scikit-learn 的 <a href="https://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html">svm.SVC</a> 來幫我們執行 SVM 演算法，使用的資料集是 <a href="https://archive.ics.uci.edu/ml/datasets/wine">Wine Data Set</a>，該資料集在 scikit-learn 有內建一版，你可以直接透過 import 相關函式來使用，不必自己下載：</p>
-<pre class="brush: py">
-import numpy as np
+<pre class="line-numbers match-braces"><code class="language-python">import numpy as np
 from sklearn.datasets import load_wine
 from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
@@ -136,13 +130,12 @@ model = SVC()
 model.fit(X_train, y_train)
 pred = model.predict(X_test)
 print('Accuracy: {:.2f}%'.format(100*np.mean(pred==y_test)))
-</pre>
+</code></pre>
 
 <p>在上述範例中，若你想要調整超參數，請參照文件；若要改為處理回歸問題，可以使用 sklearn.svm.SVR。</p>
 
 <p>因為 SVM 的目標是將邊界盡量撐開，所以資料中一定會有一些點位於邊界上，這些點稱為 support vectors，也就是 SVM 名稱的由來。我們以線性可分割的狀況展示如下：</p>
-<pre class="brush: py">
-import numpy as np
+<pre class="line-numbers match-braces"><code class="language-python">import numpy as np
 import matplotlib.pyplot as plt
 from sklearn import datasets
 from sklearn.svm import SVC
@@ -194,11 +187,10 @@ plt.show()
 print(f'Num of support vectors: {len(model.support_vectors_)}')
 print(f'Acc (tr): {model.score(X_train, y_train)*100:.2f}%')
 print(f'Acc (te): {model.score(X_test, y_test)*100:.2f}%')
-</pre>
+</code></pre>
 
 <p>在線性不可分割的狀況（例如 make_circles）中，不同 kernel 的效果展示如下：</p>
-<pre class="brush: py">
-from sklearn.datasets import make_circles
+<pre class="line-numbers match-braces"><code class="language-python">from sklearn.datasets import make_circles
 from sklearn.svm import SVC
 import matplotlib.pyplot as plt
 import numpy as np
@@ -239,11 +231,10 @@ for ax, kernel, title in zip(axes, kernels, titles):
 	ax.set_title(f'{title}\nAccuracy: {model.score(X, y)*100:.1f}%')
 
 plt.show()
-</pre>
+</code></pre>
 
 <p>前面提到，C 值愈大，對錯誤分類的懲罰越重；C 值越小，則容許更多分類錯誤。相關展示如下：</p>
-<pre class="brush: py">
-from sklearn.datasets import make_blobs
+<pre class="line-numbers match-braces"><code class="language-python">from sklearn.datasets import make_blobs
 from sklearn.svm import SVC
 import matplotlib.pyplot as plt
 import numpy as np
@@ -284,7 +275,7 @@ for ax, C, title in zip(axes, C_values, titles):
 	ax.set_title(f'{title}\nNum of Support Vectors: {len(model.support_vectors_)}')
 
 plt.show()
-</pre>
+</code></pre>
 
 </blockquote>
 

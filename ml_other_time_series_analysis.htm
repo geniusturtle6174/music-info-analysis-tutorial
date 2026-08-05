@@ -4,13 +4,8 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<link rel=stylesheet type="text/css" href="myCss.css">
 	<base target="_blank">
-	<script type="text/javascript" src="shCore.js"></script>
-	<script type="text/javascript" src="shBrushPython.js"></script>
-	<link href="shCore.css" rel="stylesheet" type="text/css" />
-	<link href="shThemeDefault.css" rel="stylesheet" type="text/css" />
-	<script type="text/javascript">
-		SyntaxHighlighter.all();
-	</script>
+	<link href="prism.css" rel="stylesheet">
+	<script src="prism.js"></script>
 </head>
 
 <body bgcolor="#ccccff">
@@ -20,8 +15,7 @@
 <p>在真實的資料中，許多現象都具有時間上的先後順序，而非彼此獨立的觀測值；例如股票的每日收盤價、氣象站每小時的溫度紀錄、工廠感測器每秒回傳的振動數值，以及電商平台每月的銷售量等。這類依照時間順序排列的資料，我們稱之為時間序列(time series)。時間序列資料的核心挑戰在於，相鄰的觀測值之間往往不是獨立的，而是存在某種程度的相關性，例如昨天的股價會影響今天的股價，上個月的銷售量也可能反映出這個月的需求趨勢。因此，無論是預測未來的數值、偵測異常的時間點，還是理解資料背後的週期規律，都需要專門針對這種「時間相依性」設計的分析方法。本篇將從時間序列的基本組成與特性出發，逐步介紹常用的分析與預測模型，以及實務上的注意事項。</p>
 
 <p>在分析或預測時間序列之前，通常可以先嘗試將其分解為趨勢、季節性與殘差三個成分的和，以便分別理解各部分的行為。以下範例，會以太陽黑子的年活動量資料為例，示範如何進行此分解，並比較 <a href="https://www.statsmodels.org/stable/index.html">statsmodels</a> 函式庫與自行以移動平均計算的結果：</p>
-<pre class="brush: py">
-import numpy as np
+<pre class="line-numbers match-braces"><code class="language-python">import numpy as np
 import matplotlib.pyplot as plt
 from statsmodels.datasets import sunspots
 from statsmodels.tsa.seasonal import seasonal_decompose
@@ -61,7 +55,7 @@ for i in range(4):
 	axes[i, 1].set_title(titles_right[i])
 
 plt.show()
-</pre>
+</code></pre>
 
 <p>在上述範例中：</p>
 <ul>
@@ -71,8 +65,7 @@ plt.show()
 </ul>
 
 <p>前述的加法模型，假設季節性振幅不會隨趨勢改變。然而在某些資料中，振幅會隨著整體數值的增大而放大，例如航空旅客人數在 1949 年至 1960 年間的資料，涵蓋了航空業快速成長的年代，讓旅客量不僅有明顯的上升趨勢，且季節性的波動幅度也隨之擴大。此時，改用乘法模型會更為合適，即將資料分解為趨勢、季節性與殘差三個成分的積。以下會以航空旅客人數資料，示範如何進行乘法分解，並同樣比較 <a href="https://www.statsmodels.org/stable/index.html">statsmodels</a> 函式庫與自行計算的結果：</p>
-<pre class="brush: py">
-import numpy as np
+<pre class="line-numbers match-braces"><code class="language-python">import numpy as np
 import matplotlib.pyplot as plt
 from statsmodels.datasets import get_rdataset
 from statsmodels.tsa.seasonal import seasonal_decompose
@@ -112,7 +105,7 @@ for i in range(4):
 	axes[i, 1].set_title(titles_right[i])
 
 plt.show()
-</pre>
+</code></pre>
 
 <p>在上述範例中：</p>
 <ul>
@@ -122,8 +115,7 @@ plt.show()
 </ul>
 
 <p>如果你要進行時間序列資料的預測，則有很多種模型可以選擇。以下先介紹傳統統計模型中的 ARIMA (AutoregRessive Integrated Moving Average)。ARIMA 是一個經典且廣泛使用的預測模型，適合單變數、具有趨勢但不含明顯季節性的時間序列；若資料同時含有季節性，則可進一步擴展為 SARIMA。以下範例會以航空旅客人數資料為例，示範資料切割、滾動預測，以及常見評估指標的計算：</p>
-<pre class="brush: py">
-import numpy as np
+<pre class="line-numbers match-braces"><code class="language-python">import numpy as np
 import matplotlib.pyplot as plt
 from statsmodels.datasets import get_rdataset
 from statsmodels.tsa.arima.model import ARIMA
@@ -167,7 +159,7 @@ plt.plot(x_test, y_true, label="Test (ground truth)")
 plt.plot(x_test, y_pred, label="Prediction")
 plt.legend()
 plt.show()
-</pre>
+</code></pre>
 
 <p>在上述範例中：</p>
 <ul>
@@ -185,8 +177,7 @@ plt.show()
 </ul>
 
 <p>除了傳統統計模型以外，深度學習模型和樹模型等模型，也可以用來對時間序列資料進行預測。以下以太陽黑子資料集，示範如何用 XGBoost 處理時間序列資料：</p>
-<pre class="brush: py">
-import numpy as np
+<pre class="line-numbers match-braces"><code class="language-python">import numpy as np
 import matplotlib.pyplot as plt
 from statsmodels.datasets import sunspots
 from xgboost import XGBRegressor
@@ -238,7 +229,7 @@ plt.plot(years[n-test_size:], predictions, label="Prediction")
 plt.xlabel("Year")
 plt.legend()
 plt.show()
-</pre>
+</code></pre>
 
 <p>在上述範例中：</p>
 <ul>

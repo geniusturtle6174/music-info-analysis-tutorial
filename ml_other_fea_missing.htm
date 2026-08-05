@@ -4,13 +4,8 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<link rel=stylesheet type="text/css" href="myCss.css">
 	<base target="_blank">
-	<script type="text/javascript" src="shCore.js"></script>
-	<script type="text/javascript" src="shBrushPython.js"></script>
-	<link href="shCore.css" rel="stylesheet" type="text/css" />
-	<link href="shThemeDefault.css" rel="stylesheet" type="text/css" />
-	<script type="text/javascript">
-		SyntaxHighlighter.all();
-	</script>
+	<link href="prism.css" rel="stylesheet">
+	<script src="prism.js"></script>
 </head>
 
 <body bgcolor="#ccccff">
@@ -35,8 +30,7 @@
 <p>上述的「很低」、「幾乎」等形容詞，可能需要根據資料狀況等方面，來決定較具體的標準。</p>
 
 <p>以下範例，會示範當隨機缺值比率從 1~10% 時，補特定值與使用 KNN Imputer 的模型辨識效果差異：</p>
-<pre class="brush: py">
-import matplotlib.pyplot as plt
+<pre class="line-numbers match-braces"><code class="language-python">import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.datasets import load_wine
 from sklearn.impute import KNNImputer
@@ -101,7 +95,7 @@ plt.ylabel("Accuracy (%)")
 plt.legend()
 
 plt.show()
-</pre>
+</code></pre>
 
 <p>在上述範例中：</p>
 <ul>
