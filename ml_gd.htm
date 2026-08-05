@@ -4,13 +4,8 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<link rel=stylesheet type="text/css" href="myCss.css">
 	<base target="_blank">
-	<script type="text/javascript" src="shCore.js"></script>
-	<script type="text/javascript" src="shBrushPython.js"></script>
-	<link href="shCore.css" rel="stylesheet" type="text/css" />
-	<link href="shThemeDefault.css" rel="stylesheet" type="text/css" />
-	<script type="text/javascript">
-		SyntaxHighlighter.all();
-	</script>
+	<link href="prism.css" rel="stylesheet">
+	<script src="prism.js"></script>
 </head>
 
 <body bgcolor="#ccccff">
@@ -26,8 +21,7 @@
 <p>其中的 θ<sub>t</sub> 是目前所在位置的函數參數，&eta; 是學習率，θ<sub>t+1</sub> 是走了新的一步以後的所在位置的函數輸入。通常，在有極值存在的狀況下，由於電腦表示小數的精確度限制等因素，我們可以在走了夠多步，或者兩步之間的輸入（下山時的水平方向）或輸出（下山時的高度方向）位置變化不大的情況下，將計算出的結果當作極值。</p>
 
 <p>我們來看看如何利用上述的方法，來求函數極值。因為多項式的極值求取相對簡單，因此我們以相對比較不容易手算極值的 f(x) = e<sup>x</sup> + x<sup>2</sup> 來做示範：</p>
-<pre class="brush: py">
-import matplotlib.pyplot as plt
+<pre class="line-numbers match-braces"><code class="language-python">import matplotlib.pyplot as plt
 import numpy as np
 
 
@@ -54,15 +48,14 @@ for i in range(100):
 	x = x_new
 
 plt.show()
-</pre>
+</code></pre>
 
 <p>在上述範例中，除非你使用比較先進的函式庫，例如 PyTorch 等，否則函數的微分仍然需要自己計算。此外，你可以試著改變起始點和學習率，看看效果是否有所不同。</p>
 
 <p>Question: 在上述範例中，如果 learning rate 小到大約 0.0001，或者大到約 0.8，則各別會發生什麼事？</p>
 
 <p>多變數的狀況也非常類似，但你需要對兩個變數分別作偏微分。以下用 f(x, y) = e<sup>x+y</sup> + x<sup>2</sup> - y<sup>2</sup> 來做示範：</p>
-<pre class="brush: py">
-import matplotlib.pyplot as plt
+<pre class="line-numbers match-braces"><code class="language-python">import matplotlib.pyplot as plt
 import numpy as np
 
 
@@ -99,13 +92,12 @@ for i in range(1000):
 	y = y_new
 
 plt.show()
-</pre>
+</code></pre>
 
 <p>在上述範例中，由於初始位置的梯度非常大，在一步跨太遠的情況下，很容易造成結果發散，因此我們透過降低學習率的方式，來讓每一步不要跨太遠，使得結果可以呈現收斂。</p>
 
 <p>在比較實際的問題中，起始點的選擇可能是很有影響的。下列是一個四次式的範例，各位可以看到，我們選的起始點，並不會讓結果走到全域的最小值：</p>
-<pre class="brush: py">
-import matplotlib.pyplot as plt
+<pre class="line-numbers match-braces"><code class="language-python">import matplotlib.pyplot as plt
 import numpy as np
  
  
@@ -132,11 +124,10 @@ for i in range(100):
 	x = x_new
  
 plt.show()
-</pre>
+</code></pre>
 
 <p>這時，透過 learning rate scheduling 的方式，也許有機會讓你找到比較好的解：</p>
-<pre class="brush: py">
-import matplotlib.pyplot as plt
+<pre class="line-numbers match-braces"><code class="language-python">import matplotlib.pyplot as plt
 import numpy as np
 
 
@@ -184,7 +175,7 @@ plt.xlabel("x")
 plt.ylabel("y")
 plt.legend()
 plt.show()
-</pre>
+</code></pre>
 
 <p>機器學習中，我們會希望模型的輸出與標準答案的誤差盡可能的小，也就是對某個可以評估誤差的函數(loss function)求取極值。該函數的輸入分成兩部分，一部分是模型的輸出，另一部分是標準答案，而我們能變更的只有模型如何輸出，因此在計算梯度時，只會對模型輸出相關的那一部分作偏微分。舉例來說，假設你看到二維平面上有一堆點，它們的位置分布長的像是下面的 function，只是你不知道實際參數的話：</p>
 
@@ -203,8 +194,7 @@ plt.show()
 <p align=center>∂ℒ(ŷ, y) / ∂θ<sub>3</sub> = 2(ŷ - y) ∂ŷ / ∂θ<sub>3</sub> = 2(ŷ - y)</p>
 
 <p>以下範例會亂數產生一堆分布像是 ŷ = f(x) = e<sup>-θ<sub>1</sub>x</sup> + θ<sub>2</sub>x + θ<sub>3</sub> 的點，並在假設不知道原本 function 參數的情況下，用梯度下降法試圖推測出參數：</p>
-<pre class="brush: py">
-import matplotlib.pyplot as plt
+<pre class="line-numbers match-braces"><code class="language-python">import matplotlib.pyplot as plt
 import numpy as np
 
 
@@ -258,11 +248,10 @@ y = func(x, a, b, c)
 plt.plot(x, y, label='Pred')
 
 plt.show()
-</pre>
+</code></pre>
 
 <p>在上述範例中，我們選擇了離實際位置相當近的點做為起始。你可以試著使用其他起始位置，但是有可能會讓計算結果跟實際位置相差比較大。此外，在範例中是看過所有資料以後再計算梯度，但實務上若遇到資料集非常龐大時，你也可以每次只取一小部分計算梯度，稱為 mini-batch gradient descent，實作範例如下：</p>
-<pre class="brush: py">
-import matplotlib.pyplot as plt
+<pre class="line-numbers match-braces"><code class="language-python">import matplotlib.pyplot as plt
 import numpy as np
 
 
@@ -318,7 +307,7 @@ y = func(x, a, b, c)
 plt.plot(x, y, label='Pred')
 
 plt.show()
-</pre>
+</code></pre>
 
 <p>Mini-batch 的技巧，在訓練類神經網路時會經常被使用，並且通常會將資料點隨機打亂順序，以提升梯度下降時的多樣性。</p>
 
@@ -329,8 +318,7 @@ plt.show()
 <p align=center>θ<sub>t+1</sub> = θ<sub>t</sub> + V<sub>t+1</sub></p>
 
 <p>我們回到一開始的 f(x) = e<sup>x</sup> + x<sup>2</sup>，來做 Momentum 的實作示範：</p>
-<pre class="brush: py">
-import matplotlib.pyplot as plt
+<pre class="line-numbers match-braces"><code class="language-python">import matplotlib.pyplot as plt
 import numpy as np
 
 
@@ -360,7 +348,7 @@ for i in range(100):
 	x = x_new
 
 plt.show()
-</pre>
+</code></pre>
 
 <p>梯度下降的其他改進方法，還有 AdaGrad 以及 ADAM 等，若有興趣可以自行研讀。</p>
 

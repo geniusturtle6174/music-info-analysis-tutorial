@@ -4,13 +4,8 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<link rel=stylesheet type="text/css" href="myCss.css">
 	<base target="_blank">
-	<script type="text/javascript" src="shCore.js"></script>
-	<script type="text/javascript" src="shBrushPython.js"></script>
-	<link href="shCore.css" rel="stylesheet" type="text/css" />
-	<link href="shThemeDefault.css" rel="stylesheet" type="text/css" />
-	<script type="text/javascript">
-		SyntaxHighlighter.all();
-	</script>
+	<link href="prism.css" rel="stylesheet">
+	<script src="prism.js"></script>
 </head>
 
 <body bgcolor="#ccccff">
@@ -24,8 +19,7 @@
 	<li>以單純使用音量來說，可以設定門檻為「整段音訊音量最大值的 1/n」、「整段音訊音量最小值的 n 倍」等方法，其中的參數要經過經驗或實驗來取得。</li>
 	<li>反覆對波型計算差分再計算音量，也會因為可以凸顯氣音的音量，因此可以跟音量結合來執行 EPD。</li>
 	<li>以音檔 <a href="pics/intro/successes.wav">successes</a> 計算原始音量與反覆對波型差分後的音量的範例如下：
-<pre class="brush: py">
-import librosa
+<pre class="line-numbers match-braces"><code class="language-python">import librosa
 import matplotlib.pyplot as plt
 import numpy as np
   
@@ -59,7 +53,7 @@ plt.legend()
 plt.xlabel('Time (sec)')
  
 plt.show()
-</pre>
+</code></pre>
 	</li>
 </ul>
 

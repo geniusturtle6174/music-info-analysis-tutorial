@@ -4,13 +4,8 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<link rel=stylesheet type="text/css" href="myCss.css">
 	<base target="_blank">
-	<script type="text/javascript" src="shCore.js"></script>
-	<script type="text/javascript" src="shBrushPython.js"></script>
-	<link href="shCore.css" rel="stylesheet" type="text/css" />
-	<link href="shThemeDefault.css" rel="stylesheet" type="text/css" />
-	<script type="text/javascript">
-		SyntaxHighlighter.all();
-	</script>
+	<link href="prism.css" rel="stylesheet">
+	<script src="prism.js"></script>
 </head>
 
 <body bgcolor="#ccccff">
@@ -24,8 +19,7 @@
 	<li>計算 ZCR 時須注意，因為訊號可能有直流偏移的狀況存在，因此須將訊號的平均平移到 0。</li>
 	<li>由於 wav 的原始格式是以整數來儲存，若訊號取樣點因此剛好位於 y = 0 上時，你可以依據自己的需求，來決定是否算做「穿過」 y = 0；雖然不同定義下的計算結果會有差別，但大致趨勢是一樣的。</li>
 	<li>在實作上，除了自己計算以外，也可以使用 librosa 的 <a href="https://librosa.org/doc/main/generated/librosa.feature.zero_crossing_rate.html">feature.zero_crossing_rate</a> 或 <a href="https://librosa.org/doc/latest/generated/librosa.zero_crossings.html">librosa.zero_crossings</a> 等方法來計算。以音檔 <a href="pics/intro/successes.wav">successes</a> 套用後者計算的範例如下：
-<pre class="brush: py">
-import librosa
+<pre class="line-numbers match-braces"><code class="language-python">import librosa
 import matplotlib.pyplot as plt
 import numpy as np
  
@@ -46,7 +40,7 @@ plt.plot(t, zcrs)
 plt.xlabel('Time (sec)')
 
 plt.show()
-</pre>
+</code></pre>
 	</li>
 </ul>
 

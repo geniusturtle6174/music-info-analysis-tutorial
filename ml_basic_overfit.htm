@@ -4,13 +4,8 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<link rel=stylesheet type="text/css" href="myCss.css">
 	<base target="_blank">
-	<script type="text/javascript" src="shCore.js"></script>
-	<script type="text/javascript" src="shBrushPython.js"></script>
-	<link href="shCore.css" rel="stylesheet" type="text/css" />
-	<link href="shThemeDefault.css" rel="stylesheet" type="text/css" />
-	<script type="text/javascript">
-		SyntaxHighlighter.all();
-	</script>
+	<link href="prism.css" rel="stylesheet">
+	<script src="prism.js"></script>
 </head>
 
 <body bgcolor="#ccccff">
@@ -18,8 +13,7 @@
 <blockquote>
 
 <p>有時候你會發現，讀書時讀太久把書背太死，考試時題型變化一點點可能就不會寫；對應到機器學習的情境下，就是較複雜的模型訓練了很久之後，雖然能把訓練集的模樣學得更透徹，但是到測試集上的表現就會炸掉，這樣的情況稱為過擬合(overfitting)。相反地，如果模型太簡單，可能連訓練集都學不好，這種情況則稱為欠擬合(underfitting)。一個基本的範例如下，其中資料是由三次多項式加上雜訊所產生，而我們分別使用一次式（太簡單）、三次式（剛好）以及十五次式（太複雜）來進行擬合：</p>
-<pre class="brush: py">
-import numpy as np
+<pre class="line-numbers match-braces"><code class="language-python">import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.linear_model import LinearRegression
@@ -50,7 +44,7 @@ for i, degree in enumerate([1, 3, 15]):
     axes[i].legend()
 
 plt.show()
-</pre>
+</code></pre>
 
 <p>因此，為了防止模型過擬合，為了保護模型的穩定，我們可以在模型的訓練過程當中，不時的將目前的模型用驗證集來測試；萬一模型在驗證集上的表現變差了，就代表過擬合可能已經發生了，你可以準備提前停止訓練(early stopping)。<!-- 這樣子的做法是一個訓練集對一個驗證集，我們甚至可以把訓練集和驗證集混在一起，再拆成 K 份來使用，輪流用 K - 1 份訓練和 1 份驗證，稱為 K 折交叉驗證(K-fold cross validation)。 -->除了透過驗證集來監控過擬合之外，也有許多其他的手段可以避免過擬合的發生，例如正規化(regularization)，或者減少模型的複雜度等等。</p>
 

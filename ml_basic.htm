@@ -4,13 +4,8 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<link rel=stylesheet type="text/css" href="myCss.css">
 	<base target="_blank">
-	<script type="text/javascript" src="shCore.js"></script>
-	<script type="text/javascript" src="shBrushPython.js"></script>
-	<link href="shCore.css" rel="stylesheet" type="text/css" />
-	<link href="shThemeDefault.css" rel="stylesheet" type="text/css" />
-	<script type="text/javascript">
-		SyntaxHighlighter.all();
-	</script>
+	<link href="prism.css" rel="stylesheet">
+	<script src="prism.js"></script>
 </head>
 
 <body bgcolor="#ccccff">
@@ -43,8 +38,7 @@
 <p>當你基於訓練資料完成了一個模型（前述範例都是人工切的，後面才會介紹如何讓機器去學）以後，就需要進行效果評估，也就是對它在測試集上的效果打分數。以分類問題來說，單純去計算答對的比率是最常見的評估方式，稱為準確度(accuracy)；就前述範例的分類部分來說，訓練集和測試集的準確度分別是 85.1333% 以及 85.8537%。而對於回歸問題，可以用 mean absolute error (MAE)或 mean square error (MSE) 來評量，也就是把每筆資料的答案，跟預測結果計算差距的絕對值或平方，再平均起來即可。就前述範例的回歸部分來說，訓練集和測試集的 MAE 分別是 19.1502 kg 以及 16.4234 kg。</p>
 
 <p>下面的程式是讀取資料的範例，請各位試著自己接著完成畫圖與效果評估的部分：</p>
-<pre class="brush: py">
-import numpy as np
+<pre class="line-numbers match-braces"><code class="language-python">import numpy as np
 
 
 def read_file(path):
@@ -73,7 +67,7 @@ def f_reg(x):
 
 male_tr, female_tr = read_file('Training set.csv')
 male_te, female_te = read_file('Test set.csv')
-</pre>
+</code></pre>
 
 <p>在上述範例中，如果你把 numpy array 的 shape 印出來，可以發現它們都各自是一個二維矩陣，其中每個 row 是一筆 sample（於此例中為一個人），而每個 column 是一種 feature（於此例中為身高或體重），這是一般表格式資料的慣用形式，若你的資料是影像或聲音等等，可能還會多出通道、時間等不同的維度格式。</p>
 
