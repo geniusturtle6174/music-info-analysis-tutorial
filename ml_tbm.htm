@@ -14,6 +14,7 @@
 <blockquote>
 
 <p>在資訊工程中，樹是一種由節點及邊構成的資料結構，並且會從一個根節點開始，長出數個以邊連接的其他節點作為分支；這些其他節點也可以再分支出節點，而不再長出分支時的節點則稱為葉節點。示意圖如下：</p>
+<p>In computer science, a tree is a data structure made up of nodes and edges. It starts from a root node, which branches out into several other nodes connected by edges; these other nodes can further branch into more nodes, and a node that no longer branches out is called a leaf node. An illustration is shown below:</p>
 
 <center><canvas id="canvas_nn01" width="400" height="210" style="border: 0px solid;"></canvas></center>
 <script>
@@ -59,8 +60,10 @@ ctx.fillText("○", 165, 190);
 </script>
 
 <p>而在機器學習中，如果我們在非葉節點上執行「判斷某個特徵是否符合某個條件」的動作，並在符合條件時往某個分支走去，不符合時往另一個分支走去，直到抵達葉節點為止，則這樣的一棵樹，就可以是一個模型。基於樹的模型有相當多種，複雜的模型甚至需要組合多棵樹的結果，例如 <a href="https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html">random forest</a>、<a href="https://xgboost.readthedocs.io/en/release_3.0.0/">XGBoost</a>、<a href="https://lightgbm.readthedocs.io/en/stable/">LightGBM</a>、<a href="https://catboost.ai/">CatBoost</a>、...等等，本篇在使用上，將介紹 XGBoost。</p>
+<p>In machine learning, if we perform the action of "checking whether a certain feature satisfies a certain condition" at each non-leaf node, moving to one branch if the condition is satisfied and to another branch if not, until reaching a leaf node, then such a tree can serve as a model. There are many types of tree-based models, and complex models may even combine the results of multiple trees, such as <a href="https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html">random forest</a>, <a href="https://xgboost.readthedocs.io/en/release_3.0.0/">XGBoost</a>, <a href="https://lightgbm.readthedocs.io/en/stable/">LightGBM</a>, <a href="https://catboost.ai/">CatBoost</a>, and so on. This section will introduce the use of XGBoost.</p>
 
 <p>XGBoost 在分類或回歸問題都可以使用。以下範例先以分類問題作為示範：</p>
+<p>XGBoost can be used for both classification and regression problems. The example below first demonstrates a classification problem:</p>
 <pre class="line-numbers match-braces"><code class="language-python">import numpy as np
 from sklearn.datasets import make_moons
 from xgboost import XGBClassifier
@@ -81,6 +84,8 @@ print(f'Accuracy: {np.mean(pred == y_test)*100:.2f}%')
 </code></pre>
 
 <p>在上述範例中：</p>
+<p>In the example above:</p>
+
 <ul>
 	<li>make_moons 產生的資料集，是二維平面上兩個互相勾住的半月形，兩個半月分屬兩個不同類別。</li>
 	<li>n_estimators 是要種幾棵樹，max_depth 是樹的最大深度。關於其他超參數，請參考官方文件。</li>
@@ -88,8 +93,16 @@ print(f'Accuracy: {np.mean(pred == y_test)*100:.2f}%')
 	<li>訓練與測試的用法，可以跟 Scikit-learn 一樣是用 fit 和 predict。</li>
 	<li>上述超參數是一組會讓 accuracy 在大約 91.5% 的超參數，你可以自己調整看看其他超參數。</li>
 </ul>
+<ul>
+	<li>The dataset produced by make_moons consists of two interlocking crescent shapes on a 2D plane, with each crescent belonging to a different class.</li>
+	<li>n_estimators is the number of trees to grow, and max_depth is the maximum depth of the trees. For other hyperparameters, please refer to the official documentation.</li>
+	<li>To apply XGBoost to a regression problem, you can use XGBRegressor instead.</li>
+	<li>Training and testing can be done the same way as in Scikit-learn, using fit and predict.</li>
+	<li>The hyperparameters above are one set that achieves an accuracy of around 91.5%. You can try adjusting other hyperparameters yourself.</li>
+</ul>
 
 <p>如果你想要知道在訓練過程中，loss 變化的狀況，可以在 fit 的時候，將相關資料集帶入，如下：</p>
+<p>If you want to know how the loss changes during training, you can pass in the relevant datasets when calling fit, as shown below:</p>
 <pre class="line-numbers match-braces"><code class="language-python">import numpy as np
 from sklearn.datasets import make_moons
 from xgboost import XGBClassifier
@@ -118,6 +131,7 @@ print(f'Accuracy: {np.mean(pred == y_test)*100:.2f}%')
 </code></pre>
 
 <p>Scikit-learn 的分類器通常不允許你自己設計 loss function，但是 XGBoost 可以。以下用回歸問題示範如何撰寫：</p>
+<p>Scikit-learn's classifiers usually do not allow you to design your own loss function, but XGBoost does. The example below demonstrates how to write one using a regression problem:</p>
 <pre class="line-numbers match-braces"><code class="language-python">import numpy as np
 from sklearn.datasets import make_regression
 from xgboost import XGBRegressor
@@ -169,13 +183,21 @@ print(f'RMSE: {np.mean((pred - y_test) ** 2) ** 0.5:.4f}')
 </code></pre>
 
 <p>在上述範例中：</p>
+<p>In the example above:</p>
+
 <ul>
 	<li>若使用 Scikit-learn 的訓練與測試形式，則你自訂的 loss function，輸入參數順序是先 label 再 prediction。</li>
 	<li>你自訂的 function，需要回傳 loss function 對 pred 的一次和二次的微分。</li>
 	<li>基於細部實作差異等原因，因此兩次訓練的 loss 和 RMSE 會有些微不同。</li>
 </ul>
+<ul>
+	<li>If you use the Scikit-learn-style training and testing interface, the input parameter order of your custom loss function should be label first, then prediction.</li>
+	<li>Your custom function needs to return the first and second derivatives of the loss function with respect to pred.</li>
+	<li>Due to differences in implementation details, the loss and RMSE from the two training runs will differ slightly.</li>
+</ul>
 
 <p>需要注意的是，樹模型用於回歸問題時，並不適用於需要外插(extrapolation)的情況，亦即測試資料當中，若出現了在訓練資料範圍外的值，則樹模型的效果會很差。這是由於樹模型是根據輸入特徵值，將資料點分配到某個葉節點；而在樹模型用於回歸時，該葉節點的預測值，會是該節點內所有訓練樣本的平均值，因此只能輸出訓練資料範圍內的值，無法產生比訓練資料更大或更小的預測值。相關範例如下：</p>
+<p>It should be noted that when tree models are used for regression problems, they are not suitable for cases requiring extrapolation. That is, if the test data contains values outside the range of the training data, the tree model will perform very poorly. This is because a tree model assigns data points to a leaf node based on their input feature values. When a tree model is used for regression, the prediction value of that leaf node is the average of all training samples within that node, so it can only output values within the range of the training data and cannot produce predictions larger or smaller than the training data. A related example is shown below:</p>
 <pre class="line-numbers match-braces"><code class="language-python">import numpy as np
 import matplotlib.pyplot as plt
 from xgboost import XGBRegressor
@@ -229,6 +251,7 @@ plt.show()
 </code></pre>
 
 <p>在 XGBoost 中，特徵重要性(Feature Importance)是一項強大的分析工具。它可以讓我們更清楚的知道各項特徵對於預測結果的貢獻度排名。透過此功能，我們不僅能理解哪些關鍵變數主導了模型的判斷，更能作為後續特徵工程與維度刪減的依據：</p>
+<p>In XGBoost, Feature Importance is a powerful analytical tool. It allows us to more clearly understand the ranking of each feature's contribution to the prediction result. Through this feature, we can not only understand which key variables dominate the model's decisions, but also use it as a basis for subsequent feature engineering and dimensionality reduction:</p>
 <pre class="line-numbers match-braces"><code class="language-python">import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.datasets import load_breast_cancer
@@ -258,6 +281,10 @@ fea_dim = model.feature_importances_.shape[0]
 Weight（預設）：該特徵在所有樹中被用來分割節點的「總次數」。
 Gain：該特徵在分割時帶來的「平均資訊增益」，通常最能反映特徵對模型的貢獻。
 Cover：受該特徵分割影響的「樣本數量」。
+
+Weight (default): The total number of times this feature is used to split nodes across all trees.
+Gain: The average information gain this feature brings when splitting, usually the best reflection of the feature's contribution to the model.
+Cover: The number of samples affected by splits on this feature.
 """
 importance = model.get_booster().get_score(importance_type='gain')
 importance = np.array([importance.get('f'+str(d), 0) for d in range(fea_dim)]).astype('float32')
@@ -266,6 +293,7 @@ for imp, name in zip(importance, feature_names):
 </code></pre>
 
 <p>Feature Importance 只能告訴我們哪個特徵重要，但 SHAP (SHapley Additive exPlanations)則可以告訴我們某個特徵是如何影響單一個案的預測。雖然 SHAP 不限制只用在樹模型，但我們仍以樹模型來做示範：</p>
+<p>Feature Importance can only tell us which feature is important, but SHAP (SHapley Additive exPlanations) can tell us how a particular feature affects the prediction for a single case. Although SHAP is not limited to tree models, we will still use a tree model for this demonstration:</p>
 <pre class="line-numbers match-braces"><code class="language-python">import numpy as np
 import matplotlib.pyplot as plt
 import shap

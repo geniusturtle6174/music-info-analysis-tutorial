@@ -14,30 +14,44 @@
 <blockquote>
 
 <p>對於一個只有兩個類別的分類問題中，若你希望抓出的那個類別只占 1%，而另外一類占了 99%，則就算你的模型全部猜答案是較多的那一個類別，準確度也會有驚人的 99%，但它顯然是個沒有用處的模型，因此顯然不適合用準確度來評估模型效果，而該輪到 precision、recall 和 F-score 上場。</p>
+<p>For a binary classification problem where the category you want to identify makes up only 1% of the data, while the other category makes up 99%, if your model simply guesses the more common category every time, the accuracy will still be an impressive 99%. But this is obviously a useless model, so accuracy is clearly not suitable for evaluating model performance here. This is where precision, recall, and F-score come into play.</p>
 
 <p>在定義上，我們會把你希望抓出的類別叫做正類別（P, positive），而不希望抓出的是負類別（N, negative），因此模型的判定跟是否答對之間，會產生這四種組合：</p>
+<p>By definition, we call the category you want to identify the positive class (P), and the one you don't want to identify the negative class (N). This gives four possible combinations between the model's prediction and whether it is correct:</p>
+
 <ul>
 	<li>模型說是 P 並且答對了，稱為 true positive</li>
 	<li>模型說是 N 並且答對了，稱為 true negative</li>
 	<li>模型說是 P 但是答錯了，稱為 false positive 或 type 1 error</li>
 	<li>模型說是 N 但是答錯了，稱為 false negative 或 type 2 error</li>
 </ul>
+<ul>
+	<li>The model predicts P and is correct, called a true positive</li>
+	<li>The model predicts N and is correct, called a true negative</li>
+	<li>The model predicts P but is wrong, called a false positive or type 1 error</li>
+	<li>The model predicts N but is wrong, called a false negative or type 2 error</li>
+</ul>
 
 <p>我們可以把四種情況畫成一個矩陣，稱為混淆矩陣（confusion matrix）。兩類別的混淆矩陣範例如下</p>
+<p>We can arrange these four cases into a matrix, called the confusion matrix. An example confusion matrix for two classes is shown below</p>
 
 <table align=center class="slide">
-	<tr><th>答案 \ 預測</th><th>N</th><th>P</th></tr>
+	<tr><th>Groundtruth \ Prediction</th><th>N</th><th>P</th></tr>
 	<tr><th>N</th><td>TN</td><td>FP (type 1 error)</td></tr>
 	<tr><th>P</th><td>FN (type 2 error)</td><td>TP</td></tr>
 </table>
 
 <p>上述矩陣只是一個通常的填法，每個 row 或 column 不一定要先放 N 再放 P，也不一定要 row 是答案，column 是預測。另外，多類別也可以繪製混淆矩陣，但其 precision、recall 和 F-score 的計算，不在本篇的介紹範圍之內。</p>
+<p>The matrix above is just one common way of arranging it. Each row or column does not have to list N before P, and the row does not have to represent the ground truth while the column represents the prediction. In addition, confusion matrices can also be drawn for multi-class problems, but the calculation of precision, recall, and F-score in that case is beyond the scope of this section.</p>
 
 <p>知道了混淆矩陣以後，就可以來看 precision 和 recall 的定義。Precision 是模型認為是 P 的資料中，有多少是正確的，即 TP / (TP + FP)；recall 則是真正是 P 的當中，有多少被抓出來，即 TP / (FN + TP)。舉個例子，假設有三人結夥搶劫，為了躲避警察追捕而混進了另外七人當中，所以總共有十人要被警察盤問並看看是不是要帶回警局；假設警察 A 說全部帶走，則抓出十人的裡面有三人是對的，precision 是 3 / 10 = 30%，而三名真正的犯人都有被抓出來，所以 recall 是 3 / 3 = 100%；而警察 B 經過仔細的推理以後，帶走了其中一位真正的犯人，則 precision 是 1 / 1 = 100%，recall 是 1 / 3 = 33.33%。</p>
+<p>Once you understand the confusion matrix, you can look at the definitions of precision and recall. Precision is the proportion of the data the model predicts as P that is actually correct, that is, TP / (TP + FP). Recall is the proportion of the data that is actually P that the model successfully identifies, that is, TP / (FN + TP). For example, suppose three people committed a robbery together and mixed in with seven other people to avoid being caught by the police, so a total of ten people need to be questioned by the police to determine who should be brought back to the station. Suppose Police Officer A decides to take all ten people; then three out of the ten are correctly identified, so precision is 3 / 10 = 30%, and since all three real criminals are caught, recall is 3 / 3 = 100%. Police Officer B, after careful reasoning, takes only one person who is truly a criminal; then precision is 1 / 1 = 100%, and recall is 1 / 3 = 33.33%.</p>
 
 <p>F-score 則是 precision 和 recall 的調和平均數。這個定義，讓你可以在 precision 和 recall 中間取一個平衡。而實務上，也會根據 FN 和 FP 所帶來的損失不同，而在計算公式等方面有所變化，以讓評估標準較為偏重某個指標；例如醫療診斷不能漏掉真正的患者， 即 FN 的代價高，則可能較重視 recall；而垃圾郵件過濾不能誤刪重要郵件，即 FP 的代價高，則可能較重視 precision。如果各位將來處理的相關應用有這樣的特性，請記得調整適合的評估方式。</p>
+<p>F-score is the harmonic mean of precision and recall. This definition allows you to strike a balance between precision and recall. In practice, depending on the different costs associated with FN and FP, the calculation formula may also be adjusted so that the evaluation criteria place more weight on a particular metric. For example, in medical diagnosis, missing an actual patient is unacceptable, meaning the cost of FN is high, so recall may be given more weight; in spam filtering, mistakenly deleting an important email is unacceptable, meaning the cost of FP is high, so precision may be given more weight. If the applications you work on in the future have such characteristics, remember to adjust your evaluation method accordingly.</p>
 
 <p>以下的範例，會用「60% 亂猜，40% 抄答案」的原則，隨機產生一些二分類問題的資料，來示範 precision 以及 recall 的計算。資料都會顯示出來，你可以手動計算看看來驗證：</p>
+<p>The example below uses the principle of "60% random guessing, 40% copying the answer" to randomly generate some data for a binary classification problem, in order to demonstrate the calculation of precision and recall. All the data will be displayed, so you can try calculating it by hand to verify the results:</p>
 <pre class="line-numbers match-braces"><code class="language-python">import numpy as np
 
 groundtruth = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1])
@@ -64,8 +78,10 @@ print('Recall (%):', tp / (fn + tp) * 100)
 </code></pre>
 
 <p>在上述範例中，採用了自行撰寫的程式碼，來計算出二分類問題的混淆矩陣。若要應對多類別的分類問題，或者就是懶得自己寫，也可以使用 sklearn.metrics 的 <a href="https://scikit-learn.org/stable/modules/generated/sklearn.metrics.confusion_matrix.html">confusion_matrix</a> 來進行，相關說明請自行參考文件。</p>
+<p>In the example above, custom-written code was used to calculate the confusion matrix for a binary classification problem. If you need to handle a multi-class classification problem, or simply don't want to write the code yourself, you can also use <a href="https://scikit-learn.org/stable/modules/generated/sklearn.metrics.confusion_matrix.html">confusion_matrix</a> from sklearn.metrics. Please refer to the documentation for further details.</p>
 
 <p>此外，雖然上述範例的預測資料，是直接產生二分類的結果，但實際運作的模型，其行為通常會是對每筆資料輸出一個 0 到 1 之間的信心度或機率值，並另外由某種方式決定一個門檻(threshold)，來轉換成二分類的結果。如果你希望觀察不同門檻對於模型表現的影響，或者想找出最佳的門檻值，則可以用 sklearn.metrics 的 <a href="https://scikit-learn.org/stable/modules/generated/sklearn.metrics.roc_curve.html">roc_curve</a> 來繪製 ROC 曲線（Receiver Operating Characteristic curve）。ROC 曲線的橫軸是 False Positive Rate (FPR = FP / (FP + TN))，縱軸是 True Positive Rate (TPR = TP / (TP + FN)，也就是 Recall)。這條曲線下方的面積稱為 AUROC（Area Under the ROC Curve），AUC 越接近 1 表示模型的分類能力越好，而 AUC = 0.5 則相當於隨機猜測。以下範例展示如何繪製 ROC 曲線：</p>
+<p>In addition, although the prediction data in the example above directly produces binary classification results, in practice a model's behavior is usually to output a confidence score or probability between 0 and 1 for each data point, and then a threshold is determined by some method to convert this into a binary classification result. If you want to observe the effect of different thresholds on model performance, or want to find the optimal threshold value, you can use <a href="https://scikit-learn.org/stable/modules/generated/sklearn.metrics.roc_curve.html">roc_curve</a> from sklearn.metrics to plot the ROC curve (Receiver Operating Characteristic curve). The x-axis of the ROC curve is the False Positive Rate (FPR = FP / (FP + TN)), and the y-axis is the True Positive Rate (TPR = TP / (TP + FN), which is the same as Recall). The area under this curve is called the AUROC (Area Under the ROC Curve). An AUC closer to 1 indicates better classification ability, while AUC = 0.5 is equivalent to random guessing. The example below shows how to plot the ROC curve:</p>
 <pre class="line-numbers match-braces"><code class="language-python">import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.metrics import roc_curve

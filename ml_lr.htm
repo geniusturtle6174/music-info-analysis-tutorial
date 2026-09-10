@@ -14,10 +14,12 @@
 <blockquote>
 
 <p>線性回歸(linear regression)的目標是找出一條直線，使得所有點到直線的距離（y 軸方向）之平方和為最小；即你有一堆資料點 (x<sub>1</sub>, y<sub>1</sub>), (x<sub>2</sub>, y<sub>2</sub>), ..., (x<sub>n</sub>, y<sub>n</sub>)，並想找出一條 ŷ = wx+b，使得下列式子為最小：</p>
+<p>The goal of linear regression is to find a straight line that minimizes the sum of squared distances (in the y-axis direction) from all points to the line. That is, given a set of data points (x<sub>1</sub>, y<sub>1</sub>), (x<sub>2</sub>, y<sub>2</sub>), ..., (x<sub>n</sub>, y<sub>n</sub>), you want to find a line ŷ = wx+b that minimizes the following expression:</p>
 
 <p align=center>&Sigma;(y<sub>i</sub>−ŷ<sub>i</sub>)<sup>2</sup> = &Sigma;(y<sub>i</sub>−(wx<sub>i</sub>+b))<sup>2</sup></p>
 
 <p>這個式子有正規的解析解，也可以用梯度下降來解。實作上，我們通常可以使用 scikit-learn 的 <a href="https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LinearRegression.html">linear_model.LinearRegression</a> 來幫我們進行線性回歸的求解，以下範例將會隨機的產生一些資料點來示範：</p>
+<p>This expression has a standard closed-form solution, and can also be solved using gradient descent. In practice, we can usually use scikit-learn's <a href="https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LinearRegression.html">linear_model.LinearRegression</a> to solve linear regression for us. The example below randomly generates some data points to demonstrate this:</p>
 <pre class="line-numbers match-braces"><code class="language-python">import numpy as np
 from sklearn.linear_model import LinearRegression
 
@@ -43,14 +45,23 @@ print('MAE (by np.linalg.lstsq):', np.mean(np.abs(y_test - y_pred_2)))
 </code></pre>
 
 <p>在上述範例中：</p>
+<p>In the example above:</p>
+
 <ul>
 	<li>進行訓練時，x 的 shape 必須是「(資料點數, 每筆輸入資料的維度)」，因此需要新增一個軸。身為訓練目標的 y，則因為此例中剛好只有單變數，所以可以不必新增一個軸。</li>
 	<li>訓練完畢後，model.coef_ 的內容會是每個輸入維度的係數，model.intercept_ 則是常數項。</li>
 	<li>由於範例中的資料是亂數產生，所以每次執行時，模型學出的係數可能不太一樣。</li>
 	<li>除了使用 sklearn 以外，也同時示範了使用 np.linalg.lstsq 來求取結果，以便讓各位稍加了解內部的演算方式。</li>
 </ul>
+<ul>
+	<li>When training, the shape of x must be "(number of data points, dimension of each input sample)," so an extra axis needs to be added. Since y, the training target, happens to be a single variable in this example, it does not need an extra axis.</li>
+	<li>After training, the content of model.coef_ will be the coefficient for each input dimension, and model.intercept_ will be the constant term.</li>
+	<li>Since the data in the example is randomly generated, the coefficients learned by the model may differ slightly each time you run it.</li>
+	<li>Besides using sklearn, the example also demonstrates using np.linalg.lstsq to obtain the result, so you can get a bit of insight into how the computation works internally.</li>
+</ul>
 
 <p>如果要利用 LinearRegression 來擬合多項式，那麼你可以建立一個包含 x 的各個次方的矩陣，然後用該矩陣來對 y 做線性回歸。以下範例是一個擬合三次多項式的範例：</p>
+<p>If you want to use LinearRegression to fit a polynomial, you can build a matrix containing the various powers of x, and then perform linear regression on y using that matrix. The example below fits a cubic polynomial:</p>
 <pre class="line-numbers match-braces"><code class="language-python">import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.linear_model import LinearRegression
@@ -73,19 +84,28 @@ plt.show()
 </code></pre>
 
 <p>在上述範例中：</p>
+<p>In the example above:</p>
+
 <ul>
 	<li>只展示了訓練部分。</li>
 	<li>因為 LinearRegression 會自動幫你加入常數項，因此你不必像使用 np.linalg.lstsq 時一樣去自己加入。</li>
 	<li>由於範例中的資料依然是亂數產生，所以每次執行時，模型學出的係數可能不太一樣。</li>
 </ul>
+<ul>
+	<li>Only the training part is shown.</li>
+	<li>Since LinearRegression automatically adds the constant term for you, you do not need to add it manually as you would when using np.linalg.lstsq.</li>
+	<li>Since the data in the example is still randomly generated, the coefficients learned by the model may differ slightly each time you run it.</li>
+</ul>
 
 <p>當你的特徵之中，有幾個是高度相關的時候，普通的 linear regression 可能會產生不太穩定的結果，亦即係數過大。這時候，我們可以透過 Lasso 或者 Ridge regression，來限制係數的絕對值或者平方不要太大，以讓求解係數的過程比較穩定，即：</p>
+<p>When several of your features are highly correlated, ordinary linear regression may produce unstable results, that is, coefficients that are too large. In this case, we can use Lasso or Ridge regression to constrain the absolute value or the square of the coefficients from becoming too large, making the process of solving for the coefficients more stable, that is:</p>
 
-<p align=center>L(θ) = &Sigma;(y<sub>i</sub>−(x<sub>i</sub><sup>T</sup>θ))<sup>2</sup> + α &Sigma; | θ<sub>j</sub> |，或者</p>
+<p align=center>L(θ) = &Sigma;(y<sub>i</sub>−(x<sub>i</sub><sup>T</sup>θ))<sup>2</sup> + α &Sigma; | θ<sub>j</sub> |、</p>
 
 <p align=center>L(θ) = &Sigma;(y<sub>i</sub>−(x<sub>i</sub><sup>T</sup>θ))<sup>2</sup> + α &Sigma; θ<sub>j</sub><sup>2</sup>。</p>
 
 <p>上述關於 linear、Lasso、Ridge 三者的比較如下：</p>
+<p>The comparison among linear, Lasso, and Ridge regression described above is shown below:</p>
 <pre class="line-numbers match-braces"><code class="language-python">import numpy as np
 from sklearn.linear_model import LinearRegression, Lasso, Ridge
 
