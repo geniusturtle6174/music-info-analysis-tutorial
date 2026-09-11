@@ -33,7 +33,7 @@ print('Test data shapes:', X_test.shape, y_test.shape)
 model = KNeighborsClassifier(n_neighbors=1)
 model.fit(X_train, y_train)
 pred = model.predict(X_test)
-print('Accuracy (sklearn): {:.2f}%'.format(100*np.mean(pred==y_test)))
+print('Accuracy (sklearn): {:.2f}%'.format(100*np.mean(pred==y_test[:, np.newaxis])))
 
 pred = []
 for p_te in X_test:
@@ -41,7 +41,7 @@ for p_te in X_test:
     pred.append(y_train[np.argmin(dists)])
 
 pred = np.array(pred)
-print('Accuracy (for loop): {:.2f}%'.format(100*np.mean(pred==y_test)))
+print('Accuracy (for loop): {:.2f}%'.format(100*np.mean(pred==y_test[:, np.newaxis])))
 </code></pre>
 
 <p>在上述範例中，由於 train_test_split 是隨機進行，因此每次執行時，準確度可能會有所變化。此外，範例的下半部同時也示範了自行實作最近鄰居分類的參考方式，其中的 n_neighbors 與前半部同樣為 1，距離則是使用 2-norm。</p>
