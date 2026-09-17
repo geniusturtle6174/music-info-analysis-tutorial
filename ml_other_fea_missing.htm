@@ -14,6 +14,9 @@
 <blockquote>
 
 <p>在實務上，資料很有可能不是完美的，特徵缺失就是其中一類問題。比方說，有某個預測健康狀況的模型，需要測量四肢的血壓，但是可能有人剛好骨折打石膏，因此其中幾肢的血壓無法測量。而依據資料中缺值的欄位或比率分布等狀況，則各自有不同的方法適合來處理，包含但不限於：</p>
+
+<p>If you apply the example above to a real competition or research task, you may want to first save the models trained during cross validation, then load the model with better validation performance from another file and use it to predict the test set. This avoids wasting time using a poorly performing model to make predictions. If you need to save and load models, you can refer to Python's built-in pickle library.</p>
+
 <ul>
 	<li>如果含有缺值的樣本比率很低，可以嘗試直接刪除那些樣本。</li>
 	<li>如果某個特徵幾乎都是缺值，可以嘗試直接刪除該特徵。</li>
@@ -28,9 +31,28 @@
 	<li>如果效果仍然不好，或者資源允許，可以嘗試其他進階方法，例如基於相近樣本的 KNN Imputer，或者基於模型預測的 MICE (Multivariate Imputation by Chained Equations)。</li>
 </ul>
 
+<ul>
+	<li>If the proportion of samples with missing values is very low, you can try directly removing those samples.</li>
+	<li>If a certain feature is almost entirely missing, you can try directly removing that feature.</li>
+	<li>If "missingness" itself may carry information (for example, a survey respondent refuses to answer certain questions for privacy reasons), then
+		<ul>
+			<li>For numerical features, such as age, you can try filling in an obviously abnormal value, such as -1; you can also add an extra dimension to indicate that the original dimension was missing.</li>
+			<li>For categorical features, such as county or city of residence, you can try adding a new category to represent missingness.</li>
+		</ul>
+	</li>
+	<li>If the data is a time series, such as stock prices, you can try filling in the previous or next valid data point.</li>
+	<li>If none of the specific cases above apply, or if the results are not good after trying them, you can try filling in the missing values using statistics such as the mean, median, or mode of the non-missing data.</li>
+	<li>If the results are still not good, or if resources allow, you can try other more advanced methods, such as KNN Imputer based on similar samples, or MICE (Multivariate Imputation by Chained Equations) based on model prediction.</li>
+</ul>
+
 <p>上述的「很低」、「幾乎」等形容詞，可能需要根據資料狀況等方面，來決定較具體的標準。</p>
 
+<p>The adjectives above, such as "very low" and "almost," may need more specific criteria depending on the actual data situation.</p>
+
 <p>以下範例，會示範當隨機缺值比率從 1~10% 時，補特定值與使用 KNN Imputer 的模型辨識效果差異：</p>
+
+<p>The example below demonstrates the difference in model recognition performance between filling in a fixed value and using KNN Imputer, when the random missing rate ranges from 1% to 10%:</p>
+
 <pre class="line-numbers match-braces"><code class="language-python">import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.datasets import load_wine
@@ -99,10 +121,19 @@ plt.show()
 </code></pre>
 
 <p>在上述範例中：</p>
+
+<p>In the example above:</p>
+
 <ul>
 	<li>也同時把補平均值的範例程式碼，以註解的形式提供給各位自行嘗試。</li>
 	<li>示範的缺值模式是完全隨機缺失，若你的資料中的缺值模式不同（例如問卷中，某些欄位容易因為隱私問題讓填卷者拒答；或者不同版本的問卷有題目更動，但你需要把兩種版本合併在一起使用時），則可能適合不同的補值方式。</li>
 	<li>對驗證集（範例中未展示）和測試集補值時，只能使用訓練集計算出來的資訊。</li>
+</ul>
+
+<ul>
+	<li>Example code for filling in the mean value is also provided as a comment, for you to try on your own.</li>
+	<li>The missing pattern demonstrated here is completely random missingness. If the missing pattern in your data is different (for example, in a survey, some fields are more likely to be left unanswered due to privacy concerns, or different versions of a survey have different questions but you need to combine both versions together), a different imputation method may be more suitable.</li>
+	<li>When imputing values for the validation set (not shown in the example) and the test set, you can only use information calculated from the training set.</li>
 </ul>
 
 </blockquote>
