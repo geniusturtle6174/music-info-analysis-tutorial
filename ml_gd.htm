@@ -15,13 +15,20 @@
 
 <p>梯度下降(gradient descent)是一個求取區域最小值(local minimum)的演算法，因此也是機器學習的基本技巧之一。本篇的目標，是介紹梯度下降的基本概念與實作，以讓你對機器學習中的數學方法有簡單的認識。</p>
 
+<p>Gradient descent is an algorithm for finding a local minimum. So it's one of the basic tricks in machine learning. The goal of this chapter is to walk you through the basic idea and implementation of gradient descent, so you can get a simple feel for the math behind machine learning.</p>
+
 <p>梯度的意思是函數對各個變數偏微分所組成的向量，會指向讓函數值上升最快的方向，可以表示函數在不同變數上的變化率；而利用梯度下降法求極值（以最小值為例，下同），則相當於往梯度的反方向走，亦可以想像成從山坡上慢慢一步一步地走到谷底。對於每一步來說，我們需要知道目前梯度的反方向，以及決定這一步該走多長，通常以梯度的倍率表示，稱為學習率(learning rate)，寫成算式則為如下：</p>
+
+<p>The gradient is a vector made up of the partial derivatives of a function with respect to each variable. It points in the direction where the function's value goes up the fastest, and it tells you how fast the function is changing with respect to each variable. When we use gradient descent to find an extreme value (we'll use minimum as the example from here on), we're basically moving in the opposite direction of the gradient. You can also think of it as slowly walking down a hillside, step by step, until you reach the bottom of the valley. For each step, we need to know the opposite direction of the current gradient, and decide how big the step should be. This is usually written as a multiple of the gradient, called the learning rate. The formula looks like this:</p>
 
 <p align=center>θ<sub>t+1</sub> = θ<sub>t</sub> - &eta;∇f(θ<sub>t</sub>)</p>
 
 <p>其中的 θ<sub>t</sub> 是目前所在位置的函數參數，&eta; 是學習率，θ<sub>t+1</sub> 是走了新的一步以後的所在位置的函數輸入。通常，在有極值存在的狀況下，由於電腦表示小數的精確度限制等因素，我們可以在走了夠多步，或者兩步之間的輸入（下山時的水平方向）或輸出（下山時的高度方向）位置變化不大的情況下，將計算出的結果當作極值。</p>
 
+<p>Here, θ<sub>t</sub> is the function's parameter at the current position, η is the learning rate, and θ<sub>t+1</sub> is the function's input after taking a new step. Usually, when an extreme value exists, because of limits like how precisely a computer can represent decimals, we can treat the result as the extreme value once we've taken enough steps, or once the change in input (the horizontal direction while going downhill) or output (the height while going downhill) between two steps becomes very small.</p>
+
 <p>我們來看看如何利用上述的方法，來求函數極值。因為多項式的極值求取相對簡單，因此我們以相對比較不容易手算極值的 f(x) = e<sup>x</sup> + x<sup>2</sup> 來做示範：</p>
+<p>Let's look at how to use the method above to find a function's extreme value. Since finding the extreme value of a polynomial by hand is pretty easy, we'll demonstrate with f(x) = e<sup>x</sup> + x<sup>2</sup>, which is harder to solve by hand:</p>
 <pre class="line-numbers match-braces"><code class="language-python">import matplotlib.pyplot as plt
 import numpy as np
 
@@ -53,9 +60,14 @@ plt.show()
 
 <p>在上述範例中，除非你使用比較先進的函式庫，例如 PyTorch 等，否則函數的微分仍然需要自己計算。此外，你可以試著改變起始點和學習率，看看效果是否有所不同。</p>
 
+<p>In the example above, unless you use a more advanced library like PyTorch, you still need to work out the derivative of the function yourself. Also, try changing the starting point and the learning rate, and see if the results change.</p>
+
 <p>Question: 在上述範例中，如果 learning rate 小到大約 0.0001，或者大到約 0.8，則各別會發生什麼事？</p>
 
+<p>Question: In the example above, what would happen if the learning rate were as small as about 0.0001, or as large as about 0.8?</p>
+
 <p>多變數的狀況也非常類似，但你需要對兩個變數分別作偏微分。以下用 f(x, y) = e<sup>x+y</sup> + x<sup>2</sup> - y<sup>2</sup> 來做示範：</p>
+<p>The case with multiple variables works in a very similar way, but you need to take the partial derivative with respect to each variable separately. Here's a demo using f(x, y) = e<sup>x+y</sup> + x<sup>2</sup> - y<sup>2</sup>:</p>
 <pre class="line-numbers match-braces"><code class="language-python">import matplotlib.pyplot as plt
 import numpy as np
 
@@ -97,7 +109,10 @@ plt.show()
 
 <p>在上述範例中，由於初始位置的梯度非常大，在一步跨太遠的情況下，很容易造成結果發散，因此我們透過降低學習率的方式，來讓每一步不要跨太遠，使得結果可以呈現收斂。</p>
 
+<p>In the example above, since the gradient is very large at the starting position, taking one step that's too big can easily make the result diverge. So we lower the learning rate to keep each step from being too big, which lets the result converge.</p>
+
 <p>在比較實際的問題中，起始點的選擇可能是很有影響的。下列是一個四次式的範例，各位可以看到，我們選的起始點，並不會讓結果走到全域的最小值：</p>
+<p>In more realistic problems, the choice of starting point can matter a lot. Below is an example with a degree-4 polynomial. As you can see, the starting point we picked doesn't let the result reach the global minimum:</p>
 <pre class="line-numbers match-braces"><code class="language-python">import matplotlib.pyplot as plt
 import numpy as np
  
@@ -128,6 +143,7 @@ plt.show()
 </code></pre>
 
 <p>這時，透過 learning rate scheduling 的方式，也許有機會讓你找到比較好的解：</p>
+<p>In this case, using learning rate scheduling might give you a chance to find a better solution:</p>
 <pre class="line-numbers match-braces"><code class="language-python">import matplotlib.pyplot as plt
 import numpy as np
 
@@ -180,13 +196,19 @@ plt.show()
 
 <p>機器學習中，我們會希望模型的輸出與標準答案的誤差盡可能的小，也就是對某個可以評估誤差的函數(loss function)求取極值。該函數的輸入分成兩部分，一部分是模型的輸出，另一部分是標準答案，而我們能變更的只有模型如何輸出，因此在計算梯度時，只會對模型輸出相關的那一部分作偏微分。舉例來說，假設你看到二維平面上有一堆點，它們的位置分布長的像是下面的 function，只是你不知道實際參數的話：</p>
 
+<p>In machine learning, we want the error between the model's output and the correct answer to be as small as possible. In other words, we want to find the extreme value of a function that measures this error, called the loss function. The input to this function has two parts: one is the model's output, and the other is the correct answer. The only thing we can change is how the model produces its output, so when we calculate the gradient, we only take the partial derivative with respect to the part related to the model's output. For example, suppose you see a bunch of points on a 2D plane, and their positions look like they follow the function below, except you don't know the actual parameter values:</p>
+
 <p align=center>ŷ = f(x) = e<sup>-θ<sub>1</sub>x</sup> + θ<sub>2</sub>x + θ<sub>3</sub></p>
 
 <p>而若以 y 軸方向上的差異的平方當作 loss function，則模型輸出 ŷ 與標準答案 y 之間的差異，可以寫成：</p>
 
+<p>And if we use the squared difference along the y-axis as the loss function, then the difference between the model's output ŷ and the correct answer y can be written as:</p>
+
 <p align=center>ℒ(ŷ, y) = (ŷ - y)<sup>2</sup> = (e<sup>-θ<sub>1</sub>x</sup> + θ<sub>2</sub>x + θ<sub>3</sub> - y)<sup>2</sup></p>
 
 <p>上列算式對 θ<sub>1</sub>、θ<sub>2</sub>、θ<sub>3</sub> 的偏微分分別是：</p>
+
+<p>The partial derivatives of the expression above with respect to θ<sub>1</sub>, θ<sub>2</sub>, and θ<sub>3</sub> are:</p>
 
 <p align=center>∂ℒ(ŷ, y) / ∂θ<sub>1</sub> = 2(ŷ - y) ∂ŷ / ∂θ<sub>1</sub>  = 2(ŷ - y)e<sup>-θ<sub>1</sub>x</sup>(-x)，</p>
 
@@ -195,6 +217,7 @@ plt.show()
 <p align=center>∂ℒ(ŷ, y) / ∂θ<sub>3</sub> = 2(ŷ - y) ∂ŷ / ∂θ<sub>3</sub> = 2(ŷ - y)</p>
 
 <p>以下範例會亂數產生一堆分布像是 ŷ = f(x) = e<sup>-θ<sub>1</sub>x</sup> + θ<sub>2</sub>x + θ<sub>3</sub> 的點，並在假設不知道原本 function 參數的情況下，用梯度下降法試圖推測出參數：</p>
+<p>The example below randomly generates a bunch of points that follow a distribution like ŷ = f(x) = e<sup>-θ<sub>1</sub>x</sup> + θ<sub>2</sub>x + θ<sub>3</sub>, and then, pretending we don't know the original function's parameters, tries to figure them out using gradient descent:</p>
 <pre class="line-numbers match-braces"><code class="language-python">import matplotlib.pyplot as plt
 import numpy as np
 
@@ -252,6 +275,7 @@ plt.show()
 </code></pre>
 
 <p>在上述範例中，我們選擇了離實際位置相當近的點做為起始。你可以試著使用其他起始位置，但是有可能會讓計算結果跟實際位置相差比較大。此外，在範例中是看過所有資料以後再計算梯度，但實務上若遇到資料集非常龐大時，你也可以每次只取一小部分計算梯度，稱為 mini-batch gradient descent，實作範例如下：</p>
+<p>In the example above, we chose a starting point that's quite close to the actual values. You can try using a different starting point, but the result might end up pretty far from the actual values. Also, in this example, the gradient is calculated after looking at all the data. But in practice, when the dataset is very large, you can also calculate the gradient using just a small chunk of data each time. This is called mini-batch gradient descent. Here's an example implementation:</p>
 <pre class="line-numbers match-braces"><code class="language-python">import matplotlib.pyplot as plt
 import numpy as np
 
@@ -312,13 +336,18 @@ plt.show()
 
 <p>Mini-batch 的技巧，在訓練類神經網路時會經常被使用，並且通常會將資料點隨機打亂順序，以提升梯度下降時的多樣性。</p>
 
+<p>The mini-batch trick is used a lot when training neural networks, and the data points are usually shuffled randomly too, to add more variety during gradient descent.</p>
+
 <p>梯度下降的改進方法之一是 Momentum，亦即在梯度中加入慣性，就像一顆球在地形上滾動，當坡度方向一致時會加速前進；當坡度改變時，不會立刻停下，而是逐漸調整方向；它的好處是有機會學習的更快，在實務上也較不容易卡在平坦或淺的局部極小值附近；它的公式是：</p>
+
+<p>One way to improve gradient descent is called Momentum. This means adding some inertia to the gradient, kind of like a ball rolling across terrain. When the slope direction stays the same, the ball speeds up. When the slope changes, the ball doesn't stop right away, but gradually changes direction instead. The benefit is that it can help you learn faster, and in practice it's also less likely to get stuck near a flat or shallow local minimum. Here's the formula:</p>
 
 <p align=center>V<sub>t+1</sub> = &beta;V<sub>t</sub> - &eta;∇f(θ<sub>t</sub>)，以及</p>
 
 <p align=center>θ<sub>t+1</sub> = θ<sub>t</sub> + V<sub>t+1</sub></p>
 
 <p>我們回到一開始的 f(x) = e<sup>x</sup> + x<sup>2</sup>，來做 Momentum 的實作示範：</p>
+<p>Let's go back to our earlier function, f(x) = e<sup>x</sup> + x<sup>2</sup>, and demonstrate how Momentum works:</p>
 <pre class="line-numbers match-braces"><code class="language-python">import matplotlib.pyplot as plt
 import numpy as np
 
@@ -352,6 +381,8 @@ plt.show()
 </code></pre>
 
 <p>梯度下降的其他改進方法，還有 AdaGrad 以及 ADAM 等，若有興趣可以自行研讀。</p>
+
+<p>Other ways to improve gradient descent include AdaGrad and ADAM. Feel free to look into these on your own if you're interested.</p>
 
 </blockquote>
 

@@ -15,7 +15,12 @@
 
 <p>在真實的任務中，經常會遇到資料中不同類別的比率，極度不平衡的狀況，例如大型災害發生、罕見疾病診斷、垃圾郵件過濾，以及信用卡盜刷等；其中以 Kaggle 的 <a href="https://www.kaggle.com/competitions/ieee-fraud-detection/data?select=train_transaction.csv">IEEE-CIS Fraud Detection</a> 競賽提供的資料為例，盜刷的比率大約只佔了 3%。我們在先前的篇章中，提到過這種情況的評估指標，應使用 precision、recall，以及 F-score 較為適合；本篇則將介紹如何處理資料或訓練模型，來緩解嚴重不平衡帶來的問題。</p>
 
+<p>In real tasks, you'll often run into cases where the class ratio in the data is very unbalanced. This happens with things like major disasters, rare disease diagnosis, spam filtering, and credit card fraud. For example, in Kaggle's <a href="https://www.kaggle.com/competitions/ieee-fraud-detection/data?select=train_transaction.csv">IEEE-CIS Fraud Detection</a> competition, fraud cases only make up about 3% of the data. In an earlier chapter, we mentioned that for this kind of case, it's better to use precision, recall, and F-score as the evaluation metrics. In this chapter, we'll look at how to handle the data or train the model to ease the problems caused by severe class imbalance.</p>
+
 <p>一般來說，在不做任何處理的情況下，模型的預測會嚴重偏向多數類，因此會有以下幾類方法處理，或者你也可以結合其中幾種：</p>
+
+<p>Generally speaking, if you don't do anything about it, the model's predictions will lean heavily toward the majority class. So here are a few ways to deal with this, and you can also combine several of them:</p>
+
 <ul>
 	<li>過採樣(oversampling)：此種做法的目的是增加少數類樣本，包含但不限於以下做法：
 		<ul>
@@ -37,7 +42,29 @@
 	<li>異常偵測視角：只使用多數類訓練可輸出預測信心度或機率的模型，當待測樣本機率低於預設門檻時，判定為少數類。</li>
 </ul>
 
+<ul>
+	<li>Oversampling: The goal here is to add more samples of the minority class. This includes, but is not limited to, the following methods:
+		<ul>
+			<li>Random oversampling: Repeatedly sample the minority class until it's close to balanced with the majority class.</li>
+			<li>SMOTE (Synthetic Minority Over-sampling Technique): Make new minority samples by doing linear interpolation between existing minority samples.</li>
+			<li>ADASYN (Adaptive Synthetic Sampling): An improved version of SMOTE. It creates more synthetic minority samples for minority samples that are closer to the majority class.</li>
+		</ul>
+	</li>
+	<li>Undersampling: The goal here is to remove some majority class samples. This includes, but is not limited to, the following methods:
+		<ul>
+			<li>Random undersampling</li>
+			<li>Removing majority class samples that are close to the minority class (Tomek Links)</li>
+			<li>Removing majority class samples that are far from the minority class (NearMiss)</li>
+			<li>Removing majority class samples that get misclassified (Edited Nearest Neighbors, ENN)</li>
+		</ul>
+	</li>
+	<li>Class weighting: Give the minority class a higher weight in the loss function during training, so mistakes on the minority class are punished more.</li>
+	<li>Adjusting the probability threshold: For models that output a confidence score or probability, the threshold between majority and minority class is usually set to 0.5 by default. With this method, you can raise or lower the threshold to make the model more conservative or more aggressive when predicting the majority class.</li>
+	<li>Treating it as anomaly detection: Train a model that outputs a confidence score or probability using only the majority class. When a test sample's probability falls below a set threshold, it's classified as the minority class.</li>
+</ul>
+
 <p>以下是一個在不平衡資料的狀況中，嘗試比較不處理、隨機過採樣、隨機降採樣的辨識效果的範例：</p>
+<p>Below is an example that compares the performance of doing nothing, random oversampling, and random undersampling on imbalanced data:</p>
 <pre class="line-numbers match-braces"><code class="language-python">import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.datasets import make_classification
@@ -86,13 +113,6 @@ for ax, (name, (Xr, yr)) in zip(axes, samplers.items()):
 plt.show()
 </code></pre>
 
-<!-- <p>在上述範例中：</p>
-<ul>
-	<li></li>
-	<li></li>
-	<li></li>
-</ul>
- -->
 </blockquote>
 
 </body></html>
