@@ -13,8 +13,10 @@
 
 <blockquote>
 
-<p>
-大家在國高中生物課程中學過生物的神經，有樹突作為輸入端，而當輸入的強度超過閾值時，就會啟動輸出，將訊號傳遞到下一個神經元；而類神經網路，則是比照生物學的原理，以人工的方式來模擬神經元的行為。我們依據模擬的程度，依序說明如下：</p>
+<p>大家在國高中生物課程中學過生物的神經，有樹突作為輸入端，而當輸入的強度超過閾值時，就會啟動輸出，將訊號傳遞到下一個神經元；而類神經網路，則是比照生物學的原理，以人工的方式來模擬神經元的行為。我們依據模擬的程度，依序說明如下：</p>
+
+<p>In middle school and high school biology, you learned about neurons. A neuron has dendrites as its input. When the input is strong enough to pass a threshold, the neuron fires an output and passes the signal to the next neuron. An artificial neural network follows the same idea, and uses math to imitate how neurons behave. We'll explain it step by step, from simple to more realistic:</p>
+
 <ul>
 	<li>在最簡單的狀況，假設一個神經元只包含一個輸入端（對照到機器學習的術語，就是特徵只有一個維度）和一個輸出端的情況中，我們可以用數學將其表示成 y&#770; = f( x * w + b)，其中：
 		<ul>
@@ -27,9 +29,33 @@
 	<li>進一步再考慮一層中有多個神經元，也就是輸出端有多個的情況，則算式會再進一步變成 <b>y&#770;</b> = f(<b>x</b><sup>T</sup>W + <b>b</b>)，此時的輸入 <b>x</b>、偏差 <b>b</b> 和輸出 <b>y&#770;</b> 都是向量，而 W 是矩陣。</li>
 </ul>
 
-<p>把上述最後一種模擬的神經元堆疊多層，就是所謂的多層感知器(Multilayer perceptron, MLP)，並且由於我們通常會讓每一層的每個輸出都是完全連接到下一層的每個輸入，所以這樣的每一層叫做全連接層(fully connected layer)。如果有 n 層的話，這個網路寫成算式會是這樣： <b>h<sub>1</sub></b> = f(<b>x</b><sup>T</sup>W<sub>1</sub> + <b>b<sub>1</sub></b>), <b>h<sub>2</sub></b> = f(<b>h<sub>1</sub></b><sup>T</sup>W<sub>2</sub> + <b>b<sub>2</sub></b>), ..., <b>y&#770;</b> = f(<b>h<sub>n-1</sub></b><sup>T</sup>W<sub>n</sub> + <b>b<sub>n</sub></b>)。</p>
+<ul>
+	<li>In the simplest case, a neuron has only one input (in machine learning terms, the feature has only one dimension) and one output. We can write this as y&#770; = f( x * w + b), where:
+		<ul>
+			<li>x is the input value. w and b are the weight and the bias, which we need to train so they can represent how the neuron behaves.</li>
+			<li>f is called the activation function. It is usually a nonlinear function, used to imitate how a real neuron only gives an output when the input passes a threshold.</li>
+			<li>y&#770; is the output value of the neuron.</li>
+		</ul>
+	</li>
+	<li>In real life, a neuron has many inputs on its dendrites, but still only one output. In this case, the formula above becomes y&#770; = f(<b>x</b><sup>T</sup><b>w</b> + b). Now <b>x</b> and <b>w</b> are both column vectors, while b and the output y&#770; are still single numbers.</li>
+	<li>Next, let's say one layer has many neurons, which means many outputs. Then the formula becomes <b>y&#770;</b> = f(<b>x</b><sup>T</sup>W + <b>b</b>). Now the input <b>x</b>, the bias <b>b</b>, and the output <b>y&#770;</b> are all vectors, and W is a matrix.</li>
+</ul>
+
+<p>把上述最後一種模擬的神經元堆疊多層，就是所謂的多層感知器(Multilayer perceptron, MLP)，並且由於我們通常會讓每一層的每個輸出都是完全連接到下一層的每個輸入，所以這樣的每一層叫做全連接層(fully connected layer)。如果有 n 層的話，這個網路寫成算式會是這樣：</p>
+
+<p>If we stack many layers like the last case above, we get what we call a multilayer perceptron (MLP). Usually, every output of one layer is connected to every input of the next layer, so each layer like this is called a fully connected layer. If there are n layers, we can write the network like this:</p>
+
+<p style="text-align:center"><b>h<sub>1</sub></b> = f(<b>x</b><sup>T</sup>W<sub>1</sub> + <b>b<sub>1</sub></b>),</p>
+
+<p style="text-align:center"><b>h<sub>2</sub></b> = f(<b>h<sub>1</sub></b><sup>T</sup>W<sub>2</sub> + <b>b<sub>2</sub></b>),</p>
+
+<p style="text-align:center">...,</p>
+
+<p style="text-align:center"><b>y&#770;</b> = f(<b>h<sub>n-1</sub></b><sup>T</sup>W<sub>n</sub> + <b>b<sub>n</sub></b>)</p>
 
 <p>因此，若以一個恰好有一個隱藏層，且輸入、隱藏、輸出層都是維度 2 的神經網路為例，可以繪製示意圖如下，其中 w、b 以及 h 的上標代表其所屬為第幾層，w 的下標代表由前一層的第幾維度連接到後一層的第幾維度，其餘的下標代表其為第幾維度：</p>
+
+<p>So, let's take a network with exactly one hidden layer, where the input, hidden, and output layers all have 2 dimensions. We can draw it like the figure below. The superscript of w, b, and h tells you which layer it belongs to. The subscript of w tells you which dimension in the previous layer connects to which dimension in the next layer. The other subscripts tell you which dimension it is:</p>
 
 <center><canvas id="canvas_nn01" width="400" height="190" style="border: 0px solid;"></canvas></center>
 <script>
@@ -236,17 +262,19 @@ ctx.fillText("2", 385, 165);
 
 </script>
 
-<p>
-假設一路上的每個 W 和 <b>b</b> 已經給定，則對於一個輸入 <b>x</b>，要計算 <b>y&#770;</b> 是相當簡單的事情，就是高中學過的矩陣運算而已，此步驟稱為向前傳播(forward propagation, forward pass)。</p>
+<p>假設一路上的每個 W 和 <b>b</b> 已經給定，則對於一個輸入 <b>x</b>，要計算 <b>y&#770;</b> 是相當簡單的事情，就是高中學過的矩陣運算而已，此步驟稱為向前傳播(forward propagation, forward pass)。</p>
+
+<p>Suppose every W and <b>b</b> is already given. Then, for an input <b>x</b>, computing <b>y&#770;</b> is pretty easy. It's just the matrix math you learned in high school. This step is called forward propagation (or forward pass).</p>
 
 <hr>
 
-<p>而要訓練這個類神經網路，也就是說要更新每個 W 和 <b>b</b>，則需要先使用損失函數(loss function)評估網路算出來的 <b>y&#770;</b> 和標準答案的 <b>y</b> 之間的差異，接著以損失函數對每個參數進行偏微分求取梯度，最後再利用各種最佳化（求極值）的方法(optimizer)來更新每個 W 和 <b>b</b>。其中，由於求梯度的步驟是由算出來的 loss 倒回去進行，所以通稱為反向傳播(backpropagation)。如此反覆的向前傳播、反向傳播以及最佳化更新參數以後，通常就可以訓練出恰當的類神經網路。
-</p>
+<p>而要訓練這個類神經網路，也就是說要更新每個 W 和 <b>b</b>，則需要先使用損失函數(loss function)評估網路算出來的 <b>y&#770;</b> 和標準答案的 <b>y</b> 之間的差異，接著以損失函數對每個參數進行偏微分求取梯度，最後再利用各種最佳化（求極值）的方法(optimizer)來更新每個 W 和 <b>b</b>。其中，由於求梯度的步驟是由算出來的 loss 倒回去進行，所以通稱為反向傳播(backpropagation)。如此反覆的向前傳播、反向傳播以及最佳化更新參數以後，通常就可以訓練出恰當的類神經網路。</p>
 
-<p>
-以前述的那個恰好有一個隱藏層，且輸入、隱藏、輸出層都是維度 2 的神經網路為例，把向前傳播的矩陣形式展開回數值時，可以寫為以下方式：
-</p>
+<p>To train this neural network, which means updating every W and <b>b</b>, we first need to use a loss function to measure the difference between the network's output <b>y&#770;</b> and the correct answer <b>y</b>. Then, we take the partial derivative of the loss function with respect to each parameter to get the gradients. Finally, we use an optimizer to update every W and <b>b</b>. Since the gradients are calculated going backward from the loss, this step is called backpropagation. If we repeat forward propagation, backpropagation, and parameter updates again and again, we can usually train a good neural network.</p>
+
+<p>以前述的那個恰好有一個隱藏層，且輸入、隱藏、輸出層都是維度 2 的神經網路為例，把向前傳播的矩陣形式展開回數值時，可以寫為以下方式：</p>
+
+<p>Let's use the same example again: one hidden layer, with 2 dimensions in the input, hidden, and output layers. If we expand the matrix form of forward propagation back into plain numbers, we can write it like this:</p>
 
 <p style="text-align:center">h<sup>1</sup><sub style='position: relative; left: -.5em;'>1</sub> = f(x<sub>1</sub>w<sup>1</sup><sub style='position: relative; left: -.5em;'>1,1</sub> + x<sub>2</sub>w<sup>1</sup><sub style='position: relative; left: -.5em;'>2,1</sub> + b<sup>1</sup><sub style='position: relative; left: -.5em;'>1</sub>),</p>
 
@@ -257,6 +285,8 @@ ctx.fillText("2", 385, 165);
 <p style="text-align:center">y&#770;<sub>2</sub> = f(h<sup>1</sup><sub style='position: relative; left: -.5em;'>1</sub>w<sup>2</sup><sub style='position: relative; left: -.5em;'>1,2</sub> + h<sup>1</sup><sub style='position: relative; left: -.5em;'>2</sub>w<sup>2</sup><sub style='position: relative; left: -.5em;'>2,2</sub> + b<sup>2</sup><sub style='position: relative; left: -.5em;'>2</sub>)</p>
 
 <p>此時，對於 w<sup>2</sup> 和 b<sup>2</sup> 來說，由於各自都只有一條路徑通往 y&#770;，因此以損失函數 L 對其偏微分相對簡單，依照連鎖律(chain rule)直接展開即可，如下：</p>
+
+<p>Now, for w<sup>2</sup> and b<sup>2</sup>, each of them has only one path to y&#770;. So taking the partial derivative of the loss function L is pretty simple. We just expand it with the chain rule, like this:</p>
 
 <p style="text-align:center">&part;L / &part;b<sup>2</sup><sub style='position: relative; left: -.5em;'>1</sub> = (&part;L / &part;y&#770;<sub>1</sub>)(&part;y&#770;<sub>1</sub> / &part;b<sup>2</sup><sub style='position: relative; left: -.5em;'>1</sub>),</p>
 
@@ -269,6 +299,8 @@ ctx.fillText("2", 385, 165);
 <p style="text-align:center">...</p>
 
 <p>而對於 w<sup>1</sup> 和 b<sup>1</sup> 來說，由於各自有兩條路徑通往 y&#770;，因此以損失函數 L 對其偏微分時，需要同時考慮這兩條路徑的影響，亦即將其相加。以 w<sup>1</sup><sub style='position: relative; left: -.5em;'>1,1</sub> 和 b<sup>1</sup><sub style='position: relative; left: -.5em;'>1</sub> 作為範例，對應的路徑和微分算式如下，其中圖上的橘色代表路徑重疊處：</p>
+
+<p>For w<sup>1</sup> and b<sup>1</sup>, each of them has two paths to y&#770;. So when we take the partial derivative of the loss function L, we need to consider both paths at the same time, which means adding them together. Let's use w<sup>1</sup><sub style='position: relative; left: -.5em;'>1,1</sub> and b<sup>1</sup><sub style='position: relative; left: -.5em;'>1</sub> as examples. The paths and the derivative formulas are shown below. In the figure, the orange color shows where the paths overlap:</p>
 
 <center><canvas id="canvas_nn02" width="400" height="190" style="border: 0px solid;"></canvas></center>
 <script>
@@ -523,11 +555,19 @@ ctx.restore();
 
 <p>在上述算式中，你可以發現有一些相同的部份，例如 &part;L / &part;y&#770;<sub>1</sub> 以及 &part;y&#770;<sub>1</sub> / &part;h<sup>1</sup><sub style='position: relative; left: -.5em;'>1</sub> 等等，這些部份在各家工具的實作中，通常會將重複的部份保留起來，避免重複計算，以節省資源。而在預測階段這類不需要計算反向傳播的時候，以 PyTorch 為例，則有「torch.no_grad()」等方法來略去梯度的計算。</p>
 
+<p>In the formulas above, you can see that some parts are the same, such as &part;L / &part;y&#770;<sub>1</sub> and &part;y&#770;<sub>1</sub> / &part;h<sup>1</sup><sub style='position: relative; left: -.5em;'>1</sub>. In most tools, these repeated parts are saved so they don't need to be calculated again, which saves resources. And when you don't need backpropagation, such as at the prediction stage, you can skip the gradient calculation. In PyTorch, for example, you can use methods like "torch.no_grad()".</p>
+
 <p>此外，由於在反向傳播的算式中，我們除了對損失函數微分以外，在反向傳播時也需要多次對 activation function 在某些點進行微分並連續相乘，因此若 activation function 在那些點的微分值太大（實務上較少碰到僅由 activation function 造成的此問題，通常與權重初始化或網路架構等方面有關）或太小（例如 sigmoid function 在 y 非常接近 0 或 1 的地方），連續相乘起來就會讓梯度爆炸或者消失；目前已有多項技巧用於緩解或繞開相關問題，較經典的方式有梯度剪切(gradient clipping)、殘差連接(residual connection)，以及 batch normalization 等，或者你可以直接選用不易造成梯度問題的 activation function，如 ReLU 系列。</p>
+
+<p>Also, in backpropagation, besides taking the derivative of the loss function, we also need to take the derivative of the activation function at certain points many times, and multiply them together. If the derivative of the activation function at those points is too large (in practice, this problem is rarely caused by the activation function alone, and it is usually related to things like weight initialization or network architecture) or too small (for example, a sigmoid function where the output is very close to 0 or 1), then multiplying them together makes the gradient explode or vanish. There are already many tricks to ease or avoid these problems. Some classic ones are gradient clipping, residual connection, and batch normalization. Or, you can simply choose an activation function that is less likely to cause gradient problems, such as the ReLU family.</p>
 
 <p>而更新參數的方法，最基本的是梯度下降法(gradient descent)；而由於通常訓練類神經網路時，是將資料分成隨機切分的小批次餵進去，因此在這種情境下，會特別稱為隨機梯度下降法(stochastic gradient descent, SGD)。SGD 的公式是 p<sup>t+1</sup> = p<sup>t</sup> - r * &part;L / &part;p<sup>t</sup>，其中的 p<sup>t</sup> 和 p<sup>t+1</sup> 分別代表目前的和更新後的參數；而 r 則稱為學習率(learning rate)，代表每次更新的時候你「大膽」的程度。而為了比 SGD 更快找到好的參數，或者找到更好的參數，還有其他各種最佳化方法被開發出來，此處就不一一介紹。</p>
 
+<p>For updating parameters, the most basic method is gradient descent. When we train neural networks, we usually split the data randomly into small batches and feed them in. In this case, the method is specifically called stochastic gradient descent (SGD). The formula of SGD is p<sup>t+1</sup> = p<sup>t</sup> - r * &part;L / &part;p<sup>t</sup>, where p<sup>t</sup> and p<sup>t+1</sup> are the current and the updated parameters. r is called the learning rate, and it shows how "bold" you are with each update. To find good parameters faster than SGD, or to find even better parameters, many other optimizers have been developed. We won't go through them one by one here.</p>
+
 <p>而關於 loss function 的選擇，則會視你要處理的問題而定。一般來說，若是處理回歸問題，則我們可以選用 MSE (mean squared error)；而若是處理分類問題，則通常會使用 cross entropy；而在對比式學習(contrastive learning)或多模態的學習中，甚至會以 triplet loss，或者以 cosine similarity 為基礎的 loss function 等方法，來拉近相似的樣本的網路輸出，並推遠相異樣本的網路輸出。</p>
+
+<p>How to choose a loss function depends on the problem you want to solve. Generally speaking, for regression problems, we can use MSE (mean squared error). For classification problems, we usually use cross entropy. In contrastive learning or multimodal learning, we may even use triplet loss, or loss functions based on cosine similarity, to pull the network outputs of similar samples closer, and push the network outputs of different samples farther apart.</p>
 
 </blockquote>
 
