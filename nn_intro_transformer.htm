@@ -5,7 +5,6 @@
 	<link rel=stylesheet type="text/css" href="myCss.css">
 	<script src="myJs.js"></script>
 	<base target="_blank">
-	<script type="text/javascript" src="myJs.js"></script>
 	<link href="prism.css" rel="stylesheet">
 	<script src="prism.js"></script>
 </head>
@@ -14,23 +13,37 @@
 
 <blockquote>
 
-<p>Transformer 是一種完全基於注意力機制(attention mechanism)的神經網路架構，最初由 Vaswani 等人於 2017 年提出，並被廣泛應用於自然語言處理、語音辨識、影像辨識等需要捕捉長距離依賴關係的任務。雖然在應用面上與 LSTM 相似，但不同的是，Transformer 不依賴遞迴結構，而是透過自注意力機制(self-attention)讓序列中的每個位置都能直接與其他所有位置互動，因此在平行運算上具有顯著優勢。Transformer 的完整架構包含 encoder 與 decoder，本篇章將主要基於原始版本進行介紹。Encoder 部分的介紹如下。</p>
+<p>Transformer 是一種完全基於注意力機制(attention mechanism)的神經網路架構，最初由 Vaswani 等人於 2017 年提出，後續則有各種不同的改版，如 Conformer (Convolution-augmented Transformer)、Q-former (Querying Transformer)和 Sinkformer (Transformers with Doubly Stochastic Attention)等等，並被廣泛應用於自然語言處理、語音辨識、影像辨識等需要捕捉長距離依賴關係的任務。雖然在應用面上與 LSTM 相似，但不同的是，Transformer 不依賴遞迴結構，而是透過自注意力機制(self-attention)讓序列中的每個位置都能直接與其他所有位置互動，因此在平行運算上具有顯著優勢。本篇章接下來的內容，將基於原始版本進行介紹。</p>
 
-<p>Transformer encoder 的核心元件，是由多頭自注意力(Multi-Head Self-Attention，MHSA)與前饋網路(Feed-Forward Network，FFN)所組成。對於給定的輸入序列 X，我們首先分別透過三個線性投影，得到查詢(Query)、鍵(Key)、值(Value)三組矩陣：</p>
+<p>The Transformer is a neural network architecture that is based entirely on the attention mechanism. It was first proposed by Vaswani et al. in 2017, and many versions have followed, such as Conformer (Convolution-augmented Transformer), Q-former (Querying Transformer), and Sinkformer (Transformers with Doubly Stochastic Attention). It is widely used in tasks that need to capture long-distance dependencies, such as natural language processing, speech recognition, and image recognition. It is similar to LSTM in what it is used for, but the difference is that the Transformer does not rely on a recurrent structure. Instead, it uses self-attention, which lets every position in the sequence interact directly with all other positions. So it has a big advantage in parallel computation. The rest of this chapter is based on the original version.</p>
+
+<p>Transformer 的完整架構包含 encoder 與 decoder，我們首先看看 encoder 的部分。</p>
+
+<p>The full Transformer architecture has an encoder and a decoder. Let's look at the encoder first.</p>
+
+<p>Transformer encoder 的核心元件，是由多頭自注意力(Multi-Head Self-Attention, MHSA)與前饋網路(Feed-Forward Network, FFN)所組成。對於給定的輸入序列 X，我們首先分別透過三個線性投影，得到查詢(Query)、鍵(Key)、值(Value)三組矩陣：</p>
+
+<p>The core parts of the Transformer encoder are multi-head self-attention (MHSA) and a feed-forward network (FFN). For a given input sequence X, we first use three linear projections to get three matrices: the Query, the Key, and the Value:</p>
 
 <p style="text-align:center">Q = XW<sub>Q</sub>，K = XW<sub>K</sub>，V = XW<sub>V</sub></p>
 
 <p>接著計算注意力輸出：</p>
 
+<p>Next, we compute the attention output:</p>
+
 <p style="text-align:center">Attention(Q, K, V) = softmax(QK<sup>T</sup> / d<sub>k</sub><sup>1/2</sup>)V</p>
 
 <p>其中 d<sub>k</sub> 為 K 的維度，除以其平方根是為了避免乘積過大，導致 softmax 梯度消失。多頭注意力則是將上述運算沿特徵維度平均分割成多份來執行，每份使用不同的投影矩陣，最後將結果並排後再做一次線性投影：</p>
+
+<p>Here, d<sub>k</sub> is the dimension of K. We divide by its square root so the products don't get too large, which would make the softmax gradient vanish. For multi-head attention, we split the operation above into several equal parts along the feature dimension. Each part uses different projection matrices. At the end, we put the results side by side and do one more linear projection:</p>
 
 <p style="text-align:center">head<sub>i</sub> = Attention(XW<sub>Qi</sub>, XW<sub>Ki</sub>, XW<sub>Vi</sub>),</p>
 
 <p style="text-align:center">MultiHead(X) = Concat(head<sub>1</sub>, ..., head<sub>h</sub>)W<sub>O</sub></p>
 
-<p>其中，MultiHead(X) 代表 Q、K、V 皆來自 X。而一個完整的 encoder block，還包含殘差連接(residual connection)與層正規化(Layer Normalization，LN)，以及一個逐位置的前饋網路：</p>
+<p>其中，MultiHead(X) 代表 Q、K、V 皆來自 X。而一個完整的 encoder block，還包含殘差連接(residual connection)與層正規化(Layer Normalization, LN)，以及一個逐位置的前饋網路：</p>
+
+<p>Here, MultiHead(X) means that Q, K, and V all come from X. A full encoder block also has a residual connection, layer normalization (LN), and a position-wise feed-forward network:</p>
 
 <p style="text-align:center">Z = LN(X + MultiHead(X))</p>
 
@@ -38,17 +51,24 @@
 
 <p>其中，FFN 通常是兩層全連接層加上激勵函數：</p>
 
+<p>Here, the FFN is usually two fully connected layers with an activation function:</p>
+
 <p style="text-align:center">FFN(Z) = ReLU(ZW<sub>1</sub> + b<sub>1</sub>)W<sub>2</sub> + b<sub>2</sub></p>
 
 <p>此外，由於 Transformer 沒有遞迴結構，無法從運算過程中得知各位置的順序資訊，因此需要在輸入端加入位置編碼(positional encoding)。原始論文使用正弦與餘弦函數：</p>
+
+<p>Also, the Transformer has no recurrent structure, so it cannot tell the order of the positions from the computation itself. So we need to add positional encoding to the input. The original paper uses sine and cosine functions:</p>
 
 <p style="text-align:center">PE[pos, 2i] = sin(pos / 10000<sup>2i/d</sup>)</p>
 
 <p style="text-align:center">PE[pos, 2i+1] = cos(pos / 10000<sup>2i/d</sup>)</p>
 
-<p>其中 pos 為時間軸的索引，d 為特徵的總維度，i 為 0 到 d/2 之間的整數。依此填完的 PE 矩陣，其 shape 會與 X 相同，因此我們只要把 X 替換為 X + PE，再餵入 Transformer 即可。</p>
+<p>其中 pos 為時間軸的索引，d 為特徵的總維度，i 為 [0, d/2) 之間的整數。依此填完的 PE 矩陣，其 shape 會與 X 相同，因此我們只要把 X 替換為 X + PE，再餵入 Transformer 即可。</p>
+
+<p>Here, pos is the index along the time axis, d is the total number of feature dimensions, and i is an integer in [0, d/2). The PE matrix filled in this way has the same shape as X. So we only need to replace X with X + PE, and then feed it into the Transformer.</p>
 
 <p>上述的詳細運算步驟，若要用 PyTorch class 的方式表示，則寫法如下：</p>
+<p>If we write the detailed steps above as PyTorch classes, it looks like this:</p>
 <pre class="line-numbers match-braces"><code class="language-python">import torch
 import torch.nn as nn
 
@@ -129,6 +149,8 @@ if __name__ == '__main__':
 
 <p>Transformer 的 decoder block 與 encoder block 結構相似，但多了一個交叉注意力(Cross-Attention)層，其使用的 Q 來自 decoder 自身，K 與 V 則來自 encoder 的輸出。一個完整的 decoder block，依序包含三個子層：</p>
 
+<p>The Transformer decoder block has a structure similar to the encoder block, but it has one more cross-attention layer. In this layer, Q comes from the decoder itself, while K and V come from the output of the encoder. A full decoder block has three sublayers, in this order:</p>
+
 <p style="text-align:center">Z<sub>1</sub> = LN(X<sub>dec</sub> + MultiHead(X<sub>dec</sub>))</p>
 
 <p style="text-align:center">Z<sub>2</sub> = LN(Z<sub>1</sub> + CrossAttn(Z<sub>1</sub>, X<sub>enc</sub>))</p>
@@ -137,9 +159,12 @@ if __name__ == '__main__':
 
 <p>其中 CrossAttn(Z<sub>1</sub>, X<sub>enc</sub>) 表示 Q 來自 Z<sub>1</sub>，K 與 V 來自 encoder 輸出 X<sub>enc</sub>：</p>
 
+<p>Here, CrossAttn(Z<sub>1</sub>, X<sub>enc</sub>) means that Q comes from Z<sub>1</sub>, while K and V come from the encoder output X<sub>enc</sub>:</p>
+
 <p style="text-align:center">CrossAttn(Z<sub>1</sub>, X<sub>enc</sub>) = Attention(Z<sub>1</sub>W<sub>Q</sub>, X<sub>enc</sub>W<sub>K</sub>, X<sub>enc</sub>W<sub>V</sub>)</p>
 
 <p>上述步驟的 PyTorch class 的寫法如下：</p>
+<p>The PyTorch classes for the steps above look like this:</p>
 <pre class="line-numbers match-braces"><code class="language-python">class MultiHeadCrossAttention(nn.Module):
 	def __init__(self, d_model, num_heads):
 		super().__init__()
@@ -186,9 +211,14 @@ class TransformerDecoderBlock(nn.Module):
 
 <p>上述的 encoder 和 decoder 都各自可以堆疊多層，此時 decoder 的每一層都是從 encoder 最後一層的輸出取 K 和 V，而不是對應層的輸出；也就是說 encoder 跑完所有層之後，只會把最終輸出傳給 decoder 的每一層使用。</p>
 
-<p>這個完整的 encoder-decoder 架構，通常會用於生成類的問題，例如將文字從一種語言翻譯成另一種語言。需要注意的是，由於在生成任務的推論過程中，是無法看到未來資訊的；而若要在訓練階段模擬此種行為，則會需要在 decoder 端，利用遮罩(mask)來避免之；對於 encoder 端，若你在特定應用中，不希望讓每個位置取用到距離它太遠的資訊，則也會使用 mask 來處理。關於 mask 的細節和使用方式，暫且不列入本篇章的介紹範圍內。</p>
+<p>Both the encoder and the decoder above can be stacked into many layers. In this case, every decoder layer takes K and V from the output of the last encoder layer, not from the output of the matching layer. In other words, after the encoder runs through all its layers, only the final output is passed to every layer of the decoder.</p>
+
+<p>這個完整的 encoder-decoder 架構，通常會用於生成類的問題，例如將文字從一種語言翻譯成另一種語言。需要注意的是，由於在生成任務的推論過程中，是無法看到未來資訊的；而若要在訓練階段模擬此種行為，則會需要在 decoder 端，利用遮罩(mask)來避免模型看到未來資訊；對於 encoder 端，若你在特定應用中，不希望讓每個位置取用到距離它太遠的資訊，則也會使用 mask 來處理。關於 mask 的細節和使用方式，暫且不列入本篇章的介紹範圍內。</p>
+
+<p>This full encoder-decoder architecture is usually used for generation problems, such as translating text from one language to another. Note that during inference in a generation task, the model cannot see future information. To imitate this during training, we need to use a mask on the decoder side so the model cannot see the future. On the encoder side, if your application does not want each position to use information from positions that are too far away, you can also use a mask. The details and usage of masks are not covered in this chapter for now.</p>
 
 <p>與 LSTM 相仿，PyTorch 也有內建的 class，實務上不需要自己寫。而如果只是要用 Transformer 來進行分類任務，則通常只會取用 encoder 的部分，如下：</p>
+<p>Just like LSTM, PyTorch also has a built-in class for this, so in practice you don't need to write it yourself. And if you only want to use a Transformer for a classification task, you usually only use the encoder part, like this:</p>
 <pre class="line-numbers match-braces"><code class="language-python">import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
@@ -260,15 +290,35 @@ correct = sum(
 print('Accuracy: {:.2f}%'.format(100 * correct / len(test_set)))
 </code></pre>
 
-<p>在上述範例中，我們仿照 LSTM 篇章的做法，只取最後一個時間步的輸出來進行後續的分類，你當然還是可以嘗試其他做法。</p>
+<p>在上述範例中，我們仿照 LSTM 篇章的做法，只取最後一個時間步的輸出來進行後續的分類，你當然還是可以嘗試其他做法。此外，範例中只使用了一層 encoder，而堆疊多層的做法，就留給同學做練習。</p>
+
+<p>In the example above, we follow what we did in the LSTM chapter. We only take the output of the last time step for the later classification. Of course, you can still try other ways. Also, the example only uses one encoder layer. We leave stacking many layers as an exercise for you.</p>
 
 <p>Transformer 還有其他不少的著名使用案例，如：</p>
+
+<p>The Transformer has quite a few other famous use cases, such as:</p>
+
 <ul>
 	<li>BERT (Bidirectional Encoder Representations from Transformers)：由 Google 於 2018 年提出，僅使用 encoder 部分，透過將訓練語句的一部分遮住，來訓練 Transformer encoder 預測被遮住的內容，使模型學到豐富的雙向語境表示，並讓接續使用的研究者，可以再針對下游任務進行 fine-tuning。</li>
-	<li>GPT (Generative Pre-trained Transformer)：由 OpenAI 提出，僅使用 decoder 部分，以自迴歸方式逐步預測下一個 token，並在透過大規模語料預訓練後，可用於文字生成、問答、摘要等多種任務。GPT 系列歷經多個版本的演進，ChatGPT 即以此為基礎。</li>
+	<li>GPT (Generative Pre-trained Transformer)：由 OpenAI 提出，僅使用 decoder 部分（且不含交叉注意力層），以自迴歸方式逐步預測下一個 token，並在透過大規模語料預訓練後，可用於文字生成、問答、摘要等多種任務。GPT 系列歷經多個版本的演進，ChatGPT 即以此為基礎。</li>
 	<li>Whisper：由 OpenAI 於 2022 年提出的語音辨識模型，使用完整的 encoder-decoder 架構，encoder 處理音訊的頻譜特徵，decoder 自迴歸地生成對應的文字，並透過大規模多語言資料訓練，在多種語言的辨識任務上表現穩健。</li>
 	<li>Vision Transformer (ViT)：由 Google 於 2020 年提出，將影像切成固定大小的 patch 並展平後視為序列，送入 Transformer encoder 進行影像分類，證明了純 Transformer 架構在電腦視覺任務上同樣具有競爭力。</li>
 </ul>
+
+<ul>
+	<li>BERT (Bidirectional Encoder Representations from Transformers): Proposed by Google in 2018. It only uses the encoder part. We hide part of the training sentences, and train the Transformer encoder to predict the hidden content. This lets the model learn a rich two-way representation of context, and lets other researchers later fine-tune it for downstream tasks.</li>
+	<li>GPT (Generative Pre-trained Transformer): Proposed by OpenAI. It only uses the decoder part (without the cross-attention layer), and predicts the next token step by step in an autoregressive way. After pre-training on a large amount of text, it can be used for many tasks, such as text generation, question answering, and summarization. The GPT series has gone through many versions, and ChatGPT is based on it.</li>
+	<li>Whisper: A speech recognition model proposed by OpenAI in 2022. It uses the full encoder-decoder architecture. The encoder processes the spectral features of the audio, and the decoder generates the matching text in an autoregressive way. It was trained on a large amount of multilingual data, and works reliably on recognition tasks in many languages.</li>
+	<li>Vision Transformer (ViT): Proposed by Google in 2020. It cuts an image into patches of a fixed size, flattens them, treats them as a sequence, and feeds them into a Transformer encoder for image classification. It showed that a pure Transformer architecture can also be competitive in computer vision tasks.</li>
+</ul>
+
+<p>需要注意的是，文字的輸入和輸出，不同於本篇章或前面各篇章，對影像或數值的處理。雖然也有少數做法會直接使用每個字元在電腦中的編碼，轉成 one-hot vector 作為輸入或者輸出；但比較主流的做法，是把文字切成小段並依此建立字典，才轉成 one-hot vector 甚至是 embedding 來使用。這個切段的動作稱為 tokenization，且不同的預訓練模型通常會搭配不同的字典，使用時必須互相對應。有興趣了解細節的同學，可以自行尋找相關資料研讀。</p>
+
+<p>Note that text input and output are different from how we handle images or numbers in this chapter and the earlier chapters. A few methods do directly use the computer encoding of each character, and turn it into a one-hot vector as the input or output. But the more common way is to cut the text into small pieces and build a dictionary from them, and only then turn them into one-hot vectors, or even embeddings. This cutting step is called tokenization. Different pre-trained models usually come with different dictionaries, and you must use the matching one. If you are interested in the details, you can look up related materials and study them by yourself.</p>
+
+<p>前述的「預訓練模型」，是指他人用大量資料訓練好的模型，以供你進行個人化的調整；相當於你可以站在巨人的肩膀上來處理特定的問題，不用從頭開始爬山。而調整模型時，若認為整個權重矩陣過於龐大不易訓練，你也可以凍結原始權重，只對其 low-rank 版本訓練修正量，這種技巧稱為 low-rank Adaptation (LoRA)。預訓練模型不限於只在 Transformer 上適用，例如影像處理的 VGG 和 ResNet 系列等模型，都有預訓練版本的釋出；而實務上，Transformer 以外的模型，則基於效益等方面的考量，因此不常使用 LoRA。</p>
+
+<p>The "pre-trained model" mentioned above means a model that other people have trained with a large amount of data, so you can adjust it for your own use. This is like standing on the shoulders of giants to solve a specific problem, without having to climb the hill from the bottom. When adjusting a model, if you think the whole weight matrix is too big to train easily, you can also freeze the original weights and only train a correction in a low-rank form. This technique is called low-rank Adaptation (LoRA). Pre-trained models are not only for Transformers. For example, image models such as the VGG and ResNet series also have pre-trained versions released. In practice, for models other than Transformers, LoRA is not used often, because of cost-benefit and other reasons.</p>
 
 </blockquote>
 

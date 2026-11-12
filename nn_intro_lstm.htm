@@ -14,13 +14,19 @@
 
 <blockquote>
 
-<p>長短期記憶網路(Long Short-Term Memory，LSTM)是一種專為處理序列資料所設計的遞迴神經網路(Recurrent Neural Network，RNN)，並被廣泛應用於時間序列預測、語音辨識、自然語言處理等需要捕捉時序依賴的任務。標準 RNN 在理論上可以記住任意長度的歷史資訊，但在實際訓練時，梯度會隨著時間步的增加而指數性地縮小或放大，導致難以學習長距離的依賴關係，此現象稱為梯度消失(vanishing gradient)或梯度爆炸(exploding gradient)問題。LSTM 透過引入細胞狀態(cell state)與三個閘門(gate)的設計，讓網路可以選擇性地記憶或遺忘資訊，從而有效緩解上述問題。</p>
+<p>長短期記憶網路(Long Short-Term Memory，LSTM)是一種專為處理序列資料所設計的遞迴神經網路(Recurrent Neural Network, RNN)，並被廣泛應用於時間序列預測、語音辨識、自然語言處理等需要捕捉時序依賴的任務。標準 RNN 在理論上可以記住任意長度的歷史資訊，但在實際訓練時，梯度會隨著時間步的增加而指數性地縮小或放大，導致難以學習長距離的依賴關係，此現象稱為梯度消失(vanishing gradient)或梯度爆炸(exploding gradient)問題。LSTM 透過引入細胞狀態(cell state)與三個閘門(gate)的設計，讓網路可以選擇性地記憶或遺忘資訊，從而有效緩解上述問題。</p>
 
-<p>在每個時間步 t，LSTM 接收當前輸入 x<sub>t</sub> 與上一步的狀態 h<sub>t−1</sub>、c<sub>t−1</sub>，並計算出 h<sub>t</sub> 以及 c<sub>t</sub>，即：</p>
+<p>Long Short-Term Memory (LSTM) is a recurrent neural network (RNN) designed for sequence data. It is widely used in tasks that need to capture time dependencies, such as time series prediction, speech recognition, and natural language processing. In theory, a standard RNN can remember history of any length. But in real training, the gradient shrinks or grows exponentially as the number of time steps increases, so it is hard to learn long-distance dependencies. This is called the vanishing gradient or exploding gradient problem. LSTM adds a cell state and three gates, so the network can choose what to remember and what to forget. This eases the problem above.</p>
+
+<p>在每個時間步 t，LSTM 接收當前輸入 x<sub>t</sub> 與上一步的狀態 h<sub>t-1</sub>、c<sub>t-1</sub>，並計算出 h<sub>t</sub> 以及 c<sub>t</sub>，即：</p>
+
+<p>At each time step t, the LSTM takes the current input x<sub>t</sub> and the previous states h<sub>t-1</sub> and c<sub>t-1</sub>, and computes h<sub>t</sub> and c<sub>t</sub>, that is:</p>
 
 <p style="text-align:center">(h<sub>t</sub>, c<sub>t</sub>) = LSTM(x<sub>t</sub>, h<sub>t-1</sub>, c<sub>t-1</sub>)</p>
 
 <p>而其內部之詳細運算步驟，可分解如下：</p>
+
+<p>The detailed steps inside can be broken down as follows:</p>
 
 <p style="text-align:center">f<sub>t</sub> = &sigma;(W<sub>f</sub>[h<sub>t-1</sub>, x<sub>t</sub>] + b<sub>f</sub>)</p>
 
@@ -36,7 +42,10 @@
 
 <p>其中 W<sub>*</sub> 與 b<sub>*</sub> 為對應的權重與 bias，方括號表示矩陣並排，&sigma; 為 sigmoid function，⊙ 為 element-wise product；c<sub>t-1</sub> 代表上一步的記憶，乘上 f<sub>t</sub> 代表上一步的記憶要保留多少；c&#x0303;<sub>t</sub> 代表這一步新產生的候選記憶，乘上 i<sub>t</sub> 代表它要貢獻多少到這一步的新記憶當中。h<sub>0</sub> 與 c<sub>0</sub> 實務上通常使用 zero vector。</p>
 
+<p>Here, W<sub>*</sub> and b<sub>*</sub> are the matching weights and biases, the square brackets mean putting the vectors side by side (concatenation), &sigma; is the sigmoid function, and ⊙ is the element-wise product. c<sub>t-1</sub> is the memory from the previous step, and multiplying it by f<sub>t</sub> decides how much of the previous memory to keep. c&#x0303;<sub>t</sub> is the new candidate memory made at this step, and multiplying it by i<sub>t</sub> decides how much it adds to the new memory of this step. In practice, h<sub>0</sub> and c<sub>0</sub> are usually zero vectors.</p>
+
 <p>上述的詳細運算步驟，若要用 PyTorch class 的方式表示，則寫法如下：</p>
+<p>If we write the detailed steps above as a PyTorch class, it looks like this:</p>
 <pre class="line-numbers match-braces"><code class="language-python">class LSTMCell(nn.Module):
 	def __init__(self, input_size, hidden_size):
 		super().__init__()
@@ -54,9 +63,34 @@
 		c = f * c_prev + i * c_tilde
 		h = o * torch.tanh(c)
 		return h, c
+
+
+if __name__ == '__main__':
+	N = 2
+	T = 5
+	input_size = 8
+	hidden_size = 16
+
+	cell = LSTMCell(input_size, hidden_size)
+
+	x = torch.rand(N, T, input_size)
+	h = torch.zeros(N, hidden_size)
+	c = torch.zeros(N, hidden_size)
+
+	outputs = []
+	for t in range(T):
+		h, c = cell(x[:, t, :], h, c) # Shapes: (N, hidden_size)
+		outputs.append(h)
+
+	out = torch.stack(outputs, dim=1)
+	print('Input shape:', x.shape)
+	print('Output shape:', out.shape)
+	print('Last h shape:', h.shape)
+	print('Last c shape:', c.shape)
 </code></pre>
 
-<p>當然，實務上我們不必自己用自己撰寫的 LSTM cell 來搭建網路，而是使用 PyTorch 的 nn.LSTM。一個以 sine wave 做示範的簡單範例如下：</p>
+<p>當然，實務上我們不必用自己撰寫的 LSTM cell 來搭建網路，而是使用 PyTorch 的 nn.LSTMCell 甚至 nn.LSTM，這兩者的差別在於，你是否需要自己撰寫迴圈，把每個時間步的資料一步一步一步地餵進模型。一個以 sine wave 對後者使用方式的示範如下：</p>
+<p>Of course, in practice we don't need to build a network from our own LSTM cell. We use PyTorch's nn.LSTMCell, or even nn.LSTM. The difference between the two is whether you need to write the loop yourself, to feed the data into the model one time step at a time. Here is an example of using the latter with a sine wave:</p>
 <pre class="line-numbers match-braces"><code class="language-python">import matplotlib.pyplot as plt
 import numpy as np
 import torch
@@ -65,7 +99,7 @@ from torch.utils.data import DataLoader, TensorDataset
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
-t_train = np.linspace(0, 100, 10000)
+t_train = np.linspace(0, 100, 10001)
 wave_train = np.sin(t_train).astype(np.float32)
 
 seq_len = 50
@@ -114,7 +148,7 @@ preds = []
 
 model.eval()
 with torch.no_grad():
-	for t in t_test:
+	for _ in t_test:
 		x_in = torch.tensor(window[-seq_len:], dtype=torch.float32).unsqueeze(0).unsqueeze(-1).to(device)
 		pred = model(x_in).item()
 		preds.append(pred)
@@ -132,17 +166,34 @@ plt.show()
 </code></pre>
 
 <p>在上述範例中：</p>
+<p>In the example above:</p>
+
 <ul>
 	<li>模型輸入是一段 sine wave，輸出是該 wave 的下一個點。</li>
 	<li>訓練用的 sine wave 的 t 的取值範圍是 [0, 100]，相鄰兩個取樣點間隔 0.01，後續再切成每 50 個點一組，並組裝成 shape 為 (N, seq_len, 1) 的資料，給模型讀取。</li>
 	<li>設定 batch_first=True 的目的是讓輸入資料的 shape 為 (N, seq_len, 1)；若未設定，則為 (seq_len, N, 1)。</li>
 	<li>無法使用 nn.Sequential 來包裝的原因，是因為我們只將 LSTM 的輸出，取其中一部分給全連接層處理。</li>
 	<li>此處的模型輸出，是取 LSTM 的 h 的最後一步，並交給 linear layer 做處理。你也可以做些改變，例如將所有 h 沿時間軸取平均，或者分類時多疊幾層 linear layer。</li>
-	<li>測試資料的 t 的取值範圍，是 t 約為 99.5 開始的 50 個點。示範的測試方式是，每次將 sine wave 灌入模型得到的新預測值附加至 wave 尾端，並拔掉 wave 頭端後，重新餵給模型做輸入，直到 t 走完為止。</li>
+	<li>測試時，t 初始的取值範圍，是從約 99.5 開始的 50 個點，使得第一個預測目標的 t 落在訓練資料的範圍外。而示範的測試方式是，每次將 sine wave 灌入模型得到的新預測值附加至 wave 尾端，並拔掉 wave 頭端後，重新餵給模型做輸入，直到 t 走完為止。</li>
 	<li>你可以試著改變 epoch 數目或 hidden size 等超參數，看看效果會如何改變。</li>
 </ul>
 
+<ul>
+	<li>The model input is a piece of a sine wave, and the output is the next point of the wave.</li>
+	<li>For the training sine wave, t ranges over [0, 100], with a gap of 0.01 between two neighboring samples. We then cut it into groups of 50 points, and assemble the data into the shape (N, seq_len, 1) for the model to read.</li>
+	<li>The purpose of batch_first=True is to make the input shape (N, seq_len, 1). If you don't set it, the shape is (seq_len, N, 1).</li>
+	<li>We can't wrap the model with nn.Sequential, because we only take part of the LSTM output and pass it to the fully connected layer.</li>
+	<li>The model output here is the last step of the LSTM's h, passed to a linear layer. You can also make some changes, such as averaging all the h values along the time axis, or stacking a few more linear layers for classification.</li>
+	<li>At test time, the first t values are the 50 points starting from about 99.5, so the t of the first prediction target falls outside the range of the training data. The testing method in this demo is as follows. Each time, we feed the sine wave into the model and get a new prediction. We add that prediction to the end of the wave, remove the first point of the wave, and feed it into the model again as the input. We repeat this until t has been covered.</li>
+	<li>You can try changing hyperparameters such as the number of epochs or the hidden size, and see how the results change.</li>
+</ul>
+
+<p>值得一提的是，這種在預測時，把模型的輸出回饋為下一步輸入的方式，稱為自迴歸(autoregressive)預測。這類預測方式，除了用在 LSTM 以外，也常被用於 Transformer 或是大語言模型(Large Language Model, LLM)等處。</p>
+
+<p>It is worth mentioning that, when predicting, feeding the model's output back in as the next input is called autoregressive prediction. Besides LSTM, this kind of prediction is also commonly used in Transformers and large language models (LLMs).</p>
+
 <p>雖然 LSTM 實際上的應用，主要是跟時間序列有關的問題，但我們也可以將影像的其中一個軸視為時間軸，來套用 LSTM。以下是用 LSTM 來進行 MNIST 數字分類的範例：</p>
+<p>Although LSTM is mainly used for problems related to time series, we can also treat one axis of an image as the time axis and use LSTM on it. Below is an example of using LSTM to classify MNIST digits:</p>
 <pre class="line-numbers match-braces"><code class="language-python">import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
@@ -150,7 +201,7 @@ from torchvision import datasets, transforms
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
-train_set = datasets.MNIST(root='./data', train=True,  download=True, transform=transforms.ToTensor())
+train_set = datasets.MNIST(root='./data', train=True, download=True, transform=transforms.ToTensor())
 test_set = datasets.MNIST(root='./data', train=False, download=True, transform=transforms.ToTensor())
 print('Data shapes:', train_set.data.shape, test_set.data.shape)
 
@@ -165,7 +216,7 @@ class LSTMModel(nn.Module):
 		self.linear = nn.Linear(64, 10)
 
 	def forward(self, x):
-		x = x.squeeze(1)  # (N, 1, 28, 28) -> (N, 28, 28)
+		x = x.squeeze(1) # (N, 1, 28, 28) -> (N, 28, 28)
 		out, _ = self.lstm(x)
 		return self.linear(out[:, -1, :])
 
@@ -193,7 +244,10 @@ print('Accuracy: {:.2f}%'.format(100 * correct / len(test_set)))
 
 <p>在上述範例中，原始影像的 shape 是 (N, C=1, H=28, W=28)，我們用 squeeze(1) 來拿掉 channel 軸，並將 height 軸視為時間軸，餵給 LSTM。</p>
 
+<p>In the example above, the shape of the original image is (N, C=1, H=28, W=28). We use squeeze(1) to remove the channel axis, treat the height axis as the time axis, and feed it into the LSTM.</p>
+
 <p>既然 LSTM 的後面可以疊其他東西，那前面也可以。一個常見的作法是，把圖片等資料先用 CNN 處理過後，再餵給 LSTM 處理。若以基於上一個範例做修改來說，你只要把 class 替換為以下的版本即可：</p>
+<p>Since we can stack other things after an LSTM, we can also put things before it. A common way is to process the image (or other data) with a CNN first, and then feed the result into the LSTM. If you modify the previous example, you only need to replace the class with the following version:</p>
 <pre class="line-numbers match-braces"><code class="language-python">class CNNLSTMModel(nn.Module):
 	def __init__(self):
 		super().__init__()
@@ -218,11 +272,22 @@ print('Accuracy: {:.2f}%'.format(100 * correct / len(test_set)))
 
 <p>在上述的 class 中，你需要把 CNN 處理完的結果中，適合當時間軸的維度移到前面來，才能餵給 LSTM。此外，LSTM 的輸入大小必須事先計算，因此你需要相當確定原始的輸入大小。</p>
 
+<p>In the class above, you need to move the dimension that is suitable as a time axis to the front, after the CNN finishes processing, so that you can feed it into the LSTM. Also, the input size of the LSTM must be calculated in advance, so you need to be quite sure about the size of the original input.</p>
+
 <p>關於前述內容中尚未示範的變體，包含但不限於以下：</p>
+
+<p>Here are some variants that were not shown above, including but not limited to:</p>
+
 <ul>
 	<li>多層 LSTM：可以透過 nn.LSTM 的 num_layers 參數，來指定要疊幾層 LSTM。堆疊多層時，下一層的 x 會是上一層的 h。</li>
 	<li>雙向 LSTM：若將 nn.LSTM 的 bidirectional 設為 True，則每層會有兩組 LSTM，分別沿時間軸的正向以及負向來看資料，輸出的 feature size 亦會變成兩倍。雙向 LSTM 堆疊多層時，第二層起的 x，是前一層的正向及負向產生的 h 並排而來。</li>
 	<li>前面提到 h<sub>0</sub> 與 c<sub>0</sub> 實務上通常使用 zero vector，但若有特殊需求，也可以自己準備 h<sub>0</sub> 與 c<sub>0</sub>。</li>
+</ul>
+
+<ul>
+	<li>Multi-layer LSTM: You can use the num_layers parameter of nn.LSTM to set how many LSTM layers to stack. When we stack many layers, the x of the next layer is the h of the previous layer.</li>
+	<li>Bidirectional LSTM: If you set bidirectional to True in nn.LSTM, each layer has two LSTMs. One looks at the data forward along the time axis, and the other looks at it backward. The output feature size also becomes twice as large. When we stack many bidirectional LSTM layers, the x from the second layer on is the forward h and the backward h of the previous layer, put side by side.</li>
+	<li>We said earlier that h<sub>0</sub> and c<sub>0</sub> are usually zero vectors in practice, but if you have special needs, you can also prepare your own h<sub>0</sub> and c<sub>0</sub>.</li>
 </ul>
 
 </blockquote>
